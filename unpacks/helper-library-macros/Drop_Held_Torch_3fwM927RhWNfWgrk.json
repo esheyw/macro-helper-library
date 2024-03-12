@@ -1,0 +1,24 @@
+{
+  "name": "Drop Held Torch",
+  "type": "script",
+  "_id": "3fwM927RhWNfWgrk",
+  "author": "xuYHxk9sJoYKM7d6",
+  "img": "modules/pf2e-macro-helper-library/assets/game-icons.net/whitebackground-drop-weapon.svg",
+  "scope": "global",
+  "command": "const mod = game.modules.get('pf2e-macro-helper-library');\nif (!mod) return void ui.notifications.error('Requires Macro & Helper Library enabled to function.');\nawait mod.api.macros.dropHeldTorch();",
+  "folder": null,
+  "sort": 0,
+  "ownership": {
+    "default": 0
+  },
+  "flags": {},
+  "_stats": {
+    "systemId": "pf2e",
+    "systemVersion": "5.13.6",
+    "coreVersion": "11.315",
+    "createdTime": 1707787314469,
+    "modifiedTime": 1707791411100,
+    "lastModifiedBy": "xuYHxk9sJoYKM7d6"
+  },
+  "_key": "!macros!3fwM927RhWNfWgrk"
+}

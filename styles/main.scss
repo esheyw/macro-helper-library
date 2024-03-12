@@ -1,0 +1,42 @@
+:root {
+  --mhl-frame-color-1: var(--color-primary-1, var(--color-bg-trait));
+  --mhl-frame-color-2: var(--color-primary-2, var(--color-pf-primary-light));
+  --mhl-text-color: var(--text-dark);
+  --mhl-text-header-color: var(--mhl-text-color);
+  --mhl-reset-text-shadow: 1px 1px 2px var(--color-border-dark-tertiary);
+  --mhl-text-error-decoration: underline wavy var(--color-level-error, rgb(148, 16, 16));
+  --mhl-color-success: var(--color-level-success, rgb(35, 131, 35));
+  --mhl-color-failure: var(--color-level-failure, rgb(148, 16, 16));
+
+  [data-color-scheme="dark"] {
+    --mhl-text-color: var(--text-color-1, var(--text-light));
+    --mhl-text-header-color: var(--mhl-text-color);
+    --mhl-reset-text-shadow: none;
+  }
+
+}
+
+div.section-separator {
+  display: flex;
+  align-items: center;
+  text-align: center;
+
+  &::before,
+  &::after {
+    content: "";
+    flex: 1;
+    border-style: solid;
+    border-color: var(--mhl-frame-color-1);
+    border-width: 0 0 1px 0;
+  }
+  &:not(:empty)::before {
+    margin-right: 0.25em;
+  }
+  &:not(:empty)::after {
+    margin-left: 0.25em;
+  }
+}
+.mhl-dialog.autoh {
+  height: auto !important;
+}
+@import "pickAThing", "updateInitiativeStatistics", "MHLSettingsManager";

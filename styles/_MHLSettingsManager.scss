@@ -1,0 +1,98 @@
+section.mhl-settings-manager {
+  span.mhl-reset-button {
+    float: right;
+    text-align: right;
+    padding-right: 0.2em;
+  }
+  a[data-reset-type] {
+    padding-left: 0.5em;
+    transition: 0.5s ease-out all;
+    text-shadow: var(--mhl-reset-text-shadow);
+    &.disabled-blurry {
+      filter: blur(2px);
+      cursor: not-allowed;
+    }
+
+    &.disabled-hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    &.disabled-transparent {
+      opacity: 0.25;
+      pointer-events: none;
+    }
+  }
+  h3[data-group] {
+    border-bottom: 1px solid var(--color-underline-header);
+  }
+  [data-setting-id] {
+    input[type="color"] {
+      max-width: 20%;
+    }
+
+    input[type="text"]:has(+ input[type="color"]):invalid {
+      text-decoration: var(--mhl-text-error-decoration);
+    }
+  }
+}
+
+.mhl-dialog.mhl-reset {
+  span.count-tooltip {
+    font-weight: bold;
+    text-decoration: underline;
+  }
+  table {
+    width: 100%;
+  }
+  // th:not(:first-child) {
+  // writing-mode: sideways-lr;
+  // transform: rotate(310deg);
+  // }
+  td {
+    border: 1px solid gold;
+    padding: 0.5rem;
+    font-weight: bolder;
+    text-align: center;    
+    &:has(i[class^="fa"]) {
+      color: var(--mhl-color-failure);
+      font-size: 1.2rem;
+    }
+
+    &:not(:first-child) {
+      max-width: 125px;
+    }
+
+    span {
+      display: block; 
+      overflow-wrap: break-word;
+      padding: 0.2rem;
+      border-radius: 15%;
+      height: 100%;
+      margin: 0;
+      &.default-true {
+        border: 1px dashed var(--mhl-color-success);
+        
+      }
+      &.default-false {
+        border: 1px dashed var(--mhl-color-failure);
+      }
+    }
+    &.object-setting {
+      overflow-wrap: normal;
+    }
+    &.object-setting {
+      text-align: left;
+    }
+    .value-display {
+      font-family: monospace;
+      white-space: pre-wrap;      
+    }
+    &.bool-true {
+      color: var(--mhl-color-success);
+    }
+    &.bool-false {
+      color: var(--mhl-color-failure);
+    }
+  }
+}

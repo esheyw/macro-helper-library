@@ -1,0 +1,60 @@
+{
+  "id": "pf2e-macro-helper-library",
+  "title": "Macro & Helper Library",
+  "compatibility": {
+    "minimum": "11",
+    "verified": "11.315"
+  },
+  "esmodules": ["scripts/init.mjs"],
+  "styles": ["styles/main.css"],
+  "authors": [
+    {
+      "name": "Emmanuel Wineberg",
+      "email": "esheyw@gmail.com",
+      "url": "https://github.com/esheyw",
+      "discord": "esheyw"
+    }
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json",
+      "flags": {}
+    }
+  ],
+  "license": "LICENSE",
+  "flags": {
+    "hotReload": {
+      "extensions": ["css", "hbs", "json"]
+    }
+  },
+  "version": "0.2.8",
+  "manifest": "updatedByRelease",
+  "url": "updatedByRelease",
+  "download": "updatedByRelease",
+  "readme": "https://github.com/esheyw/pf2e-macro-helper-library/blob/main/README.md",
+  "bugs": "https://github.com/esheyw/pf2e-macro-helper-library/issues",
+  "changelog": "https://github.com/esheyw/pf2e-macro-helper-library/blob/main/CHANGELOG.md",
+  "packs": [
+    {
+      "name": "helper-library-macros",
+      "label": "Helper Library Macros",
+      "path": "packs/helper-library-macros",
+      "type": "Macro",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    }
+  ],
+  "packFolders": [
+    {
+      "name": "Macro Helper Library",
+      "color": "#124b47",
+      "sorting": "m",
+      "packs": ["helper-library-macros"]
+    }
+  ],
+  "library": true
+}

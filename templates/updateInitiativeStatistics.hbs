@@ -1,0 +1,20 @@
+<form>
+  <div class="section-separator">{{mhlocalize "MHL.Prompt.SetAllSelected"}}</div>
+  <div class="all-container">
+    <label for="{{idPrefix}}all">{{mhlocalize "MHL.Macro.UpdateInitiativeStatistics.AllSharedSkills"}}</label>
+    <select id="{{idPrefix}}all" name="all">
+      {{selectOptions allSharedSkills blank="-" localize="true"}}
+    </select>
+  </div>
+  <div class="section-separator">{{mhlocalize "MHL.Prompt.SetIndividually"}}</div>
+  <div class="actors-container">
+    <h3>{{mhlocalize "Name"}}</h3><h3>{{mhlocalize "MHL.Current"}}</h3><h3>{{mhlocalize "MHL.SetTo"}}</h3>
+    {{#each actorsData}}
+      <label for="{{@root.idPrefix}}{{uuid}}">{{name}}</label>
+      <span class="current">{{current}}</span>
+      <select id="{{@root.idPrefix}}{{uuid}}" name="{{uuid}}">
+        {{selectOptions skills localize="true" blank="-"}}
+      </select>
+    {{/each}}
+  </div>
+</form>

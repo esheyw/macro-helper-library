@@ -1,0 +1,18 @@
+- fix token settings on dropHeldTorch
+- brushup the group initiative skills dialog macro
+  - double check CSS on various themes/no-dorako
+- npm package setup, run link dev
+  - or just a standalone script
+- update MCT readme for player folders
+- improve reset setting dialog formatting and choice label retreival
+- better error handling/fallback generally
+- hide reset anchors toggle in section?
+- set up physical types per system
+- replace MHL setting defaults to non-testing values before release
+- known bug: Reset All button doesn't go dormant if an object setting was reset
+- finish generalizing ResetMultiple dialog
+- wrap per-setting resets in spans, experiment with more positioning
+- consolidate updateResetX listeners
+- MCT: sort existing on updateRootFolder? leave button or retire?
+- move "ungrouped" to null
+- fix double module prefix on error banners

@@ -1,0 +1,37 @@
+.mhldialog.pick-a-thing {
+  img {
+    max-width: 40px;
+    max-height: 40px;
+    width: 40px;
+    height: 40px;
+    margin: auto 2px auto 2px;
+  }
+  
+  .dialog-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  button {
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+    padding: 0px;
+    margin: 0px;
+
+    span.item-name {
+      text-align: left;
+      margin: auto auto auto 2%;
+    }
+
+    span.dupe-id {
+      font-size: 0.7em;
+      text-align: right;
+      margin: auto;
+      margin-right: 2%;
+      color: var(--color-cool-3, #573fc0);
+    }
+  }
+}
+  

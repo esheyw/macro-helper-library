@@ -1,0 +1,25 @@
+{
+  "name": "pf2e-macro-helper-library",
+  "version": "0.2.4",
+  "description": "PF2e Macro & Helper Library",
+  "main": "scripts/init.mjs",
+  "scripts": {
+    "sass": "sass styles/main.scss styles/main.css",
+    "unpack": "node build/unpack.mjs",
+    "pack": "node build/pack.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "github:esheyw/pf2e-macro-helper-library"
+  },
+  "author": "Emmanuel Wineberg <esheyw@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/esheyw/pf2e-macro-helper-library/issues"
+  },
+  "homepage": "https://github.com/esheyw/pf2e-macro-helper-library#readme",
+  "devDependencies": {
+    "@foundryvtt/foundryvtt-cli": "^1.0.2",
+    "sass": "^1.70.0"
+  }
+}

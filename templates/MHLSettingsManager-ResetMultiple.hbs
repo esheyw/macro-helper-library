@@ -1,0 +1,51 @@
+{{!-- 
+
+<style>
+  {{#each settings as |data setting|}}
+    {{#if (isColor currentValue)}}
+    .mhl-dialog.mhl-reset-all td.{{setting}}-current-color::after {
+      content: " \25A1";
+      color: {{currentValue}};
+    }
+    {{/if}}
+    {{#if (isColor defaultValue)}}
+    .mhl-dialog.mhl-reset-all td.{{setting}}-default-color::after {
+      content: " \25A0";
+      color: "{{defaultValue}}";
+    }
+    {{/if}}
+  {{/each}}
+</style> --}}
+
+<h3>{{mhlocalize "MHL.SettingsManager.ResetMultiple.Header" module=module}}</h3>
+<p>
+  {{mhlocalize
+    "MHL.SettingsManager.ResetMultiple.Body"
+    defaultlessTooltip=defaultlessTooltip
+    defaultlessCount=defaultlessCount
+    areDefaultTooltip=areDefaultlessTooltip
+    areDefault=areDefault
+  }}
+</p>
+<table>
+  <thead>
+    <tr>
+      <th>{{mhlocalize "DOCUMENT.Setting"}}</th>
+      <th>{{mhlocalize "MHL.Visible"}}</th>
+      <th>{{mhlocalize "MHL.CurrentValue"}}</th>
+      <th>{{mhlocalize "MHL.DefaultValue"}}</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each changed}}
+      <tr>
+        <td>{{@key}}</td>
+        <td class="bool-{{visible}}">{{yesOrNo visible}}</td>
+        <td class="value-display">{{currentValue}}</td>
+        <td class="value-display">{{defaultValue}}</td>
+      </tr>
+    {{/each}}
+  </tbody>
+</table>
+
+<p><em>{{mhlocalize "MHL.SettingsManager.ResetMultiple.Footer"}}</em></p>
