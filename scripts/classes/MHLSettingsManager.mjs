@@ -117,21 +117,22 @@ export class MHLSettingsManager {
     }
 
     if (this.options.colorPickers) {
-      mhlog("rendering color pickers", { func });
       this.#addColorPickers(section);
     }
 
     const settingDivs = htmlQueryAll(section, `[data-setting-id]`);
-    const firstInputs = [];
+    const firstInputs = settingDivs.reduce((acc, div) => {
+      const input = htmlQuery(div, "input, select");
+      if (input) acc.push(input);
+      return acc;
+    }, []);
+
     for (const div of settingDivs) {
       const settingData = game.settings.settings.get(div.dataset.settingId);
 
       if (this.options.actionButtons && "button" in settingData) {
         this.#replaceWithButton(div, settingData.button);
       }
-
-      const firstInput = htmlQuery(div, "input, select");
-      if (firstInput) firstInputs.push(firstInput);
 
       if (this.options.visibility && "visibility" in settingData) {
         this.#addVisibilityListeners(div, settingData.visibility);
@@ -286,7 +287,10 @@ export class MHLSettingsManager {
     if ("colorPicker" in data) {
       const regex = new RegExp(this.#colorPattern);
       if (!regex.test(data?.default ?? "")) {
-        mhlog({ setting, data }, { prefix: "colorPicker: true, but doesnt pass regex" });
+        modLog(
+          { setting, data },
+          { prefix: `${PREFIX}.Error.InvalidColorPicker`, func, localize: true, mod: this.options.modPrefix }
+        );
         data.colorPicker = false;
       }
     }
@@ -1031,7 +1035,15 @@ export class MHLSettingsManager {
     // this is to support checking if the form value = default; use the cached value if available
     //TODO: hopefully this works?
     value = value !== undefined ? value : data?.value !== undefined ? data.value : this.get(setting);
-    const currentValue = "type" in data ? data.type(value) : value;
+    let currentValue;
+    if ("type" in data) {
+      if ([Set, Map, Collection].includes(data.type) && !(value instanceof data.type)) {
+        currentValue = new data.type(value);
+      } else {
+        currentValue = data.type(value);
+      }
+    } else currentValue = value;
+    // const currentValue = "type" in data ? data.type(value) : value;
     return typeof currentValue === "object"
       ? isEmpty(fu.diffObject(defaultValue, currentValue))
       : defaultValue === currentValue;
@@ -1064,7 +1076,8 @@ export class MHLSettingsManager {
       for (const group of groupOrder) {
         if (group !== null) {
           const groupHeader = document.createElement("h3");
-          groupHeader.innerText = localize(group);
+          const groupName = group.startsWith('.') ? `${this.options.settingPrefix}Group${group}`: group;
+          groupHeader.innerText = localize(groupName);
           groupHeader.dataset.group = group;
           sortOrder.push(groupHeader);
         }

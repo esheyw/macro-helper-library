@@ -29,7 +29,7 @@ Hooks.on("init", () => {
   const settingManagerOptions = {
     settingPrefix: "MHL.Setting",
     disabledResetClass: "disabled-transparent",
-    // resetButtons: false,
+    resetButtons: ["settings","module"],
     groups: true,
     // sort: "a"
   };

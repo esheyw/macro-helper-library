@@ -89,7 +89,8 @@
         "InvalidSettingsUnknown": "Settings data of unknown format cannot be processed.",
         "InvalidGroup": "Group names must be strings.",
         "InvalidSort": "The `sort` option, if provided, must be the string \"a\" or a string comparison function. Reverting to registration order",
-        "InvalidResetButtons": "The `resetButtons` option, if provided, must be either true or false, or one of the strings \"all\", \"settings\", \"groups\", or \"module\", or an array of such. Defaulting to false."
+        "InvalidResetButtons": "The `resetButtons` option, if provided, must be either true or false, or one of the strings \"all\", \"settings\", \"groups\", or \"module\", or an array of such. Defaulting to false.",
+        "InvalidColorPicker": "A setting with `colorPicker: true` in its data must have a default value that is a valid 7-character hex code (e.g. #FFFFFF)."
       },
       "Warning": {
         "CacheMiss": "Cache miss retrieving setting {key} from module {module}",
