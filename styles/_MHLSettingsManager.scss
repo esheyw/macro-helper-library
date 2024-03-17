@@ -50,7 +50,7 @@ section.mhl-settings-manager {
   // transform: rotate(310deg);
   // }
   td {
-    border: 1px solid gold;
+    // border: 1px solid gold;
     padding: 0.5rem;
     font-weight: bolder;
     text-align: center;    
@@ -67,15 +67,14 @@ section.mhl-settings-manager {
       display: block; 
       overflow-wrap: break-word;
       padding: 0.2rem;
-      border-radius: 15%;
+      border-radius: 10%;
       height: 100%;
       margin: 0;
       &.default-true {
-        border: 1px dashed var(--mhl-color-success);
-        
+        border: 1px dotted var(--mhl-color-success);        
       }
       &.default-false {
-        border: 1px dashed var(--mhl-color-failure);
+        border: 2px dashed var(--mhl-color-failure);
       }
     }
     &.object-setting {

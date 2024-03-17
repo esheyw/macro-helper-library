@@ -31,7 +31,7 @@ export const SETTINGS = {
     visibility: {
       dependsOn: ["!test-client", "test-range"],
       test: (formValues, savedValues, visibile) => {
-        return formValues['test-range'] > 5 && !formValues['test-client'];
+        return formValues["test-range"] > 5 && !formValues["test-client"];
       },
     },
   },
@@ -94,6 +94,7 @@ export const SETTINGS = {
     hint: null,
     scope: "world",
     group: "MHL.SettingGroup.Testing",
+    colorPicker: true,
   },
   "global-access": {
     config: true,

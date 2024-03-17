@@ -1,5 +1,5 @@
 {
-  "id": "pf2e-macro-helper-library",
+  "id": "macro-helper-library",
   "title": "Macro & Helper Library",
   "compatibility": {
     "minimum": "11",
@@ -33,9 +33,9 @@
   "manifest": "updatedByRelease",
   "url": "updatedByRelease",
   "download": "updatedByRelease",
-  "readme": "https://github.com/esheyw/pf2e-macro-helper-library/blob/main/README.md",
-  "bugs": "https://github.com/esheyw/pf2e-macro-helper-library/issues",
-  "changelog": "https://github.com/esheyw/pf2e-macro-helper-library/blob/main/CHANGELOG.md",
+  "readme": "https://github.com/esheyw/macro-helper-library/blob/main/README.md",
+  "bugs": "https://github.com/esheyw/macro-helper-library/issues",
+  "changelog": "https://github.com/esheyw/macro-helper-library/blob/main/CHANGELOG.md",
   "packs": [
     {
       "name": "helper-library-macros",

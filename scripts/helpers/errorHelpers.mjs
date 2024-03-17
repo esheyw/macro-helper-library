@@ -30,7 +30,7 @@ export function log(loggable, options = {}) {
 export function modLog(loggable, options = {}) {
   let { type, prefix, context, func, mod } = options;
   options.localize ??= false; // don't destructure so as to not conflict with the function; probably a tidier way to do this
-  type ??= setting("log-level") ?? "debug";
+  type ??= setting("log-level") ?? "error";
   prefix = String(prefix ?? "");
   if (typeof loggable === "string") {
     loggable = options?.localize ? localize(loggable, context) : loggable;

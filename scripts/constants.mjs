@@ -1,4 +1,4 @@
-export const MODULE_ID = "pf2e-macro-helper-library";
+export const MODULE_ID = "macro-helper-library";
 export const PHYSICAL_ITEM_TYPES = [
   "armor",
   "backpack",

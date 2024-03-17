@@ -7,12 +7,11 @@ import { MHLDialog } from "./MHLDialog.mjs";
 const PREFIX = `MHL.SettingsManager`;
 const funcPrefix = `MHLSettingsManager`;
 export class MHLSettingsManager {
+  #colorPattern = "^#[A-Fa-f0-9]{6}";
   #groupOrder = new Set();
   #initialized = false;
   #module;
   #potentialSettings = new Set();
-  #resetAllListener = { listener: null, active: false };
-  #resetGroupListeners = new Collection();
   #resetListeners = new Collection([
     ["all", null],
     ["groups", new Collection()],
@@ -117,6 +116,11 @@ export class MHLSettingsManager {
       this.#addResetButtons(section);
     }
 
+    if (this.options.colorPickers) {
+      mhlog("rendering color pickers", { func });
+      this.#addColorPickers(section);
+    }
+
     const settingDivs = htmlQueryAll(section, `[data-setting-id]`);
     const firstInputs = [];
     for (const div of settingDivs) {
@@ -128,10 +132,6 @@ export class MHLSettingsManager {
 
       const firstInput = htmlQuery(div, "input, select");
       if (firstInput) firstInputs.push(firstInput);
-
-      if (this.options.colorPickers) {
-        this.#addColorPicker(div);
-      }
 
       if (this.options.visibility && "visibility" in settingData) {
         this.#addVisibilityListeners(div, settingData.visibility);
@@ -148,8 +148,9 @@ export class MHLSettingsManager {
     const func = `${funcPrefix}#get`;
     if (game?.user) {
       if (game.settings.settings.get(`${this.#module.id}.${key}`) === undefined) {
-        mhlog(`${PREFIX}.Error.NotRegistered`, {
+        modLog(`${PREFIX}.Error.NotRegistered`, {
           type: "error",
+          mod: this.options.modPrefix,
           context: { setting: key, module: this.#module.title },
           localize: true,
           func,
@@ -198,9 +199,10 @@ export class MHLSettingsManager {
         : null;
 
     if (!settings) {
-      mhlog(`${PREFIX}.Error.NoValidSettings`, {
+      modLog(`${PREFIX}.Error.NoValidSettings`, {
         type: "error",
-        context: { module: this.#module.id },
+        mod: this.options.modPrefix,
+        context: { module: this.#module.title },
         localize: true,
         func,
       });
@@ -212,10 +214,11 @@ export class MHLSettingsManager {
     for (const [setting, data] of settings) {
       const success = this.registerSetting(setting, data, { initial: true });
       if (!success) {
-        mhlog(
+        modLog(
           { setting, data, module: this.#module.id },
           {
             localize: true,
+            mod: this.options.modPrefix,
             prefix: `${PREFIX}.Error.InvalidSettingData`,
             func,
             context: { setting, module: this.#module.id },
@@ -236,10 +239,11 @@ export class MHLSettingsManager {
     const func = `${funcPrefix}#registerSetting`;
     if (!this.#potentialSettings.has(setting)) this.#potentialSettings.add(setting);
     if (game.settings.settings.get(`${this.#module.id}.${setting}`)) {
-      mhlog(`${PREFIX}.Error.DuplicateSetting`, {
+      modLog(`${PREFIX}.Error.DuplicateSetting`, {
         type: "error",
         localize: true,
-        context: { setting, module: this.#module.id },
+        mod: this.options.modPrefix,
+        context: { setting, module: this.#module.title },
         func,
       });
       return false;
@@ -276,6 +280,15 @@ export class MHLSettingsManager {
       data.button = this.#processButtonData(setting, data.button);
       // since buttons replace whole settings, if validation fails, don't create a useless text input
       if (!data.button) return false;
+    }
+
+    //only allow colour pickers for settings with a valid colour hex code as default value
+    if ("colorPicker" in data) {
+      const regex = new RegExp(this.#colorPattern);
+      if (!regex.test(data?.default ?? "")) {
+        mhlog({ setting, data }, { prefix: "colorPicker: true, but doesnt pass regex" });
+        data.colorPicker = false;
+      }
     }
     //handle setting visibility dependencies
     if ("visibility" in data) {
@@ -351,9 +364,9 @@ export class MHLSettingsManager {
   #processButtonData(setting, buttonData) {
     const func = `${funcPrefix}#processButtonData`;
     if (typeof buttonData !== "object" || !("action" in buttonData) || typeof buttonData.action !== "function") {
-      mhlog(
+      modLog(
         { setting, buttonData, module: this.#module.id },
-        { localize: true, prefix: `${PREFIX}.Error.Button.BadFormat`, func }
+        { mod: this.options.modPrefix, localize: true, prefix: `${PREFIX}.Error.Button.BadFormat`, func }
       );
       return false;
     }
@@ -466,13 +479,14 @@ export class MHLSettingsManager {
         invalid = true;
       }
       if (invalid) {
-        mhlog(
-          { setting, hookData, module: this.#module.id },
+        modLog(
+          { setting, hookData, module: this.#module },
           {
             type: "error",
+            mod: this.options.modPrefix,
             localize: true,
             prefix: errorstr,
-            context: { setting, hook: hookData?.hook, module: this.#module.id },
+            context: { setting, hook: hookData?.hook, module: this.#module.title },
             func,
           }
         );
@@ -547,40 +561,45 @@ export class MHLSettingsManager {
     }
   }
 
-  #addColorPicker(div) {
-    const pattern = "^#[A-Fa-f0-9]{6}";
-    const regex = new RegExp(pattern);
-    const settingName = div.dataset.settingId.split(".")[1];
-    const defaultValue = game.settings.settings.get(div.dataset.settingId).default;
-    const textInput = htmlQuery(div, 'input[type="text"]');
-    if (!textInput || !regex.test(defaultValue)) return undefined;
-    const colorPicker = document.createElement("input");
-    colorPicker.type = "color";
-    colorPicker.dataset.edit = div.dataset.settingId;
-    colorPicker.value = this.get(settingName);
-    colorPicker.addEventListener(
-      "input",
-      function (event) {
-        //force a reset anchor refresh; foundry's code for updating the text field runs too slowly?
-        textInput.value = event.target.value;
-        if (this.options.resetButtons) this.#updateResetButtons(event);
-      }.bind(this)
+  #addColorPickers(section) {
+    const func = `${funcPrefix}#addColorPickers`;
+    const colorSettings = this.#settings.filter((s) => s?.colorPicker).map((s) => s.key);
+    const divs = htmlQueryAll(section, "div[data-setting-id]").filter((div) =>
+      colorSettings.includes(div.dataset.settingId.split(".")[1])
     );
-    textInput.parentElement.append(colorPicker);
-    textInput.pattern = pattern;
-    textInput.addEventListener("input", (event) => {
-      //would love to support more than a string 6-character hex code, but input[type=color] yells about condensed and/or rgba on chrome
-      if (event.target.value.length > 7) {
-        event.target.value = event.target.value.substring(0, 7);
-      }
-      if (!regex.test(event.target.value)) {
-        textInput.dataset.tooltipDirection = "UP";
-        textInput.dataset.tooltip = localize(`${PREFIX}.ColorPicker.ValidHexCode`);
-      } else {
-        textInput.dataset.tooltip = "";
-        colorPicker.value = event.target.value;
-      }
-    });
+    if (!divs.length) return;
+    for (const div of divs) {
+      const settingName = div.dataset.settingId.split(".")[1];
+      const textInput = htmlQuery(div, 'input[type="text"]');
+      if (!textInput) continue;
+      const colorPicker = document.createElement("input");
+      colorPicker.type = "color";
+      colorPicker.dataset.edit = div.dataset.settingId;
+      colorPicker.value = this.get(settingName);
+      colorPicker.addEventListener(
+        "input",
+        function (event) {
+          //force a reset anchor refresh; foundry's code for updating the text field runs too slowly?
+          textInput.value = event.target.value;
+          if (this.options.resetButtons) this.#updateResetButtons(event);
+        }.bind(this)
+      );
+      textInput.parentElement.append(colorPicker);
+      textInput.pattern = this.#colorPattern;
+      textInput.addEventListener("input", (event) => {
+        //would love to support more than a string 6-character hex code, but input[type=color] yells about condensed and/or rgba on chrome
+        if (event.target.value.length > 7) {
+          event.target.value = event.target.value.substring(0, 7);
+        }
+        if (!regex.test(event.target.value)) {
+          textInput.dataset.tooltipDirection = "UP";
+          textInput.dataset.tooltip = localize(`${PREFIX}.ColorPicker.ValidHexCode`);
+        } else {
+          textInput.dataset.tooltip = "";
+          colorPicker.value = event.target.value;
+        }
+      });
+    }
   }
 
   #replaceWithButton(div, data) {
@@ -754,7 +773,7 @@ export class MHLSettingsManager {
     const dialogOptions = {
       classes: ["mhl-reset"],
       id: dialogID,
-      width: 700,
+      width: 750,
       resizable: true,
     };
     const settings =
@@ -979,7 +998,6 @@ export class MHLSettingsManager {
         anchor.addEventListener("click", listener);
       }
     }
-    // mhlog({ target: event.target, section, div, formValues }, { func });
   }
 
   #_value(input) {
@@ -1098,9 +1116,10 @@ export class MHLSettingsManager {
 
   #requireSetting(setting, func = null) {
     if (!this.#settings.has(setting)) {
-      mhlog(`${PREFIX}.Error.NotRegistered`, {
+      modLog(`${PREFIX}.Error.NotRegistered`, {
         type: "error",
         localize: true,
+        mod: this.options.modPrefix,
         context: { setting, module: this.#module.id },
         func,
       });
