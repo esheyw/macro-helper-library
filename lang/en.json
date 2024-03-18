@@ -90,11 +90,11 @@
         "InvalidGroup": "Group names must be strings.",
         "InvalidSort": "The `sort` option, if provided, must be the string \"a\" or a string comparison function. Reverting to registration order",
         "InvalidResetButtons": "The `resetButtons` option, if provided, must be either true or false, or one of the strings \"all\", \"settings\", \"groups\", or \"module\", or an array of such. Defaulting to false.",
-        "InvalidColorPicker": "A setting with `colorPicker: true` in its data must have a default value that is a valid 7-character hex code (e.g. #FFFFFF)."
+        "InvalidColorPicker": "A setting with `colorPicker: true` in its data must have a default value that is a valid 7-character hex code (e.g. #FFFFFF).",
+        "InvalidEnrichers":"Hint enrichers, if provided, must be in the form of either a Map or an Object with pattern keys and replacement values (for use with `String.replace()`), or an Array of such pairs."
       },
       "Warning": {
-        "CacheMiss": "Cache miss retrieving setting {key} from module {module}",
-        "RetrievalBeforeInit": "Attempting to retrive setting \"{key}\" of {module} but the settings manager is not yet initialized, returning undefined."
+
       }
     },
     "Dialog": {
@@ -213,19 +213,19 @@
       "SystemBelowVerified": "Your system version ({version}) is older than what Macro & Helper Library is verified for ({verified}). This may cause things to break, or might not; No guarantees."
     },
     "Setting": {
+      "DisabledClass":{
+        "Name":"Disabled Reset Button Class",
+        "Hint":"The CSS class applied to reset-to-default buttons that are currently disabled, if not overridden by a given module's MHLSettingsManager options. MHL ships with `disabled-transparent`, `disabled-blurry`, and `disabled-hidden`."
+      },
       "LogLevel": {
         "Name": "Default Log Level",
-        "Hint": "The default level for mhlog() calls. Setting this to Warning or Error can be helpful with troubleshooting.",
+        "Hint": "The default level for `mhlog()`/`modLog()` calls. Setting this to Warning or Error can be helpful with troubleshooting.",
         "Choice": {
           "Debug": "Debug",
           "Info": "Info",
           "Warn": "Warning",
           "Error": "Error"
         }
-      },
-      "NotifyOnError": {
-        "Name": "Banner Notifications",
-        "Hint": "Show banner notifications on macro error? (errors will be in console either way)"
       },
       "LegacyAccess": {
         "Name": "Legacy API Access",
@@ -237,6 +237,7 @@
       }
     },
     "SettingGroup": {
+      "Defaults": "Library Defaults",
       "Testing": "Testing",
       "Access": "API Access",
       "ErrorHandling": "Error Handling"

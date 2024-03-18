@@ -1,6 +1,15 @@
 import { mhlog } from "./helpers/errorHelpers.mjs";
 import { MODULE } from "./init.mjs";
 export const SETTINGS = {
+  "disabled-class": {
+    config: true,
+    type: String,
+    name: null,
+    hint: null,
+    group: ".Defaults",
+    scope: "world",
+    default: "disabled-transparent",
+  },
   "log-level": {
     config: true,
     type: String,
@@ -14,7 +23,7 @@ export const SETTINGS = {
     },
     default: "warn",
     scope: "world",
-    group: "MHL.SettingGroup.ErrorHandling",
+    group: ".ErrorHandling",
   },
   "global-access": {
     config: true,
@@ -27,7 +36,7 @@ export const SETTINGS = {
       if (!!value) globalThis.mhl = MODULE().api;
       else delete globalThis.mhl;
     },
-    group: "MHL.SettingGroup.Access",
+    group: ".Access",
   },
   "legacy-access": {
     config: true,
@@ -40,7 +49,7 @@ export const SETTINGS = {
       if (value) game.pf2emhl = MODULE().api;
       else delete game.pf2emhl;
     },
-    group: "MHL.SettingGroup.Access",
+    group: ".Access",
   },
 };
 

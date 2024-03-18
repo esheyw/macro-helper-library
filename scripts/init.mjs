@@ -30,6 +30,7 @@ Hooks.on("init", () => {
     settingPrefix: "MHL.Setting",
     disabledResetClass: "disabled-transparent",
     resetButtons: ["settings","module"],
+  enrichHints: [[/(mhl)(?!\S)/gi,5]],
     groups: true,
     // sort: "a"
   };

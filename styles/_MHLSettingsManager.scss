@@ -5,7 +5,8 @@ section.mhl-settings-manager {
     padding-right: 0.2em;
   }
   a[data-reset-type] {
-    padding-left: 0.5em;
+    display:inline;
+    // padding-left: 0.5em;
     transition: 0.5s ease-out all;
     text-shadow: var(--mhl-reset-text-shadow);
     &.disabled-blurry {
@@ -20,7 +21,7 @@ section.mhl-settings-manager {
 
     &.disabled-transparent {
       opacity: 0.25;
-      pointer-events: none;
+      cursor: default;
     }
   }
   h3[data-group] {

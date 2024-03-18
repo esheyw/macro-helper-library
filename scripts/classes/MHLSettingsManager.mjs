@@ -1,13 +1,15 @@
 import { MODULE_ID, fu } from "../constants.mjs";
 import { htmlClosest, htmlQuery, htmlQueryAll } from "../helpers/DOMHelpers.mjs";
-import { MHLBanner, MHLError, isEmpty, mhlog, modLog } from "../helpers/errorHelpers.mjs";
+import { MHLError, isEmpty, mhlog, modLog } from "../helpers/errorHelpers.mjs";
 import { isRealGM } from "../helpers/otherHelpers.mjs";
 import { localize, getIconString, sluggify } from "../helpers/stringHelpers.mjs";
 import { MHLDialog } from "./MHLDialog.mjs";
+import { setting } from "../settings.mjs";
 const PREFIX = `MHL.SettingsManager`;
 const funcPrefix = `MHLSettingsManager`;
 export class MHLSettingsManager {
   #colorPattern = "^#[A-Fa-f0-9]{6}";
+  #enrichers = new Map([[/`([^`]+)`/g, `<code>$1</code>`]]);
   #groupOrder = new Set();
   #initialized = false;
   #module;
@@ -63,6 +65,10 @@ export class MHLSettingsManager {
       this.options.resetButtons = ["settings", "groups", "module"];
     }
 
+    if (this.options.enrichHints && this.options.enrichHints !== true) {
+      this.#processEnricherData(this.options.enrichHints);
+    }
+
     if (options?.settings) this.registerSettings(settings);
     Hooks.on("renderSettingsConfig", this.#onRenderSettings.bind(this));
     this.#initialized = true;
@@ -93,8 +99,9 @@ export class MHLSettingsManager {
       sort: null, // handle sorting of settings. "a" for alphabetical on name, or a custom compare function.
       settingPrefix: prefix + ".Setting", //String to start inferred localization keys with
       infix: "Choice", // localization key section placed between setting name and choice value when inferring choice localization
-      disabledResetClass: "disabled-transparent", // css class toggled on reset buttons when the setting in question is already its default value
+      disabledClass: null, // css class toggled on reset buttons when the setting in question is already its default value, if null uses module setting
       modPrefix: prefix.replace(/[a-z]/g, ""), // prefix for logged errors/warnings
+      enrichHints: true,
     };
   }
 
@@ -119,14 +126,11 @@ export class MHLSettingsManager {
     if (this.options.colorPickers) {
       this.#addColorPickers(section);
     }
-
+    if (this.options.enrichHints) {
+      this.#enrichHints(section);
+    }
     const settingDivs = htmlQueryAll(section, `[data-setting-id]`);
-    const firstInputs = settingDivs.reduce((acc, div) => {
-      const input = htmlQuery(div, "input, select");
-      if (input) acc.push(input);
-      return acc;
-    }, []);
-
+    //todo: migrate to per-section functions
     for (const div of settingDivs) {
       const settingData = game.settings.settings.get(div.dataset.settingId);
 
@@ -139,7 +143,12 @@ export class MHLSettingsManager {
       }
     }
 
-    //initial visibility checks
+    //initial visibility checks & reset button updates
+    const firstInputs = settingDivs.reduce((acc, div) => {
+      const input = htmlQuery(div, "input, select");
+      if (input) acc.push(input);
+      return acc;
+    }, []);
     for (const el of firstInputs) {
       el.dispatchEvent(new Event("change"));
     }
@@ -339,6 +348,36 @@ export class MHLSettingsManager {
     }
   }
 
+  #processEnricherData(enrichers) {
+    const func = `${funcPrefix}#processEnricherData`;
+    const badEnrichers = () =>
+      modLog(
+        { enrichers },
+        { func, localize: true, mod: this.options.modPrefix, prefix: `${PREFIX}.Error.InvalidEnrichers` }
+      );
+    if (!Array.isArray(enrichers)) {
+      if (enrichers instanceof Map) {
+        enrichers = Array.from(enrichers);
+      } else if (typeof enrichers === "object") {
+        enrichers = Object.entries(enrichers);
+      } else {
+        return badEnrichers();
+      }
+    }
+    if (
+      !enrichers.every(
+        (e) =>
+          e.length === 2 &&
+          (e[0] instanceof RegExp || typeof e[0] === "string") &&
+          ["function", "string"].includes(typeof e[1])
+      )
+    ) {
+      return badEnrichers();
+    }
+    for (const [pattern, replacement] of enrichers) {
+      this.#enrichers.set(pattern, replacement);
+    }
+  }
   #processNullLabels(setting, data) {
     if ("name" in data && data.name === null) {
       data.name = [this.options.settingPrefix, sluggify(setting, { camel: "bactrian" }), "Name"].join(".");
@@ -565,6 +604,19 @@ export class MHLSettingsManager {
     }
   }
 
+  #enrichHints(section) {
+    const func = `${funcPrefix}#enrichHints`;
+    const hints = htmlQueryAll(section, "div[data-setting-id] p.notes");
+    for (const hint of hints) {
+      let text = hint.innerHTML;
+      if (!text) continue;
+      for (const [pattern, replacement] of this.#enrichers.entries()) {
+        text = text.replace(pattern, replacement);
+      }
+      hint.innerHTML = text;
+    }
+  }
+
   #addColorPickers(section) {
     const func = `${funcPrefix}#addColorPickers`;
     const colorSettings = this.#settings.filter((s) => s?.colorPicker).map((s) => s.key);
@@ -718,6 +770,7 @@ export class MHLSettingsManager {
       }
       if (opt.includes("settings")) {
         const label = htmlQuery(div, "label");
+        const textNode = Array.from(label.childNodes).find((n) => n.nodeName === "#text");
         const anchor = document.createElement("a");
         anchor.dataset.reset = setting;
         anchor.dataset.resetType = "setting";
@@ -726,7 +779,7 @@ export class MHLSettingsManager {
         const listener = this.#onResetClick2.bind(this);
         this.#resetListeners.get("settings").set(setting, listener);
         anchor.addEventListener("click", listener);
-        label.append(anchor);
+        label.insertBefore(anchor, textNode);
       }
       firstInput.addEventListener("change", this.#updateResetButtons.bind(this));
     }
@@ -960,15 +1013,16 @@ export class MHLSettingsManager {
     const resettables = this.#settings.filter(
       (s) => (s?.scope === "world" ? isGM : true) && this.#isDefault(s.key, formValues[s.key] ?? undefined) === false
     );
+    const disabledClass = this.options.disabledClass ?? setting("disabled-class");
     if (opt.includes("module")) {
       const anchor = htmlQuery(section, `a[data-reset-type="module"][data-reset="${this.#module.id}"]`);
       const listener = this.#resetListeners.get("all");
       if (!resettables.length) {
-        anchor.classList.add(this.options.disabledResetClass);
+        anchor.classList.add(disabledClass);
         anchor.dataset.tooltip = localize(`${PREFIX}.ResetMultiple.AllModuleDefault`);
         anchor.removeEventListener("click", listener);
       } else {
-        anchor.classList.remove(this.options.disabledResetClass);
+        anchor.classList.remove(disabledClass);
         anchor.dataset.tooltip = localize(`${PREFIX}.ResetMultiple.ModuleTooltip`);
         anchor.addEventListener("click", listener);
       }
@@ -979,11 +1033,11 @@ export class MHLSettingsManager {
       const listener = this.#resetListeners.get("groups").get(group);
       const groupResettables = resettables.filter((s) => s.group === group);
       if (!groupResettables.length) {
-        anchor.classList.add(this.options.disabledResetClass);
+        anchor.classList.add(disabledClass);
         anchor.dataset.tooltip = localize(`${PREFIX}.ResetMultiple.AllGroupDefault`);
         anchor.removeEventListener("click", listener);
       } else {
-        anchor.classList.remove(this.options.disabledResetClass);
+        anchor.classList.remove(disabledClass);
         anchor.dataset.tooltip = localize(`${PREFIX}.ResetMultiple.GroupTooltip`);
         anchor.addEventListener("click", listener);
       }
@@ -993,11 +1047,11 @@ export class MHLSettingsManager {
       const setting = anchor.dataset.reset;
       const listener = this.#resetListeners.get("settings").get(setting);
       if (!resettables.find((s) => s.key === setting)) {
-        anchor.classList.add(this.options.disabledResetClass);
+        anchor.classList.add(disabledClass);
         anchor.dataset.tooltip = localize(`${PREFIX}.Reset.IsDefault`);
         anchor.removeEventListener("click", listener);
       } else {
-        anchor.classList.remove(this.options.disabledResetClass);
+        anchor.classList.remove(disabledClass);
         anchor.dataset.tooltip = localize(`${PREFIX}.Reset.Tooltip`);
         anchor.addEventListener("click", listener);
       }
@@ -1076,7 +1130,7 @@ export class MHLSettingsManager {
       for (const group of groupOrder) {
         if (group !== null) {
           const groupHeader = document.createElement("h3");
-          const groupName = group.startsWith('.') ? `${this.options.settingPrefix}Group${group}`: group;
+          const groupName = group.startsWith(".") ? `${this.options.settingPrefix}Group${group}` : group;
           groupHeader.innerText = localize(groupName);
           groupHeader.dataset.group = group;
           sortOrder.push(groupHeader);
