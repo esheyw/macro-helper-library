@@ -1,11 +1,14 @@
 section.mhl-settings-manager {
+  code {
+    white-space: nowrap;
+  }
   span.mhl-reset-button {
     float: right;
     text-align: right;
     padding-right: 0.2em;
   }
   a[data-reset-type] {
-    display:inline;
+    display: inline;
     // padding-left: 0.5em;
     transition: 0.5s ease-out all;
     text-shadow: var(--mhl-reset-text-shadow);
@@ -27,7 +30,16 @@ section.mhl-settings-manager {
   h3[data-group] {
     border-bottom: 1px solid var(--color-underline-header);
   }
-  [data-setting-id] {
+  div[data-setting-id] {
+    // &.visibility-off {
+    //   // max-height: 0;
+    //   height: 0;
+    //   overflow: hidden;
+    // }
+    // overflow-y: scroll;
+    // // max-height: 350px;
+    // height: auto;
+    // transition: all 1s cubic-bezier(0.11, 0.68, 0.19, 0.79) 0ms;
     input[type="color"] {
       max-width: 20%;
     }
@@ -54,7 +66,7 @@ section.mhl-settings-manager {
     // border: 1px solid gold;
     padding: 0.5rem;
     font-weight: bolder;
-    text-align: center;    
+    text-align: center;
     &:has(i[class^="fa"]) {
       color: var(--mhl-color-failure);
       font-size: 1.2rem;
@@ -62,19 +74,28 @@ section.mhl-settings-manager {
 
     &:not(:first-child) {
       max-width: 125px;
+      min-width: fit-content;
     }
-
+    div.color-box {
+      width: 0.8em;
+      height: 0.8em;
+      padding: 0.1em;
+      margin-left: 0.2em;
+      // background-color: aquamarine;
+      display: inline-block;
+    }
     span {
-      display: block; 
+      display: block;
       overflow-wrap: break-word;
       padding: 0.2rem;
       border-radius: 10%;
       height: 100%;
       margin: 0;
-      &.default-true {
-        border: 1px dotted var(--mhl-color-success);        
+      //the :not(:has(i[class^="fa"])) is to remove the border around settings showing the 'no form available' icon
+      &.default-true:not(:has(i[class^="fa"])) {
+        border: 1px dotted var(--mhl-color-success);
       }
-      &.default-false {
+      &.default-false:not(:has(i[class^="fa"])) {
         border: 2px dashed var(--mhl-color-failure);
       }
     }
@@ -86,7 +107,7 @@ section.mhl-settings-manager {
     }
     .value-display {
       font-family: monospace;
-      white-space: pre-wrap;      
+      white-space: pre-wrap;
     }
     &.bool-true {
       color: var(--mhl-color-success);

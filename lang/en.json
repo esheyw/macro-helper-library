@@ -91,11 +91,9 @@
         "InvalidSort": "The `sort` option, if provided, must be the string \"a\" or a string comparison function. Reverting to registration order",
         "InvalidResetButtons": "The `resetButtons` option, if provided, must be either true or false, or one of the strings \"all\", \"settings\", \"groups\", or \"module\", or an array of such. Defaulting to false.",
         "InvalidColorPicker": "A setting with `colorPicker: true` in its data must have a default value that is a valid 7-character hex code (e.g. #FFFFFF).",
-        "InvalidEnrichers":"Hint enrichers, if provided, must be in the form of either a Map or an Object with pattern keys and replacement values (for use with `String.replace()`), or an Array of such pairs."
+        "InvalidEnrichers": "Hint enrichers, if provided, must be in the form of either a Map or an Object with pattern keys and replacement values (for use with `String.replace()`), or an Array of such pairs."
       },
-      "Warning": {
-
-      }
+      "Warning": {}
     },
     "Dialog": {
       "Warning": {
@@ -213,9 +211,9 @@
       "SystemBelowVerified": "Your system version ({version}) is older than what Macro & Helper Library is verified for ({verified}). This may cause things to break, or might not; No guarantees."
     },
     "Setting": {
-      "DisabledClass":{
-        "Name":"Disabled Reset Button Class",
-        "Hint":"The CSS class applied to reset-to-default buttons that are currently disabled, if not overridden by a given module's MHLSettingsManager options. MHL ships with `disabled-transparent`, `disabled-blurry`, and `disabled-hidden`."
+      "DisabledClass": {
+        "Name": "Disabled Reset Button Class",
+        "Hint": "The CSS class applied to reset-to-default buttons that are currently disabled, if not overridden by a given module's MHLSettingsManager options. MHL ships with `disabled-transparent`, `disabled-blurry`, and `disabled-hidden`."
       },
       "LogLevel": {
         "Name": "Default Log Level",

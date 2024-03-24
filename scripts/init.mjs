@@ -6,6 +6,7 @@ import { MODULE_ID, VERIFIED_SYSTEM_VERSIONS, fu } from "./constants.mjs";
 import { registerHandlebarsHelpers } from "./handlebars.mjs";
 export const MODULE = () => game.modules.get(MODULE_ID);
 Hooks.on("init", () => {
+  // CONFIG.debug.hooks = true;
   const mod = MODULE();
   mod.api = {
     macros,
@@ -30,7 +31,6 @@ Hooks.on("init", () => {
     settingPrefix: "MHL.Setting",
     disabledResetClass: "disabled-transparent",
     resetButtons: ["settings","module"],
-  enrichHints: [[/(mhl)(?!\S)/gi,5]],
     groups: true,
     // sort: "a"
   };
