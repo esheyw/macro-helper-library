@@ -65,12 +65,10 @@ section.mhl-settings-manager {
   table {
     width: 100%;
   }
-  // th:not(:first-child) {
-  // writing-mode: sideways-lr;
-  // transform: rotate(310deg);
-  // }
+  h3 {
+    border-bottom: none;
+  }
   td {
-    // border: 1px solid gold;
     padding: 0.5rem;
     font-weight: bolder;
     text-align: center;
@@ -101,6 +99,7 @@ section.mhl-settings-manager {
       //the :not(:has(i[class^="fa"])) is to remove the border around settings showing the 'no form available' icon
       &.default-true:not(:has(i[class^="fa"])) {
         border: 1px dotted var(--mhl-color-success);
+        // background-image: radial-gradient(closest-side, var(--mhl-color-success) 20%, rgba(1,1,1,0.3) 40%, transparent 40%)
       }
       &.default-false:not(:has(i[class^="fa"])) {
         border: 2px dashed var(--mhl-color-failure);

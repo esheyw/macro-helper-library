@@ -5,7 +5,7 @@
   "author": "xuYHxk9sJoYKM7d6",
   "img": "icons/magic/water/waves-water-blue.webp",
   "command": "const mod = game.modules.get('pf2e-macro-helper-library');\nif (!mod) return void ui.notifications.error('Requires Macro & Helper Library enabled to function.');\nawait mod.api.macros.lashingCurrents();",
-  "folder": null,
+  "folder": "BGI6d8auWJmom7Hu",
   "ownership": {
     "default": 0
   },
@@ -14,13 +14,13 @@
   },
   "_stats": {
     "systemId": "pf2e",
-    "systemVersion": "5.13.6",
+    "systemVersion": "5.14.4",
     "coreVersion": "11.315",
     "createdTime": 1706489620730,
-    "modifiedTime": 1707791423619,
-    "lastModifiedBy": "xuYHxk9sJoYKM7d6"
+    "modifiedTime": 1711396753857,
+    "lastModifiedBy": "dr4PZnZ9KX7ge6hN"
   },
   "_id": "hRCi5uHwsTJHQ4Dt",
-  "sort": 0,
+  "sort": 150000,
   "_key": "!macros!hRCi5uHwsTJHQ4Dt"
 }

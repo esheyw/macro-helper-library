@@ -15,7 +15,9 @@
   }}</h2>
 {{#unless (eq resetType "setting")}}
   <p>This {{resetType}} has <span class="count-tooltip" data-tooltip-direction="UP" data-tooltip="{{defaultlessTooltip}}">{{defaultlessCount}}</span> settings that lack defaults and cannot be reset.</p>
+  <div class="section-separator"><h3>Resettables:</h3></div>
 {{/unless}}
+
 <form>
   <table class="{{resetType}}">
     <thead>

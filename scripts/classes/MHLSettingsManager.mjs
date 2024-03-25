@@ -720,7 +720,6 @@ export class MHLSettingsManager {
       this.#setInputValues(div, savedValue);
       // div.classList.add("visibility-off");
     }
-    // this.#updateResetButtons(event);
     div.style.display = show ? "flex" : "none";
   }
 
@@ -769,7 +768,6 @@ export class MHLSettingsManager {
         const resettables = this.#settings.filter(
           (s) => s.group === group && "default" in s && !("button" in s) && (s?.scope === "world" ? isGM : true)
         );
-        modLog({ h3, group, resettables }, { func, mod: this.options.modPrefix });
         if (resettables.length === 0) continue;
         const span = document.createElement("span");
         span.classList.add("mhl-reset-button");
@@ -790,7 +788,7 @@ export class MHLSettingsManager {
       const settingData = this.#settings.get(setting);
       if ("button" in settingData || !("default" in settingData)) continue;
       if (!firstInput) {
-        mhlog({ div, setting }, { type: "error", prefix: "missing input?!", func });
+        // mhlog({ div, setting }, { type: "error", prefix: "missing input?!", func });
         continue;
       }
       if (opt.includes("settings")) {
@@ -1029,10 +1027,6 @@ export class MHLSettingsManager {
       input.value = value;
       input.dispatchEvent(new Event("change")); //to force visibility updates
     }
-    // if (inputs.length > 0) {
-    //   mhlog({ setting: div.dataset.settingId, inputs, value }, { func });
-    //   this.#updateResetButtons({ target: inputs[0] });
-    // }
   }
 
   #isDefault(setting, value = undefined) {

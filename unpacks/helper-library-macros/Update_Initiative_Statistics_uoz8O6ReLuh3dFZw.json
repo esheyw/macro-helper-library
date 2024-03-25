@@ -3,22 +3,23 @@
   "type": "script",
   "_id": "uoz8O6ReLuh3dFZw",
   "author": "xuYHxk9sJoYKM7d6",
-  "img": "modules/pf2e-macro-helper-library/assets/game-icons.net/whitebackground-skills.svg",
+  "img": "modules/macro-helper-library/assets/game-icons.net/whitebackground-skills.svg",
   "scope": "global",
   "command": "const mod = game.modules.get('pf2e-macro-helper-library');\nif (!mod) return void ui.notifications.error('Requires Macro & Helper Library enabled to function.');\nawait mod.api.macros.updateInitiativeStatistics();",
-  "folder": null,
-  "sort": 0,
+  "folder": "BGI6d8auWJmom7Hu",
+  "sort": 112500,
   "ownership": {
-    "default": 0
+    "default": 0,
+    "xuYHxk9sJoYKM7d6": 3
   },
   "flags": {},
   "_stats": {
     "systemId": "pf2e",
-    "systemVersion": "5.13.6",
+    "systemVersion": "5.14.4",
     "coreVersion": "11.315",
     "createdTime": 1707791438288,
-    "modifiedTime": 1707791591774,
-    "lastModifiedBy": "xuYHxk9sJoYKM7d6"
+    "modifiedTime": 1711396755018,
+    "lastModifiedBy": "dr4PZnZ9KX7ge6hN"
   },
   "_key": "!macros!uoz8O6ReLuh3dFZw"
 }
