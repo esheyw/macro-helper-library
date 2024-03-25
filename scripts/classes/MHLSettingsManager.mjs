@@ -92,16 +92,18 @@ export class MHLSettingsManager {
     const prefix = sluggify(this.#module.title, { camel: "bactrian" });
     return {
       actionButtons: true, // process settings with button data into clickable buttons instead of their regular type
+      choiceInfix: "Choice", // localization key section placed between setting name and choice value when inferring choice localization
+      collapsableGroups: true, // whether groups should be inline (false) or shoved into <details> (true, default)
       colorPickers: true, // add color picker elements to settings whose default value is a hex color code
-      resetButtons: true, // add  reset-to-default buttons on each setting and for the whole module in its header
-      visibility: true, // process settings with visibility data, only showing them in the settings window conditionally on the value of another setting
-      groups: true, // handle setting grouping. if true, uses insertion order, use an array to specify an order.
-      sort: null, // handle sorting of settings. "a" for alphabetical on name, or a custom compare function.
-      settingPrefix: prefix + ".Setting", //String to start inferred localization keys with
-      infix: "Choice", // localization key section placed between setting name and choice value when inferring choice localization
       disabledClass: null, // css class toggled on reset buttons when the setting in question is already its default value, if null uses module setting
+      enrichHints: true, // pass hints through enrichers or not
+      groupInfix: "Group", // localization key suffix appended to the settingPrefix for group names
+      groups: true, // handle setting grouping. if true, uses insertion order, use an array to specify an order.
       modPrefix: prefix.replace(/[a-z]/g, ""), // prefix for logged errors/warnings
-      enrichHints: true,
+      resetButtons: true, // add  reset-to-default buttons on each setting and for the whole module in its header
+      settingPrefix: prefix + ".Setting", //String to start inferred localization keys with
+      sort: null, // handle sorting of settings. "a" for alphabetical on name, or a custom compare function.
+      visibility: true, // process settings with visibility data, only showing them in the settings window conditionally on the value of another setting
     };
   }
 
@@ -330,6 +332,8 @@ export class MHLSettingsManager {
     //handle groups, make sure data.group always exists
     if ("group" in data) {
       if (typeof data.group === "string") {
+        if (data.group.startsWith("."))
+          data.group = `${this.options.settingPrefix}${this.options.groupInfix}${data.group}`;
         this.#groupOrder.add(data.group);
       } else {
         modLog(
@@ -397,7 +401,7 @@ export class MHLSettingsManager {
           data.choices[choiceValue] = [
             this.options.settingPrefix,
             sluggify(setting, { camel: "bactrian" }),
-            this.options.infix,
+            this.options.choiceInfix,
             sluggify(choiceValue, { camel: "bactrian" }),
           ].join(".");
         }
@@ -742,6 +746,7 @@ export class MHLSettingsManager {
   #addResetButtons(section) {
     const func = `${funcPrefix}#addResetButtons`;
     const opt = this.options.resetButtons;
+    const isGM = isRealGM(game.user);
     if (opt.includes("module")) {
       const h2 = htmlQuery(section, "h2");
       const span = document.createElement("span");
@@ -758,10 +763,13 @@ export class MHLSettingsManager {
     }
 
     if (opt.includes("groups")) {
-      const h3s = htmlQueryAll(section, "h3[data-group]");
+      const h3s = htmlQueryAll(section, "h3[data-setting-group]");
       for (const h3 of h3s) {
-        const group = h3.dataset.group;
-        const resettables = this.#settings.filter((s) => s.group === group && "default" in s && !("button" in s));
+        const group = h3.dataset.settingGroup;
+        const resettables = this.#settings.filter(
+          (s) => s.group === group && "default" in s && !("button" in s) && (s?.scope === "world" ? isGM : true)
+        );
+        modLog({ h3, group, resettables }, { func, mod: this.options.modPrefix });
         if (resettables.length === 0) continue;
         const span = document.createElement("span");
         span.classList.add("mhl-reset-button");
@@ -780,7 +788,7 @@ export class MHLSettingsManager {
       const setting = div.dataset.settingId.split(".")[1];
       const firstInput = htmlQuery(div, "input, select");
       const settingData = this.#settings.get(setting);
-      if ("button" in settingData) continue;
+      if ("button" in settingData || !("default" in settingData)) continue;
       if (!firstInput) {
         mhlog({ div, setting }, { type: "error", prefix: "missing input?!", func });
         continue;
@@ -811,6 +819,8 @@ export class MHLSettingsManager {
 
   async #onResetClick2(event) {
     const func = `${funcPrefix}#onResetClick2`;
+    event.preventDefault();
+    event.stopPropagation();
     const anchor = htmlClosest(event.target, "a[data-reset-type]");
     const section = htmlClosest(anchor, "section.mhl-settings-manager");
     const formValues = this.#getFormValues(section);
@@ -965,7 +975,7 @@ export class MHLSettingsManager {
         anchor.removeEventListener("click", listener);
       }
     }
-    const group = div?.dataset?.group ?? null;
+    const group = div?.dataset?.settingGroup ?? null;
     if (opt.includes("groups") && group) {
       const anchor = htmlQuery(section, `a[data-reset-type="group"][data-reset="${group}"]`);
       //groups might not have anchors if none of their settings are resettable
@@ -1063,6 +1073,7 @@ export class MHLSettingsManager {
 
   #applyGroupsAndSort(section) {
     const func = `${funcPrefix}#sortHTML`;
+    const isGM = isRealGM(game.user);
     const existingNodes = Array.from(section.children);
     const sortOrder = [existingNodes.shift()]; // add the h2 in first
     if (this.options.groups) {
@@ -1073,20 +1084,30 @@ export class MHLSettingsManager {
       }
       const groupOrder = [null, ...this.#groupOrder];
       for (const group of groupOrder) {
-        if (group !== null) {
-          const groupHeader = document.createElement("h3");
-          const groupName = group.startsWith(".") ? `${this.options.settingPrefix}Group${group}` : group;
-          groupHeader.innerText = localize(groupName);
-          groupHeader.dataset.group = group;
-          sortOrder.push(groupHeader);
-        }
+        let details;
         const settings = this.#settings
-          .filter((s) => s.group === group && s?.config)
+          .filter((s) => s.group === group && s?.config && (s?.scope === "world" ? isGM : true))
           .map((s) => ({
             node: existingNodes.find((n) => n.dataset?.settingId?.includes(s.key)),
             name: localize(s.name),
             id: s.key,
           }));
+        if (group !== null) {
+          if (settings.length === 0) continue; // no headers for empty groups
+          if (this.options.collapsableGroups) {
+            details = document.createElement("details");
+            details.dataset.settingGroup = group;
+            details.open = true;
+            details.innerHTML = `<summary><h3 data-setting-group="${group}">${localize(group)}</h3></summary>`;
+            sortOrder.push(details);
+          } else {
+            const groupHeader = document.createElement("h3");
+            groupHeader.innerText = localize(group);
+            groupHeader.dataset.settingGroup = group;
+            sortOrder.push(groupHeader);
+          }
+        }
+
         if (this.options.sort) {
           if (this.options.sort === "a") {
             settings.sort((a, b) => a.name.localeCompare(b.name));
@@ -1095,13 +1116,17 @@ export class MHLSettingsManager {
           }
         }
         for (const setting of settings) {
-          if (group !== null) setting.node.dataset.group = group;
-          sortOrder.push(setting.node);
+          if (group !== null) setting.node.dataset.settingGroup = group;
+          if (details) {
+            details.appendChild(setting.node);
+          } else {
+            sortOrder.push(setting.node);
+          }
         }
       }
     } else if (this.options.sort) {
       const settings = this.#settings
-        .filter((s) => s?.config)
+        .filter((s) => s?.config && (s?.scope === "world" ? isGM : true))
         .map((s) => ({
           node: existingNodes.find((n) => n.dataset?.settingId?.includes(s.key)),
           name: localize(s.name),
