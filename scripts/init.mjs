@@ -11,7 +11,9 @@ Hooks.on("init", () => {
   mod.api = {
     macros,
     classes,
+    settingsManagers: new Collection(),
   };
+
   //helpers go in the root of the api object
   for (const [key, helper] of Object.entries(helpers)) {
     // only fill out system specific helpers if we're in that system
@@ -30,7 +32,7 @@ Hooks.on("init", () => {
   const settingManagerOptions = {
     settingPrefix: "MHL.Setting",
     disabledResetClass: "disabled-transparent",
-    resetButtons: ["settings","module"],
+    resetButtons: ["settings", "module"],
     groups: true,
     // sort: "a"
   };

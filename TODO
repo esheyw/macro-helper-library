@@ -12,7 +12,8 @@
 - known bug: Reset All button doesn't go dormant if an object setting was reset
 - finish generalizing ResetMultiple dialog
 - wrap per-setting resets in spans, experiment with more positioning
-- consolidate updateResetX listeners
 - MCT: sort existing on updateRootFolder? leave button or retire?
-- move "ungrouped" to null
 - fix double module prefix on error banners
+- consolidate all input change listeners
+- reset buttons /dialog should only care about *saved*, not form, values
+- register SMs with MHL, provide dump function

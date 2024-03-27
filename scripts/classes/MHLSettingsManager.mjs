@@ -5,11 +5,15 @@ import { isRealGM } from "../helpers/otherHelpers.mjs";
 import { localize, getIconString, sluggify } from "../helpers/stringHelpers.mjs";
 import { MHLDialog } from "./MHLDialog.mjs";
 import { setting } from "../settings.mjs";
+import { MODULE } from "../init.mjs";
 const PREFIX = `MHL.SettingsManager`;
 const funcPrefix = `MHLSettingsManager`;
 export class MHLSettingsManager {
   #colorPattern = "^#[A-Fa-f0-9]{6}";
-  #enrichers = new Map([[/`([^`]+)`/g, `<code>$1</code>`]]);
+  #enrichers = new Map([
+    [/`([^`]+)`/g, `<code>$1</code>`],
+    [/\[([^\]]+)\]\(([^\)]+)\)/g, `<a href="$2">$1</a>`],
+  ]);
   #groupOrder = new Set();
   #initialized = false;
   #module;
@@ -26,6 +30,10 @@ export class MHLSettingsManager {
     const func = `${funcPrefix}#constructor`;
     this.#module = module instanceof Module ? module : game.modules.get(module);
     if (!this.#module) throw MHLError(`${PREFIX}.Error.BadModuleID`, { log: { mod }, func: funcPrefix });
+
+    const MHL = MODULE().api;
+    if ("settingsManagers" in MHL) MHL.settingsManagers.set(this.#module.id, this);
+
     this.options = fu.mergeObject(this.defaultOptions, options);
     const mod = this.options.modPrefix;
     if (this.options.groups && Array.isArray(this.options.groups)) {
@@ -72,16 +80,6 @@ export class MHLSettingsManager {
     if (options?.settings) this.registerSettings(settings);
     Hooks.on("renderSettingsConfig", this.#onRenderSettings.bind(this));
     this.#initialized = true;
-  }
-  dump() {
-    const groupListeners = this.#resetListeners.get("groups");
-    mhlog({
-      count: groupListeners.reduce((acc, curr, idx, arr) => {
-        if (curr === arr[idx]) acc++;
-        return acc;
-      }, 0),
-    });
-    return this;
   }
 
   get initialized() {
@@ -185,17 +183,23 @@ export class MHLSettingsManager {
     const func = `${funcPrefix}#reset`;
     if (!Array.isArray(settings)) settings = [settings];
     const settingsWindow = Object.values(ui.windows).find((w) => w.id === "client-settings");
+    const sets = [];
     for (const setting of settings) {
       if (!this.#requireSetting(setting, func)) continue;
       const data = this.#settings.get(setting);
       if (!("default" in data)) continue;
-      this.set(setting, data.default);
-      if (settingsWindow) {
+      sets.push(this.set(setting, data.default));
+      if (settingsWindow && data?.config) {
         const div = htmlQuery(settingsWindow.element[0], `div[data-setting-id="${this.#module.id}.${setting}"]`);
         if (!div) return;
         this.#setInputValues(div, data.default);
       }
     }
+    return Promise.all(sets);
+  }
+
+  async resetAll() {
+    return this.reset(Array.from(this.#settings.keys()));
   }
 
   registerSettings(data) {
