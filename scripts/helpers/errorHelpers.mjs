@@ -119,7 +119,7 @@ export function modError(text, options = {}) {
   banner ??= true;
   prefix = getLogPrefix(text, { prefix, mod, func });
   if (typeof log === "object" && Object.keys(log).length) modLog(log, { type: "error", prefix });
-  if (banner && game.ready) MHLBanner(text, { context, prefix, type: "error", permanent, console: false });
+  if (banner && game.ready) modBanner(text, { context, prefix, type: "error", permanent, console: false });
   return localizedError(text, { context, prefix, type: "error", banner: false });
 }
 
