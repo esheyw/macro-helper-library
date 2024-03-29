@@ -53,7 +53,7 @@ export const SETTINGS = {
   },
 };
 
-export function setting(key) {
+export function getSetting(key) {
   const SM = MODULE()?.settingsManager;
   if (SM?.initialized && game?.user) {
     return SM.get(key);

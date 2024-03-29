@@ -1,5 +1,5 @@
 /*
-htmlQuery, htmlQueryAll, and htmlClosest are taken from the PF2e codebase, under the Apache 2.0 License
+htmlQuery, htmlQueryAll, and htmlClosest are taken from the PF2e codebase (https://github.com/foundryvtt/pf2e), used under the Apache 2.0 License
 */
 
 export function htmlQuery(parent, selectors) {

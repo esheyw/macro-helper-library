@@ -1,10 +1,10 @@
 import { MODULE_ID, fu } from "../constants.mjs";
 import { htmlClosest, htmlQuery, htmlQueryAll } from "../helpers/DOMHelpers.mjs";
-import { MHLError, isEmpty, mhlog, modLog } from "../helpers/errorHelpers.mjs";
+import { MHLError, isEmpty, mhlog, modBanner, modLog } from "../helpers/errorHelpers.mjs";
 import { isRealGM } from "../helpers/otherHelpers.mjs";
 import { localize, getIconString, sluggify } from "../helpers/stringHelpers.mjs";
 import { MHLDialog } from "./MHLDialog.mjs";
-import { setting } from "../settings.mjs";
+import { getSetting } from "../settings.mjs";
 import { MODULE } from "../init.mjs";
 const PREFIX = `MHL.SettingsManager`;
 const funcPrefix = `MHLSettingsManager`;
@@ -86,6 +86,12 @@ export class MHLSettingsManager {
     return this.#initialized;
   }
 
+  get element() {
+    const settingsWindow = Object.values(ui.windows).find((w) => w.id === "client-settings");
+    if (!settingsWindow) return;
+    return settingsWindow.element instanceof jQuery ? settingsWindow.element[0] : settingsWindow.element;
+  }
+
   get defaultOptions() {
     const prefix = sluggify(this.#module.title, { camel: "bactrian" });
     return {
@@ -153,6 +159,113 @@ export class MHLSettingsManager {
     }
   }
 
+  #applyGroupsAndSort(section) {
+    const func = `${funcPrefix}#applyGroupsAndSort`;
+    const isGM = isRealGM(game.user);
+    const existingNodes = Array.from(section.children);
+    const sortOrder = [existingNodes.shift()]; // add the h2 in first
+    if (this.options.groups) {
+      if (this.options.groups === "a") {
+        this.#groupOrder = new Set([
+          ...[...this.#groupOrder].toSorted((a, b) => localize(a).localeCompare(localize(b))),
+        ]);
+      }
+      const groupOrder = [null, ...this.#groupOrder];
+      for (const group of groupOrder) {
+        let details;
+        const settings = this.#settings
+          .filter((s) => s.group === group && s?.config && (s?.scope === "world" ? isGM : true))
+          .map((s) => ({
+            node: existingNodes.find((n) => n.dataset?.settingId?.includes(s.key)),
+            name: localize(s.name),
+            id: s.key,
+          }));
+        if (group !== null) {
+          if (settings.length === 0) continue; // no headers for empty groups
+          if (this.options.collapsableGroups) {
+            details = document.createElement("details");
+            details.dataset.settingGroup = group;
+            details.open = true;
+            details.innerHTML = `<summary><h3 data-setting-group="${group}">${localize(group)} ${getIconString(
+              "fa-solid fa-caret-down"
+            )}</h3></summary>`;
+            details.addEventListener("toggle", function (event) {
+              mhlog(
+                { name: this.firstChild.firstChild.innerText, open: this.open, event },
+                { func, prefix: "toggle fired" }
+              );
+              const i = htmlQuery(this, `summary h3 i`);
+              if (this.open) {
+                i.classList.remove("fa-caret-left");
+                i.classList.add("fa-caret-down");
+              } else {
+                i.classList.remove("fa-caret-down");
+                i.classList.add("fa-caret-left");
+              }
+            });
+            sortOrder.push(details);
+          } else {
+            const groupHeader = document.createElement("h3");
+            groupHeader.innerText = localize(group);
+            groupHeader.dataset.settingGroup = group;
+            sortOrder.push(groupHeader);
+          }
+        }
+
+        if (this.options.sort) {
+          if (this.options.sort === "a") {
+            settings.sort((a, b) => a.name.localeCompare(b.name));
+          } else {
+            settings.sort(this.options.sort);
+          }
+        }
+        for (const setting of settings) {
+          if (group !== null) setting.node.dataset.settingGroup = group;
+          if (details) {
+            details.appendChild(setting.node);
+          } else {
+            sortOrder.push(setting.node);
+          }
+        }
+      }
+      if (this.options.collapsableGroups) {
+        const [h2, ...targets] = sortOrder;
+        modLog({ h2, targets }, { mod: this.options.modPrefix, func });
+        h2.addEventListener("click", () => {
+          const details = targets.filter((n) => n.nodeName === "DETAILS");
+          const set = !details.every((d) => d.open);
+          for (const target of details) {
+            target.open = set;
+          }
+        });
+      }
+    } else if (this.options.sort) {
+      const settings = this.#settings
+        .filter((s) => s?.config && (s?.scope === "world" ? isGM : true))
+        .map((s) => ({
+          node: existingNodes.find((n) => n.dataset?.settingId?.includes(s.key)),
+          name: localize(s.name),
+          id: s.key,
+        }));
+
+      if (this.options.sort === "a") {
+        settings.sort((a, b) => a.name.localeCompare(b.name));
+      } else {
+        settings.sort(this.options.sort);
+      }
+      for (const setting of settings) {
+        sortOrder.push(setting.node);
+      }
+    } else {
+      //no sorting to be done
+      return;
+    }
+    //do the reorg
+    for (const node of sortOrder) {
+      section.appendChild(node);
+    }
+  }
+
   get(key) {
     const func = `${funcPrefix}#get`;
     if (game?.user) {
@@ -182,15 +295,14 @@ export class MHLSettingsManager {
   async reset(settings) {
     const func = `${funcPrefix}#reset`;
     if (!Array.isArray(settings)) settings = [settings];
-    const settingsWindow = Object.values(ui.windows).find((w) => w.id === "client-settings");
     const sets = [];
     for (const setting of settings) {
       if (!this.#requireSetting(setting, func)) continue;
       const data = this.#settings.get(setting);
       if (!("default" in data)) continue;
       sets.push(this.set(setting, data.default));
-      if (settingsWindow && data?.config) {
-        const div = htmlQuery(settingsWindow.element[0], `div[data-setting-id="${this.#module.id}.${setting}"]`);
+      if (this.element && data?.config) {
+        const div = htmlQuery(this.element, `div[data-setting-id="${this.#module.id}.${setting}"]`);
         if (!div) return;
         this.#setInputValues(div, data.default);
       }
@@ -325,6 +437,7 @@ export class MHLSettingsManager {
     const originalOnChange = "onChange" in data ? data.onChange : null;
     data.onChange = function (value) {
       this.#updateHooks(setting);
+      this.#setInputValues(setting, value);
       if (originalOnChange) originalOnChange(value);
     }.bind(this);
 
@@ -638,6 +751,7 @@ export class MHLSettingsManager {
       colorSettings.includes(div.dataset.settingId.split(".")[1])
     );
     if (!divs.length) return;
+    const regex = new RegExp(this.#colorPattern);
     for (const div of divs) {
       const settingName = div.dataset.settingId.split(".")[1];
       const textInput = htmlQuery(div, 'input[type="text"]');
@@ -759,9 +873,10 @@ export class MHLSettingsManager {
       }"><i class="fa-regular fa-reply-all"></i></a>`;
       const anchor = htmlQuery(span, "a");
       anchor.dataset.tooltipDirection = "UP";
-      const listener = this.#onResetClick2.bind(this);
+      const listener = this.#onResetClick.bind(this);
       this.#resetListeners.set("all", listener);
       anchor.addEventListener("click", listener);
+      anchor.addEventListener("contextmenu", listener);
       h2.appendChild(span);
     }
 
@@ -778,9 +893,10 @@ export class MHLSettingsManager {
         span.innerHTML = `<a data-reset-type="group" data-reset="${group}"><i class="fa-regular fa-reply"></i></a>`;
         const anchor = htmlQuery(span, "a");
         anchor.dataset.tooltipDirection = "UP";
-        const listener = this.#onResetClick2.bind(this);
+        const listener = this.#onResetClick.bind(this);
         this.#resetListeners.get("groups").set(group, listener);
         anchor.addEventListener("click", listener);
+        anchor.addEventListener("contextmenu", listener);
         h3.appendChild(span);
       }
     }
@@ -790,11 +906,12 @@ export class MHLSettingsManager {
       const setting = div.dataset.settingId.split(".")[1];
       const firstInput = htmlQuery(div, "input, select");
       const settingData = this.#settings.get(setting);
-      if ("button" in settingData || !("default" in settingData)) continue;
       if (!firstInput) {
         // mhlog({ div, setting }, { type: "error", prefix: "missing input?!", func });
         continue;
       }
+      firstInput.addEventListener("change", this.#updateResetButtons.bind(this));
+      if ("button" in settingData || !("default" in settingData)) continue;
       if (opt.includes("settings")) {
         const label = htmlQuery(div, "label");
         const textNode = Array.from(label.childNodes).find((n) => n.nodeName === "#text");
@@ -803,144 +920,118 @@ export class MHLSettingsManager {
         anchor.dataset.resetType = "setting";
         anchor.innerHTML = '<i class="fa-regular fa-arrow-rotate-left"></i>';
         anchor.dataset.tooltipDirection = "UP";
-        const listener = this.#onResetClick2.bind(this);
+        const listener = this.#onResetClick.bind(this);
         this.#resetListeners.get("settings").set(setting, listener);
         anchor.addEventListener("click", listener);
+        anchor.addEventListener("contextmenu", listener);
         label.insertBefore(anchor, textNode);
       }
-      firstInput.addEventListener("change", this.#updateResetButtons.bind(this));
     }
   }
 
-  #prettifyValue(value) {
-    const type = typeof value;
-    if (type !== "object") return value;
-    if (value instanceof Set || value instanceof Map) value = Array.from(value);
-    return JSON.stringify(value, null, 2);
-  }
-
-  async #onResetClick2(event) {
-    const func = `${funcPrefix}#onResetClick2`;
+  async #onResetClick(event) {
+    const func = `${funcPrefix}#onResetClick`;
     event.preventDefault();
     event.stopPropagation();
     const anchor = htmlClosest(event.target, "a[data-reset-type]");
     const section = htmlClosest(anchor, "section.mhl-settings-manager");
-    const formValues = this.#getFormValues(section);
     const resetType = anchor.dataset.resetType;
     const resetTarget = anchor.dataset.reset;
+    this.#updateSettingStats();
+    let target, relevantSettings;
+    switch (resetType) {
+      case "setting":
+        relevantSettings = [this.#settings.get(resetTarget)];
+        target = relevantSettings[0].name;
+        break;
+      case "group":
+        relevantSettings = this.#settings.filter((s) => s.group === resetTarget);
+        target = resetTarget;
+        break;
+      case "module":
+        relevantSettings = this.#settings.contents;
+        target = this.#module.title;
+        break;
+    }
+    relevantSettings = relevantSettings.filter((s) => !("button" in s));
+
+    // if everything's default, or we right clicked, no dialog needed, just reset form values and bail
+    const [defaultless, hasDefaults] = relevantSettings.partition((s) => "default" in s);
+    if (hasDefaults.every((s) => s.isDefault) || event.type === "contextmenu") {
+      const formDifferentFromSaved = relevantSettings.filter((s) => s.formEqualsSaved === false);
+      if (formDifferentFromSaved.length > 0) {
+        modBanner(`${PREFIX}.Reset.FormResetBanner`, {
+          type: "info",
+          mod: this.options.modPrefix,
+          localize: true,
+          log: { formDifferentFromSaved },
+          context: { count: formDifferentFromSaved.length },
+        });
+        for (const setting of formDifferentFromSaved) {
+          const div = htmlQuery(section, `div[data-setting-id$="${setting.key}"]`);
+          this.#setInputValues(div, this.get(setting.key));
+        }
+      }
+      return;
+    }
+
+    const processedSettings = hasDefaults.reduce((acc, s) => {
+      const savedValue = this.get(s.key);
+      const defaultValue = s?.default ?? undefined;
+      acc.push({
+        key: s.key,
+        name: s.name ?? s.key,
+        config: !!s?.config,
+        isDefault: s?.isDefault ?? false,
+        isObject: typeof savedValue === "object",
+        isColor: !!s?.colorPicker,
+        type: s?.type?.name ?? "Unknown",
+        savedValue,
+        defaultValue,
+        displaySavedValue: this.#prettifyValue("choices" in s ? localize(s.choices[savedValue]) : savedValue),
+        displayDefaultValue: this.#prettifyValue("choices" in s ? localize(s.choices[defaultValue]) : defaultValue),
+      });
+      return acc;
+    }, []);
+
     const dialogID = `mhl-reset-${this.#module.id}-${resetType}-${resetTarget}`;
     const existingDialog = Object.values(ui.windows).find((w) => w.id === dialogID);
     if (existingDialog) {
       existingDialog.bringToTop();
       return;
     }
+
     const dialogData = {
       title: localize(`${PREFIX}.Reset.DialogTitle`),
-      content: `modules/${MODULE_ID}/templates/MHLSettingsManager-Reset.hbs`,
-      contentData: {
-        resetType,
-        resetTarget,
-      },
-      close: () => false,
       buttons: {
         reset: {
+          callback: MHLDialog.getFormData,
           icon: '<i class="fa-solid fa-check"></i>',
           label: localize("SETTINGS.Reset"),
-          callback: MHLDialog.getFormData,
         },
         cancel: {
+          callback: () => false,
           icon: '<i class="fa-solid fa-xmark"></i>',
           label: localize("Cancel"),
-          callback: () => false,
         },
       },
+      content: `modules/${MODULE_ID}/templates/MHLSettingsManager-Reset.hbs`,
+      contentData: {
+        defaultlessCount: defaultless.length,
+        defaultlessTooltip: defaultless.map((s) => localize(s.name)).join(", "),
+        resetType,
+        settings: processedSettings,
+        target,
+      },
+      close: () => false,
       default: "cancel",
     };
     const dialogOptions = {
       classes: ["mhl-reset"],
       id: dialogID,
-      width: 750,
       resizable: true,
+      width: "auto",
     };
-
-    const settings =
-      resetType === "setting"
-        ? [this.#settings.get(resetTarget)]
-        : resetType === "group"
-        ? this.#settings.filter((s) => s.group === resetTarget)
-        : this.#settings.contents;
-
-    const defaultless = [];
-    dialogData.contentData.settings = settings.reduce((acc, s) => {
-      if ("button" in s) return acc;
-      if (!("default" in s)) {
-        defaultless.push(s);
-        return acc;
-      }
-      let savedValue = this.get(s.key);
-      let defaultValue = s?.default ?? undefined;
-      let defaultValueTooltip = "";
-      let formValue = formValues[s.key] ?? undefined;
-      let formValueTooltip = "";
-      const isFormDefault = this.#isDefault(s.key, formValue);
-      const isSavedDefault = this.#isDefault(s.key);
-      const isObject = typeof savedValue === "object";
-      const div = htmlQuery(section, `div[data-setting-id$="${s.key}"]`);
-      const visible = div ? div.style?.display !== "none" : false;
-      const canReset = defaultValue !== undefined;
-      const doReset = canReset && !isFormDefault;
-      const notApplicable = new Handlebars.SafeString(getIconString("fa-ban"));
-      if ("choices" in s && s?.config) {
-        formValue = localize(s.choices[formValue]);
-        savedValue = localize(s.choices[savedValue]);
-        defaultValue = localize(s.choices[defaultValue]);
-      }
-      if (formValue === undefined) {
-        formValue = notApplicable;
-        formValueTooltip = `${PREFIX}.Reset.NotConfigurableTooltip`;
-      } else {
-        formValue = this.#prettifyValue(formValue);
-      }
-      defaultValue = this.#prettifyValue(defaultValue);
-
-      const out = {
-        key: s.key,
-        name: s.name ?? s.key,
-        config: !!s?.config,
-        visible,
-        isFormDefault,
-        isSavedDefault,
-        isColor: !!s?.colorPicker,
-        isObject,
-        type: s?.type?.name ?? "Unknown",
-        formValue,
-        formValueTooltip,
-        savedValue: this.#prettifyValue(savedValue),
-        defaultValue,
-        defaultValueTooltip,
-        doReset,
-        canReset,
-      };
-      acc.push(out);
-      return acc;
-    }, []);
-    dialogData.contentData.defaultlessCount = defaultless.length;
-    dialogData.contentData.defaultlessTooltip = defaultless.map((s) => localize(s.name)).join(", ");
-    switch (resetType) {
-      case "setting":
-        const settingData = this.#settings.get(anchor.dataset.reset);
-        dialogData.contentData.target = settingData.name;
-        dialogData.contentData.value = settingData.default;
-      case "module":
-        dialogData.contentData.target = this.#module.title;
-        break;
-      case "group":
-        const group = anchor.dataset.reset;
-        dialogData.contentData.target = group;
-        break;
-      default:
-        return;
-    }
 
     const doReset = await MHLDialog.wait(dialogData, dialogOptions);
     for (const [setting, checked] of Object.entries(doReset)) {
@@ -959,23 +1050,35 @@ export class MHLSettingsManager {
     const isGM = isRealGM(game.user);
     const section = htmlClosest(event.target, "section.mhl-settings-manager");
     const div = htmlClosest(event.target, "div[data-setting-id]");
-    const formValues = this.#getFormValues(section);
-    const resettables = this.#settings.filter(
-      (s) => (s?.scope === "world" ? isGM : true) && this.#isDefault(s.key, formValues[s.key] ?? undefined) === false
-    );
-    const disabledClass = this.options.disabledClass ?? setting("disabled-class");
+    const setting = div.dataset.settingId.split(".")[1];
+    const allowedSettings = this.#settings.filter((s) => (s?.scope === "world" ? isGM : true));
+    this.#updateSettingStats();
+    const formResettables = allowedSettings.filter((s) => s.formEqualsSaved === false);
+    const savedResettables = allowedSettings.filter((s) => s.isDefault === false);
+    const disabledClass = this.options.disabledClass ?? getSetting("disabled-class");
     if (opt.includes("module")) {
       const anchor = htmlQuery(section, `a[data-reset-type="module"][data-reset="${this.#module.id}"]`);
       const listener = this.#resetListeners.get("all");
-      if (resettables.length > 0) {
+      let tooltip = "";
+      if (savedResettables.length > 0) {
         anchor.classList.remove(disabledClass);
-        anchor.dataset.tooltip = localize(`${PREFIX}.ResetMultiple.ModuleTooltip`);
+        tooltip = localize(`${PREFIX}.Reset.Module.SavedTooltip`, { count: savedResettables.length });
         anchor.addEventListener("click", listener);
+        if (formResettables.length > 0) {
+          tooltip += localize(`${PREFIX}.Reset.Module.FormTooltipAppend`, { count: formResettables.length });
+        }
       } else {
-        anchor.classList.add(disabledClass);
-        anchor.dataset.tooltip = localize(`${PREFIX}.ResetMultiple.AllModuleDefault`);
-        anchor.removeEventListener("click", listener);
+        if (formResettables.length > 0) {
+          anchor.classList.remove(disabledClass);
+          tooltip = localize(`${PREFIX}.Reset.Module.FormTooltipSolo`, { count: formResettables.length });
+          anchor.addEventListener("click", listener);
+        } else {
+          anchor.classList.add(disabledClass);
+          tooltip = localize(`${PREFIX}.Reset.Module.AllDefaultTooltip`);
+          anchor.removeEventListener("click", listener);
+        }
       }
+      anchor.dataset.tooltip = tooltip;
     }
     const group = div?.dataset?.settingGroup ?? null;
     if (opt.includes("groups") && group) {
@@ -983,41 +1086,77 @@ export class MHLSettingsManager {
       //groups might not have anchors if none of their settings are resettable
       if (anchor) {
         const listener = this.#resetListeners.get("groups").get(group);
-        const groupResettables = resettables.filter((s) => s.group === group);
-        if (groupResettables.length > 0) {
+        const groupSavedResettables = savedResettables.filter((s) => s.group === group);
+        const groupFormResettables = formResettables.filter((s) => s.group === group);
+        let tooltip = "";
+        if (groupSavedResettables.length > 0) {
           anchor.classList.remove(disabledClass);
-          anchor.dataset.tooltip = localize(`${PREFIX}.ResetMultiple.GroupTooltip`);
+          tooltip = localize(`${PREFIX}.Reset.Group.SavedTooltip`, { count: groupSavedResettables.length });
           anchor.addEventListener("click", listener);
+          if (groupFormResettables.length > 0) {
+            tooltip += localize(`${PREFIX}.Reset.Group.FormTooltipAppend`, { count: groupFormResettables.length });
+          }
         } else {
-          anchor.classList.add(disabledClass);
-          anchor.dataset.tooltip = localize(`${PREFIX}.ResetMultiple.AllGroupDefault`);
-          anchor.removeEventListener("click", listener);
+          if (groupFormResettables.length > 0) {
+            anchor.classList.remove(disabledClass);
+            tooltip = localize(`${PREFIX}.Reset.Group.FormTooltipSolo`, { count: groupFormResettables.length });
+            anchor.addEventListener("click", listener);
+          } else {
+            anchor.classList.add(disabledClass);
+            tooltip = localize(`${PREFIX}.Reset.Group.AllDefaultTooltip`);
+            anchor.removeEventListener("click", listener);
+          }
         }
+        anchor.dataset.tooltip = tooltip;
       }
     }
     if (opt.includes("settings")) {
       const anchor = htmlQuery(div, `a[data-reset-type="setting"]`);
-      const setting = anchor.dataset.reset;
+      if (!anchor) return; // defaultless inputs still have change listeners
       const listener = this.#resetListeners.get("settings").get(setting);
-      if (resettables.find((s) => s.key === setting)) {
+      const savedResettable = savedResettables.find((s) => s.key === setting);
+      const formResettable = formResettables.find((s) => s.key === setting);
+      let tooltip = "";
+      if (savedResettable) {
         anchor.classList.remove(disabledClass);
-        anchor.dataset.tooltip = localize(`${PREFIX}.ResetSingle.Tooltip`);
+        tooltip = localize(`${PREFIX}.Reset.Setting.SavedTooltip`);
         anchor.addEventListener("click", listener);
+        if (formResettable) {
+          tooltip += localize(`${PREFIX}.Reset.Setting.FormTooltipAppend`);
+        }
       } else {
-        anchor.classList.add(disabledClass);
-        anchor.dataset.tooltip = localize(`${PREFIX}.ResetSingle.IsDefault`);
-        anchor.removeEventListener("click", listener);
+        if (formResettable) {
+          anchor.classList.remove(disabledClass);
+          tooltip = localize(`${PREFIX}.Reset.Setting.FormTooltipSolo`);
+          anchor.addEventListener("click", listener);
+        } else {
+          anchor.classList.add(disabledClass);
+          tooltip = localize(`${PREFIX}.Reset.Setting.IsDefaultTooltip`);
+          anchor.removeEventListener("click", listener);
+        }
       }
+      anchor.dataset.tooltip = tooltip;
     }
   }
 
   #_value(input) {
     //grr checkboxen
-    return input?.type === "checkbox" ? input.checked : input.value;
+    if (input?.type === "checkbox") return input.checked;
+    const value = input.value;
+    if (input?.dataset?.dtype === "Number") {
+      if (value === "" || value === null) return null;
+      return Number(value);
+    }
+    return value;
   }
 
   #setInputValues(div, value) {
     const func = `${funcPrefix}#setInputValues`;
+    if (typeof div === "string" && this.#requireSetting(div, func)) {
+      const setting = this.#settings.get(div);
+      if (!setting?.config || !this.element) return;
+      div = htmlQuery(this.element, `div[data-setting-id="${this.#module.id}.${setting.key}"]`);
+    }
     const inputs = htmlQueryAll(div, "input, select");
     for (const input of inputs) {
       //grr checkboxen
@@ -1026,10 +1165,27 @@ export class MHLSettingsManager {
       }
       if (input.type === "range") {
         const span = htmlQuery(div, "span.range-value");
-        span.innerText = value;
+        if (span) span.innerText = value;
       }
       input.value = value;
       input.dispatchEvent(new Event("change")); //to force visibility updates
+    }
+  }
+
+  #updateSettingStats(limitToSettings = null) {
+    const func = `${funcPrefix}#checkDefaults`;
+    if (limitToSettings && !Array.isArray(limitToSettings)) limitToSettings = [limitToSettings];
+    if (limitToSettings) limitToSettings = limitToSettings.filter((s) => this.#requireSetting(s));
+    let formValues;
+    if (this.element) {
+      formValues = this.#getFormValues(htmlQuery(this.element, `section[data-category="${this.#module.id}"]`));
+    }
+    for (const setting of this.#settings) {
+      if (limitToSettings && !limitToSettings.includes(setting)) continue;
+      const savedValue = this.get(setting.key);
+      setting.formEqualsSaved =
+        formValues && setting.key in formValues ? this.#_equal(savedValue, formValues[setting.key]) : undefined;
+      setting.isDefault = "default" in setting ? this.#_equal(setting.default, savedValue) : undefined;
     }
   }
 
@@ -1040,23 +1196,32 @@ export class MHLSettingsManager {
     const defaultValue = "default" in data ? data.default : undefined;
     if (defaultValue === undefined) return undefined;
     // this is to support checking if the form value = default; use the cached value if available
-    //TODO: hopefully this works?
     value = value !== undefined ? value : data?.value !== undefined ? data.value : this.get(setting);
-    let currentValue;
-    if ("type" in data) {
-      if ([Set, Map, Collection].includes(data.type) && !(value instanceof data.type)) {
-        currentValue = new data.type(value);
-      } else {
-        currentValue = data.type(value);
-      }
-    } else currentValue = value;
-    // const currentValue = "type" in data ? data.type(value) : value;
+    const currentValue = "type" in data ? data.type(value) : value;
     return typeof currentValue === "object"
       ? isEmpty(fu.diffObject(defaultValue, currentValue))
       : defaultValue === currentValue;
   }
 
+  #_equal(v1, v2) {
+    return typeof v1 === "object" ? isEmpty(fu.diffObject(v1, v2)) : v1 === v2;
+  }
+
   #getFormValues(section) {
+    const func = `${funcPrefix}#getFormValues`;
+    if (!(section instanceof HTMLElement)) {
+      modLog(
+        { section },
+        {
+          mod: this.options.modPrefix,
+          func,
+          localize: true,
+          prefix: `${PREFIX}.Error.NotAnElement`,
+          context: { variable: "section" },
+        }
+      );
+      return false;
+    }
     const divs = htmlQueryAll(section, "div[data-setting-id]");
     return divs.reduce((acc, curr) => {
       const firstInput = htmlQuery(curr, "input, select");
@@ -1069,84 +1234,8 @@ export class MHLSettingsManager {
     }, {});
   }
 
-  #applyGroupsAndSort(section) {
-    const func = `${funcPrefix}#sortHTML`;
-    const isGM = isRealGM(game.user);
-    const existingNodes = Array.from(section.children);
-    const sortOrder = [existingNodes.shift()]; // add the h2 in first
-    if (this.options.groups) {
-      if (this.options.groups === "a") {
-        this.#groupOrder = new Set([
-          ...[...this.#groupOrder].toSorted((a, b) => localize(a).localeCompare(localize(b))),
-        ]);
-      }
-      const groupOrder = [null, ...this.#groupOrder];
-      for (const group of groupOrder) {
-        let details;
-        const settings = this.#settings
-          .filter((s) => s.group === group && s?.config && (s?.scope === "world" ? isGM : true))
-          .map((s) => ({
-            node: existingNodes.find((n) => n.dataset?.settingId?.includes(s.key)),
-            name: localize(s.name),
-            id: s.key,
-          }));
-        if (group !== null) {
-          if (settings.length === 0) continue; // no headers for empty groups
-          if (this.options.collapsableGroups) {
-            details = document.createElement("details");
-            details.dataset.settingGroup = group;
-            details.open = true;
-            details.innerHTML = `<summary><h3 data-setting-group="${group}">${localize(group)}</h3></summary>`;
-            sortOrder.push(details);
-          } else {
-            const groupHeader = document.createElement("h3");
-            groupHeader.innerText = localize(group);
-            groupHeader.dataset.settingGroup = group;
-            sortOrder.push(groupHeader);
-          }
-        }
-
-        if (this.options.sort) {
-          if (this.options.sort === "a") {
-            settings.sort((a, b) => a.name.localeCompare(b.name));
-          } else {
-            settings.sort(this.options.sort);
-          }
-        }
-        for (const setting of settings) {
-          if (group !== null) setting.node.dataset.settingGroup = group;
-          if (details) {
-            details.appendChild(setting.node);
-          } else {
-            sortOrder.push(setting.node);
-          }
-        }
-      }
-    } else if (this.options.sort) {
-      const settings = this.#settings
-        .filter((s) => s?.config && (s?.scope === "world" ? isGM : true))
-        .map((s) => ({
-          node: existingNodes.find((n) => n.dataset?.settingId?.includes(s.key)),
-          name: localize(s.name),
-          id: s.key,
-        }));
-
-      if (this.options.sort === "a") {
-        settings.sort((a, b) => a.name.localeCompare(b.name));
-      } else {
-        settings.sort(this.options.sort);
-      }
-      for (const setting of settings) {
-        sortOrder.push(setting.node);
-      }
-    } else {
-      //no sorting to be done
-      return;
-    }
-    //do the reorg
-    for (const node of sortOrder) {
-      section.appendChild(node);
-    }
+  #prettifyValue(value) {
+    return typeof value === "object" ? JSON.stringify(value, null, 2) : value;
   }
 
   #requireSetting(setting, func = null) {
