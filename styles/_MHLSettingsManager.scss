@@ -1,7 +1,8 @@
 section.mhl-settings-manager {
   details[data-setting-group] {
     summary {
-      list-style: none;
+      // list-style: none;
+      // list-style-position: inside;
       display: inline-block;
       width: 100%;
     }
@@ -9,6 +10,7 @@ section.mhl-settings-manager {
   code {
     white-space: nowrap;
   }
+
   span.mhl-reset-button {
     float: right;
     text-align: right;
@@ -58,6 +60,12 @@ section.mhl-settings-manager {
 }
 
 .mhl-dialog.mhl-reset {
+  // .dialog-buttons button {
+  //   // word-wrap: none;
+  //   flex-basis: min-content;
+  //   flex: 1;
+  // }
+  min-width: 400px;
   span.count-tooltip {
     font-weight: bold;
     text-decoration: underline;
@@ -68,52 +76,44 @@ section.mhl-settings-manager {
   h3 {
     border-bottom: none;
   }
-  td {
-    padding: 0.5rem;
-    font-weight: bolder;
-    text-align: center;
-    &:has(i[class^="fa"]) {
-      color: var(--mhl-color-failure);
-      font-size: 1.2rem;
-    }
+  tr {
+    // max-height: 2rem;
 
-    &:not(:first-child) {
-      max-width: 125px;
-      min-width: fit-content;
+    &.default-false {
+      // color: green;
+      // border-radius: 2px;
+      border: 2px dashed var(--mhl-color-failure);
+    }
+  }
+  td {
+    // border: 1px solid gold;
+    padding: 0.3em;
+    text-align: center;
+    max-width: 250px;
+    min-width: fit-content;
+    
+    &:first-child {
+      max-width: 300px;
+      font-weight: bold;
+      text-align: right;
     }
     div.color-box {
-      width: 0.8em;
+      width: 1em;
       aspect-ratio: 1/1;
-      padding: 0.1em;
-      margin-left: 0.2em;
-      // background-color: aquamarine;
+      margin-left: 0.3rem;
       display: inline-block;
     }
-    span {
-      display: block;
-      overflow-wrap: break-word;
-      padding: 0.2rem;
-      border-radius: 10%;
-      height: 100%;
-      margin: 0;
-      //the :not(:has(i[class^="fa"])) is to remove the border around settings showing the 'no form available' icon
-      &.default-true:not(:has(i[class^="fa"])) {
-        border: 1px dotted var(--mhl-color-success);
-        // background-image: radial-gradient(closest-side, var(--mhl-color-success) 20%, rgba(1,1,1,0.3) 40%, transparent 40%)
-      }
-      &.default-false:not(:has(i[class^="fa"])) {
-        border: 2px dashed var(--mhl-color-failure);
-      }
-    }
+
     &.object-setting {
-      overflow-wrap: normal;
-    }
-    &.object-setting {
+      user-select: auto;
+      max-height: 200px;
+      overflow-y: scroll;
+      // overflow-wrap: normal;
       text-align: left;
     }
-    .value-display {
+    &.value-display {
       font-family: monospace;
-      white-space: pre-wrap;
+      white-space: pre;
     }
     &.bool-true {
       color: var(--mhl-color-success);

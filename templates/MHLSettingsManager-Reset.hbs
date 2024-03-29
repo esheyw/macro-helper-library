@@ -13,7 +13,7 @@
     (concat "MHL.SettingsManager.Reset." (capitalize resetType) ".DialogHeader")
     target=(mhlocalize target)
   }}</h2>
-{{#unless (eq resetType "setting")}}
+{{#unless (or (eq resetType "setting") (gt defaultlessCount 0))}}
   <p>This {{resetType}} has <span class="count-tooltip" data-tooltip-direction="UP" data-tooltip="{{defaultlessTooltip}}">{{defaultlessCount}}</span> settings that lack defaults and cannot be reset.</p>
   <div class="section-separator"><h3>Resettables:</h3></div>
 {{/unless}}
@@ -24,7 +24,6 @@
       <tr>
         <th>{{mhlocalize "DOCUMENT.Setting"}}</th>
         <th>Type</th>
-        <th>Form</th>
         <th>Saved</th>
         <th>Default</th>
         <th>Reset</th>
@@ -32,24 +31,13 @@
     </thead>
     <tbody>
       {{#each settings}}
-        <tr>
+        <tr class="default-{{isDefault}}">
+          <td>{{mhlocalize name}}</td>
+          <td class="value-display">{{mhlocalize type}}</td>
+          <td class="value-display {{#if isObject}}object-setting{{/if}}">{{displaySavedValue}}{{#if isColor}}<div class="color-box" style="background-color: {{savedValue}}"></div>{{/if}}</td>
+          <td class="value-display {{#if isObject}}object-setting{{/if}}">{{displayDefaultValue}}{{#if isColor}}<div class="color-box" style="background-color: {{defaultValue}}"></div>{{/if}}</td>
           <td>
-            {{mhlocalize name}}
-          </td>
-          <td>
-            <span class="value-display">{{mhlocalize type}}</span>
-          </td>
-          <td {{#if formValueTooltip}} data-tooltip="{{mhlocalize formValueTooltip}}"{{/if}}>
-            <span class="value-display default-{{isFormDefault}}">{{formValue}}{{#if isColor}}<div class="color-box" style="background-color: {{formValue}}"></div>{{/if}}</span>
-          </td>
-          <td class="{{#if isObject}}object-setting{{/if}}"{{#if savedValueTooltip}} data-tooltip="{{mhlocalize savedValueTooltip}}"{{/if}}>
-            <span class="default-{{isSavedDefault}} value-display">{{savedValue}}{{#if isColor}}<div class="color-box" style="background-color: {{savedValue}}"></div>{{/if}}</span>
-          </td>
-          <td class="{{#if isObject}}object-setting{{/if}}"{{#if defaultValueTooltip}} data-tooltip="{{mhlocalize defaultValueTooltip}}"{{/if}}>
-            <span class="value-display">{{defaultValue}}{{#if isColor}}<div class="color-box" style="background-color: {{defaultValue}}"></div>{{/if}}</span>
-          </td>
-          <td>
-            <input type="checkbox" name="{{key}}" {{checked doReset}} {{disabled (not canReset)}} />
+            <input type="checkbox" name="{{key}}" {{checked (not isDefault)}} />
           </td>
         </tr>
       {{/each}}

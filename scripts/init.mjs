@@ -1,7 +1,7 @@
 import * as helpers from "./helpers/index.mjs";
 import * as macros from "./macros/index.mjs";
 import * as classes from "./classes/index.mjs";
-import { SETTINGS, setting } from "./settings.mjs";
+import { SETTINGS, getSetting } from "./settings.mjs";
 import { MODULE_ID, VERIFIED_SYSTEM_VERSIONS, fu } from "./constants.mjs";
 import { registerHandlebarsHelpers } from "./handlebars.mjs";
 export const MODULE = () => game.modules.get(MODULE_ID);
@@ -38,7 +38,7 @@ Hooks.on("init", () => {
   };
   mod.settingsManager = new classes.MHLSettingsManager(MODULE_ID, settingManagerOptions);
   //special exposure
-  mod.api.mhlSetting = setting;
+  mod.api.mhlSetting = getSetting;
   mod.api.sm = mod.settingsManager;
 });
 Hooks.once("i18nInit", () => {
@@ -47,8 +47,8 @@ Hooks.once("i18nInit", () => {
 });
 Hooks.once("setup", () => {
   const mod = MODULE();
-  if (setting("legacy-access")) game.pf2emhl = mod.api;
-  if (setting("global-access")) globalThis.mhl = mod.api;
+  if (getSetting("legacy-access")) game.pf2emhl = mod.api;
+  if (getSetting("global-access")) globalThis.mhl = mod.api;
 });
 
 Hooks.once("ready", () => {

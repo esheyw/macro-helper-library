@@ -30,14 +30,27 @@
     "SettingsManager": {
       "Reset": {
         "Setting": {
+          "SavedTooltip": "This setting differs from its default value. Left click to reset it.",
+          "FormTooltipAppend": "<br>This setting's input currently differs from its saved value. Right click to reset it.",
+          "FormTooltipSolo": "This setting's input currently differs from its saved value. Left or right click to reset it.",
+          "IsDefaultTooltip": "This setting is currently default.",
           "DialogHeader": "Reset {target}?"
         },
         "Group": {
+          "SavedTooltip": "This group has {count} setting(s) that aren't default. Left click to reset them.",
+          "FormTooltipAppend": "<br>{count} setting input(s) currently differ from their saved values. Right click to reset them.",
+          "FormTooltipSolo": "{count} of this group's setting input(s) currently differ from their saved values. Left or right click to reset them.",
+          "AllDefaultTooltip": "This group's settings' saved values are all currently default.",
           "DialogHeader": "Reset all settings of group {target}?"
         },
         "Module": {
+          "SavedTooltip": "This module has {count} setting(s) that aren't default. Left click to reset them.",
+          "FormTooltipAppend": "<br>{count} setting input(s) currently differ from their saved values. Right click to reset them.",
+          "FormTooltipSolo": "{count} of this module's setting input(s) currently differ from their saved values. Left or right click to reset them.",
+          "AllDefaultTooltip": "This module's settings' saved values are all currently default.",          
           "DialogHeader": "Reset all settings of module {target}?"
         },
+        "FormResetBanner": "Resetting {count} form value(s) to their saved value(s).",
         "DialogTitle": "Reset to Default",
         "NotConfigurableTooltip": "This setting is not configurable from the settings application."
       },
@@ -91,7 +104,8 @@
         "InvalidSort": "The `sort` option, if provided, must be the string \"a\" or a string comparison function. Reverting to registration order",
         "InvalidResetButtons": "The `resetButtons` option, if provided, must be either true or false, or one of the strings \"all\", \"settings\", \"groups\", or \"module\", or an array of such. Defaulting to false.",
         "InvalidColorPicker": "A setting with `colorPicker: true` in its data must have a default value that is a valid 7-character hex code (e.g. #FFFFFF).",
-        "InvalidEnrichers": "Hint enrichers, if provided, must be in the form of either a Map or an Object with pattern keys and replacement values (for use with `String.replace()`), or an Array of such pairs."
+        "InvalidEnrichers": "Hint enrichers, if provided, must be in the form of either a Map or an Object with pattern keys and replacement values (for use with `String.replace()`), or an Array of such pairs.",
+        "NotAnElement": "The provided variable \"{variable}\" was not an HTMLElement."
       },
       "Warning": {}
     },
