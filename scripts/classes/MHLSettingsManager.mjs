@@ -6,6 +6,7 @@ import { localize, getIconString, sluggify } from "../helpers/stringHelpers.mjs"
 import { MHLDialog } from "./MHLDialog.mjs";
 import { getSetting } from "../settings.mjs";
 import { MODULE } from "../init.mjs";
+import { DetailsAccordion } from "./DetailsAccordion.mjs";
 const PREFIX = `MHL.SettingsManager`;
 const funcPrefix = `MHLSettingsManager`;
 export class MHLSettingsManager {
@@ -172,7 +173,7 @@ export class MHLSettingsManager {
       }
       const groupOrder = [null, ...this.#groupOrder];
       for (const group of groupOrder) {
-        let details;
+        let groupContentDiv;
         const settings = this.#settings
           .filter((s) => s.group === group && s?.config && (s?.scope === "world" ? isGM : true))
           .map((s) => ({
@@ -183,26 +184,14 @@ export class MHLSettingsManager {
         if (group !== null) {
           if (settings.length === 0) continue; // no headers for empty groups
           if (this.options.collapsableGroups) {
-            details = document.createElement("details");
+            const details = document.createElement("details");
             details.dataset.settingGroup = group;
             details.open = true;
-            details.innerHTML = `<summary><h3 data-setting-group="${group}">${localize(group)} ${getIconString(
-              "fa-solid fa-caret-down"
-            )}</h3></summary>`;
-            details.addEventListener("toggle", function (event) {
-              mhlog(
-                { name: this.firstChild.firstChild.innerText, open: this.open, event },
-                { func, prefix: "toggle fired" }
-              );
-              const i = htmlQuery(this, `summary h3 i`);
-              if (this.open) {
-                i.classList.remove("fa-caret-left");
-                i.classList.add("fa-caret-down");
-              } else {
-                i.classList.remove("fa-caret-down");
-                i.classList.add("fa-caret-left");
-              }
-            });
+            details.innerHTML = `<summary><h3 data-setting-group="${group}">${localize(
+              group
+            )} </h3></summary><div class="accordion-content"></div>`;
+            groupContentDiv = htmlQuery(details, `div.accordion-content`);
+            new DetailsAccordion(details);
             sortOrder.push(details);
           } else {
             const groupHeader = document.createElement("h3");
@@ -221,8 +210,8 @@ export class MHLSettingsManager {
         }
         for (const setting of settings) {
           if (group !== null) setting.node.dataset.settingGroup = group;
-          if (details) {
-            details.appendChild(setting.node);
+          if (groupContentDiv) {
+            groupContentDiv.appendChild(setting.node);
           } else {
             sortOrder.push(setting.node);
           }
@@ -230,12 +219,12 @@ export class MHLSettingsManager {
       }
       if (this.options.collapsableGroups) {
         const [h2, ...targets] = sortOrder;
-        modLog({ h2, targets }, { mod: this.options.modPrefix, func });
         h2.addEventListener("click", () => {
           const details = targets.filter((n) => n.nodeName === "DETAILS");
-          const set = !details.every((d) => d.open);
+          const [closed, open] = details.partition((d) => d.open);
           for (const target of details) {
-            target.open = set;
+            const h3 = htmlQuery(target, "h3");
+            if (open.length === 0 || closed.length === 0 || target.open) h3.dispatchEvent(new Event("click"));
           }
         });
       }
