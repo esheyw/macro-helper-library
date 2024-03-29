@@ -8,7 +8,7 @@ section.mhl-settings-manager {
       width: 100%;
     }
     h3::after {
-      content: "▾";    
+      content: "▾";
     }
     &:not([open]) {
       h3::after {
@@ -38,7 +38,7 @@ section.mhl-settings-manager {
     }
 
     &.disabled-hidden {
-      opacity: 0;
+      display: none;
       cursor: default;
     }
 

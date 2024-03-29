@@ -427,6 +427,7 @@ export class MHLSettingsManager {
     data.onChange = function (value) {
       this.#updateHooks(setting);
       this.#setInputValues(setting, value);
+      this.#updateResetButtons(setting);
       if (originalOnChange) originalOnChange(value);
     }.bind(this);
 
@@ -1033,13 +1034,23 @@ export class MHLSettingsManager {
     }
   }
 
-  #updateResetButtons(event) {
+  #updateResetButtons(event = null) {
     const func = `${funcPrefix}#updateResetButtons`;
     const opt = this.options.resetButtons;
     const isGM = isRealGM(game.user);
-    const section = htmlClosest(event.target, "section.mhl-settings-manager");
-    const div = htmlClosest(event.target, "div[data-setting-id]");
-    const setting = div.dataset.settingId.split(".")[1];
+    let section, div, setting, group;
+    if (event instanceof Event) {
+      section = htmlClosest(event.target, "section.mhl-settings-manager");
+      div = htmlClosest(event.target, "div[data-setting-id]");
+      setting = div.dataset.settingId.split(".")[1];
+      group = div?.dataset?.settingGroup ?? null;
+    } else if (typeof event === "string" && this.#requireSetting(event, func)) {
+      if (!this.element) return;
+      setting = event;
+      section = htmlQuery(this.element, `section[data-category="${this.#module.id}"]`);
+      div = htmlQuery(section, `div[data-setting-id$=${setting}]`);
+      group = this.#settings.get(setting).group;
+    }
     const allowedSettings = this.#settings.filter((s) => (s?.scope === "world" ? isGM : true));
     this.#updateSettingStats();
     const formResettables = allowedSettings.filter((s) => s.formEqualsSaved === false);
@@ -1069,7 +1080,7 @@ export class MHLSettingsManager {
       }
       anchor.dataset.tooltip = tooltip;
     }
-    const group = div?.dataset?.settingGroup ?? null;
+
     if (opt.includes("groups") && group) {
       const anchor = htmlQuery(section, `a[data-reset-type="group"][data-reset="${group}"]`);
       //groups might not have anchors if none of their settings are resettable
@@ -1099,6 +1110,7 @@ export class MHLSettingsManager {
         anchor.dataset.tooltip = tooltip;
       }
     }
+
     if (opt.includes("settings")) {
       const anchor = htmlQuery(div, `a[data-reset-type="setting"]`);
       if (!anchor) return; // defaultless inputs still have change listeners

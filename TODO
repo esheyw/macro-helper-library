@@ -1,4 +1,5 @@
 # esheyw general todo
+
 - fix token settings on dropHeldTorch
 - brushup the group initiative skills dialog macro
   - double check CSS on various themes/no-dorako
@@ -12,9 +13,7 @@
 - replace MHL setting defaults to non-testing values before release
 - known bug: Reset All button doesn't go dormant if an object setting was reset
 - finish generalizing ResetMultiple dialog
-- wrap per-setting resets in spans, experiment with more positioning
 - MCT: sort existing on updateRootFolder? leave button or retire?
-- fix double module prefix on error banners
 - consolidate all input change listeners
 - register SMs with MHL, provide dump function
 - test details animation settings, try and figure out hiccup?
