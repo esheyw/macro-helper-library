@@ -1,5 +1,5 @@
 import { BANNER_TYPES, CONSOLE_TYPES } from "../constants.mjs";
-import { getSetting } from "../settings.mjs";
+import { setting } from "../settings.mjs";
 import { getLogPrefix, localize } from "./stringHelpers.mjs";
 
 export function log(loggable, options = {}) {
@@ -30,7 +30,7 @@ export function log(loggable, options = {}) {
 export function modLog(loggable, options = {}) {
   let { type, prefix, context, func, mod } = options;
   options.localize ??= false; // don't destructure so as to not conflict with the function; probably a tidier way to do this
-  type ??= getSetting("log-level") ?? "error";
+  type ??= setting("log-level") ?? "error";
   prefix = String(prefix ?? "");
   if (typeof loggable === "string") {
     loggable = options?.localize ? localize(loggable, context) : loggable;
@@ -81,7 +81,7 @@ export function localizedBanner(text, options = {}) {
 
 export function modBanner(text, options = {}) {
   let { context, prefix, type, console, permanent, log, func, mod } = options;
-  type ??= getSetting("log-level") ?? "info";
+  type ??= setting("log-level") ?? "info";
   prefix = getLogPrefix(text, { mod, func, prefix });
   options.prefix = prefix;
   const out = localizedBanner(text, { context, prefix, type, console, permanent });

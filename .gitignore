@@ -7,3 +7,5 @@ foundry.js
 commons.js
 packs/**
 node_modules
+app
+client.mjs
