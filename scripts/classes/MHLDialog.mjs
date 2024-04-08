@@ -16,6 +16,7 @@ export class MHLDialog extends Dialog {
     }
     // sets this.data
     super(data, options);
+    this.data ??= {};
     if (tempClasses) this.options.classes = [...new Set(this.options.classes.concat(tempClasses))];
 
     if (!this.data?.title) this.data.title = `Dialog ${this.appId}`; //mostly redundant but makes the next line cleaner

@@ -537,6 +537,7 @@ export class MHLSettingsManager {
         const options = super.defaultOptions;
         options.classes.push('mhl-setting-menu');
         options.width = 400;
+        options.resizable = true;
         return options;
       }
 
