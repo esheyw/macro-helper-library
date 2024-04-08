@@ -47,7 +47,7 @@
           "SavedTooltip": "This module has {count} setting(s) that aren't default. Left click to reset them.",
           "FormTooltipAppend": "<br>{count} setting input(s) currently differ from their saved values. Right click to reset them.",
           "FormTooltipSolo": "{count} of this module's setting input(s) currently differ from their saved values. Left or right click to reset them.",
-          "AllDefaultTooltip": "This module's settings' saved values are all currently default.",          
+          "AllDefaultTooltip": "This module's settings' saved values are all currently default.",
           "DialogHeader": "Reset all settings of module {target}?"
         },
         "FormResetBanner": "Resetting {count} form value(s) to their saved value(s).",
@@ -74,24 +74,25 @@
         "ValidHexCode": "Must be a # followed by a valid 6-character hex color code"
       },
       "Error": {
+        "ManagerAlreadyExists": "A settings manager has already been registered for this module.",
         "Hooks": {
-          "BadHook": "Hook data for setting {setting} of {module} is malformed; Must be an object containing a string `hook` key.",
-          "RequiresAction": "Hook {hook} for setting {setting} of {module} requires an `action` key containing a function.",
-          "TestFunction": "Hook data for setting {setting} of {module} is malformed; `test`, if provided, must be a function."
+          "BadHook": "Hook data for setting {key} of {module} is malformed; Must be an object containing a string `hook` key.",
+          "RequiresAction": "Hook {hook} for setting {key} of {module} requires an `action` key containing a function.",
+          "TestFunction": "Hook data for setting {key} of {module} is malformed; `test`, if provided, must be a function."
         },
-        "InvalidSettingData": "Setting `{setting}` for module {module} failed to validate and was not registered.",
+        "InvalidSettingData": "Setting `{key}` for module {module} failed to validate and was not registered.",
         "NoValidSettings": "No valid settings could be retrieved from passed data for module {module}.",
         "BadModuleID": "moduleID must be a string module ID or a Module object reference.",
         "Visibility": {
-          "UnknownDependency": "Setting {dependsOn} not found, so it cannot be predicated on for visibility for setting {setting} of {module}.",
-          "RequireDependsOn": "Visibility data for setting {setting} of {module} is malformed: If provided as an object, must contain a `dependsOn` key containing a string setting ID or an array of such.",
-          "RequireTest": "Visibility data for setting {setting} of {module} is malformed: If provided as an object, must contain a function under the `test` key.",
-          "BadFormat": "Visibility data for setting {setting} must be either a string setting ID (with optional ! prefix) or an object containing such under the `dependsOn` key, with an optional `test` function key."
+          "UnknownDependency": "Setting {dependsOn} not found, so it cannot be predicated on for visibility for setting {key} of {module}.",
+          "RequireDependsOn": "Visibility data for setting {key} of {module} is malformed: If provided as an object, must contain a `dependsOn` key containing a string setting ID or an array of such.",
+          "RequireTest": "Visibility data for setting {key} of {module} is malformed: If provided as an object, must contain a function under the `test` key.",
+          "BadFormat": "Visibility data for setting {key} must be either a string setting ID (with optional ! prefix) or an object containing such under the `dependsOn` key, with an optional `test` function key."
         },
-        "DuplicateSetting": "Setting ID \"{setting}\" already exists for {module}.",
+        "DuplicateSetting": "Setting ID \"{key}\" already exists for {module}.",
         "Button": {
-          "BadFormat": "Button data must be an object with at least an `action` key containing a function.",
-          "Label": "A setting's `button` data must contain a `label` key, either string or null (for localization key inference).",
+          "BadFormat": "Button data must be an object with at least an `action` property containing a function.",
+          "Label": "A setting's `button` data must contain a `label` property, either string or null (for localization key inference).",
           "Action": "A button replacement action must be a function."
         },
         "NoDefault": "Setting {setting} of {module} does not have a default value recorded and cannot be reset.",
@@ -196,8 +197,8 @@
       "LogType": "Log type must be one of \"debug\", \"info\", \"warn\", or \"error\".",
       "InvalidType": "Invalid type \"{type}\" provided.",
       "Validation": {
-        "FontAwesomeClasses": "\"{string}\" failed to validate as a set of FontAwesome icon classes.",
-        "FontAwesomeIcon": "\"{string}\" failed to validate as a FontAwesome icon element."
+        "FontAwesomeClasses": "The provided input(s) failed to validate as a set of FontAwesome icon classes, logged to console.",
+        "FontAwesomeIcon": "The provided input(s) failed to validate as a FontAwesome icon element or set of FA classes, logged to console."
       },
       "Type": {
         "Of": {
@@ -213,7 +214,7 @@
         "Boolean": "`{var}` must be Boolean."
       }
     },
-    "Warning": {
+    "Warning": {      
       "Fallback": {
         "BannerType": "Provided notification banner type \"{type}\" is not valid, defaulting to \"{defaultType}\".",
         "FirstTarget": "This operation requires a single target, using first target \"{name}\".",
@@ -225,6 +226,17 @@
       "SystemBelowVerified": "Your system version ({version}) is older than what Macro & Helper Library is verified for ({verified}). This may cause things to break, or might not; No guarantees."
     },
     "Setting": {
+      "IconSettings":{
+        "DisabledClass":{
+          "Label":"Disabled Icon CSS Class",
+          "Hint":"The CSS class applied to reset-to-default buttons when their associated setting(s) is/are default."
+        }
+      },
+      "IconSettingsMenu": {
+        "Name": "Icon Settings",
+        "Hint": "Set the default FontAwesome glyphs for modules using the setting manager that haven't provided their own overrides.",
+        "Label": "Icon Settings"
+      },
       "DisabledClass": {
         "Name": "Disabled Reset Button Class",
         "Hint": "The CSS class applied to reset-to-default buttons that are currently disabled, if not overridden by a given module's MHLSettingsManager options. MHL ships with `disabled-transparent`, `disabled-blurry`, and `disabled-hidden`."

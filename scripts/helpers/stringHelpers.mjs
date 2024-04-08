@@ -1,5 +1,5 @@
 import { MODULE_ID, fu } from "../constants.mjs";
-import { MHLError, mhlog } from "./index.mjs";
+import { MHLError, isEmpty, mhlog } from "./index.mjs";
 
 export function getLogPrefix(text, options = {}) {
   let out = "";
@@ -107,65 +107,141 @@ export function sluggify(text, { camel = null } = {}) {
   }
 }
 
-export function getIconString(input, { classesOnly = false } = {}) {
-  const func = "getIconString";
-  if (typeof input !== "string") {
-    mhlog(`MHL.Warning.Fallback.Type`, {
-      localize: true,
-      context: { var: "string", expected: "string", type: typeof input },
-      func,
-    });
-    input = String(input);
-  }
-  const pre = `<i class="`;
-  const post = `"></i>`;
-  const containsHTML = /<[^>]+>/.test(input);
-  const matches = new RegExp(`(${pre})([-a-z0-9\s]+)(${post})`).exec(input);
-  if (containsHTML && !matches) {
-    mhlog(`MHL.Error.Validation.FontAwesomeIcon`, { localize: true, context: { string: input }, func });
-    return "";
-  }
-  const classes = matches ? getIconClasses(matches[2]) : getIconClasses(input);
-  if (!classes) return "";
-  return classesOnly ? classes : pre + classes + post;
+export function isValidFA(glyph) {
+  if (typeof glyph !== "string") return false;
+  glyph = glyph.toLowerCase();
+  if (glyph.startsWith('fa-')) glyph = glyph.substring(3);
+  return getFAList().includes(glyph)
 }
 
-export function getIconClasses(input) {
-  const func = "getIconClasses";
-  if (typeof input !== "string") {
-    mhlog(`MHL.Warning.Fallback.Type`, {
-      localize: true,
-      context: { var: "string", expected: "string", type: typeof input },
-      func,
-    });
-    input = String(input);
-  }
-  const partsSeen = {
-    sharp: null,
-    type: null,
-    slug: null,
+export function getFAList() {
+  const faSheet = Array.from(document.styleSheets).find((s) => s.href.includes("fontawesome"));
+  if (!faSheet) return [];
+  return Array.from(faSheet.cssRules)
+    .flatMap((r) => (r?.selectorText?.includes("::before") ? r.selectorText.split(",") : []))
+    .map((s) => s.trim().replace("::before", "").substring(4));
+}
+
+export function getFAElement(...inputs) {
+  const string = getFAString(...inputs);
+  if (!string) return null;
+  const div = document.createElement("div");
+  div.innerHTML = string;
+  return div.firstElementChild;
+}
+
+export function getFAString(...inputs) {
+  const func = "getFAString";
+  const stringed = inputs.filter((s) => !isEmpty(s)).map((s) => String(s));
+  const failValidation = () => {
+    mhlog({ inputs }, { localize: true, prefix: `MHL.Error.Validation.FontAwesomeIcon`, func });
+    return "";
   };
-  const parts = input.split(/\s+/).map((p) => p.toLowerCase());
-  if (parts.length > 3) {
-    return false;
+  if (stringed.length === 0) return failValidation();
+  const containsHTML = /<[^>]+>/.test(stringed[0]);
+  if (stringed.length === 1 && containsHTML) {
+    const htmlMatches = /^(<i.+class=")([^"]+)("[^>]+)?(><\/i>)$/i.exec(stringed[0].trim());
+    const classes = getFAClasses(htmlMatches?.[2] ?? "");
+    if (!htmlMatches || !classes) return failValidation();
+    return htmlMatches[1] + classes + htmlMatches[3] + htmlMatches[4];
   }
+  const classes = getFAClasses(...inputs);
+  if (!classes) return failValidation();
+  return `<i class="${classes}"></i>`;
+}
+
+export function getFAClasses(...inputs) {
+  const func = "getFAClasses";
+  const inferPassed = typeof inputs.at(-1) === "boolean"
+  const infer = inferPassed ? inputs.at(-1) : true;
+  if (inferPassed) inputs = inputs.slice(0, -1);
+  const stringed = inputs.filter((s) => !isEmpty(s)).map((s) => String(s));
+  const validIconList = getFAList();
+  const aliases = {
+    fas: "fa-solid",
+    far: "fa-regular",
+    fal: "fa-light",
+    fat: "fa-thin",
+    fad: "fa-duotone",
+    fass: "fa-sharp fa-solid",
+    fasr: "fa-sharp fa-regular",
+    fasl: "fa-sharp fa-light",
+    fast: "fa-sharp fa-thin",
+    fasd: "fa-sharp fa-duotone",
+    fab: "fa-brands",
+  };
+  const partsSeen = {
+    fw: null,
+    glyph: null,
+    sharp: null,
+    style: null,
+    brands: null,
+    others: [],
+  };
+  //de-alias, split on interstitial whitespace, and flatten
+  const parts = stringed.map((s) => (s in aliases ? aliases[s] : s)).flatMap((s) => s.trim().split(/\s+/));
   for (let part of parts) {
-    if (part === "fa-sharp") {
-      if (partsSeen.sharp) return false;
-      partsSeen.sharp = part;
-    } else if (/^fa-(regular|thin|solid|light|duotone)$/.test(part)) {
-      if (partsSeen.type) return false;
-      partsSeen.type = part;
-    } else if (/^(fa[-a-z0-9]+)$/.test(part)) {
-      if (partsSeen.slug) return false;
-      partsSeen.slug = part;
-    } else {
-      return false;
+    if (/fa-brands/i.test(part)) {
+      partsSeen.brands = "fa-brands";
+      continue;
     }
+
+    const fwMatch = /^(fa-)?(fw)$/i.exec(part);
+    if (fwMatch) {
+      if (!infer && !fwMatch[1]) {
+        partsSeen.others.push(part);
+      } else if (partsSeen.fw === null) {
+        partsSeen.fw = "fa-fw";
+      }
+      continue;
+    }
+
+    const sharpMatch = /^(fa-)?(fw)$/i.exec(part);
+    if (sharpMatch) {
+      if (!infer && !sharpMatch[1]) {
+        partsSeen.others.push(part);
+      } else if (partsSeen.sharp === null) {
+        partsSeen.sharp = "fa-sharp";
+      }
+      continue;
+    }
+
+    const styleMatches = /^(fa-)?(regular|thin|solid|light|duotone)$/i.exec(part);
+    if (styleMatches) {
+      if (!infer && !styleMatches[1]) {
+        partsSeen.others.push(part);
+      } else if (partsSeen.style === null) {
+        partsSeen.style = `fa-${styleMatches[2].toLowerCase()}`;
+      }
+      continue;
+    }
+
+    const glyphMatches = /^(fa-)?([-a-z0-9_]+)$/i.exec(part);
+    if (glyphMatches) {
+      const potential = glyphMatches[2].toLowerCase();
+      const validIcon = validIconList.includes(potential);
+      if (partsSeen.glyph !== null) {
+        //only add to others if it's not a duplicate explicit FA icon class
+        if (!glyphMatches[1] || !validIcon) partsSeen.others.push(part);
+        continue;
+      }
+      //it's a valid icon, and either starts with fa- or we're allowed to infer
+      if (validIcon && (glyphMatches[1] ? true : infer)) {
+        partsSeen.glyph = `fa-${potential}`;
+        continue;
+      }       
+    }
+    //final fallback
+    partsSeen.others.push(part);
   }
-  if (!partsSeen.slug) {
-    mhlog(`MHL.Error.Validation.FontAwesomeClasses`, { localize: true, context: { string: input }, func });
-    return false;
+  if (!partsSeen.glyph) {
+    mhlog({ inputs }, { localize: true, prefix: `MHL.Error.Validation.FontAwesomeClasses`, func });
+    return "fa-solid fa-question fallback-glyph";
   }
-  return [partsSeen.sharp ?? "", partsSeen.type ?? "fa-regular", partsSeen.slug].join(" ").trim();
+  partsSeen.style ??= "fa-solid"
+  return Object.values(partsSeen)
+    .flat()
+    .filter((p) => !isEmpty(p))
+    .join(" ")
+    .trim();
 }
