@@ -111,6 +111,7 @@ export function activeRealGM() {
   activeRealGMs.sort((a, b) => (a.id > b.id ? 1 : -1));
   return activeRealGMs[0] || null;
 }
+
 export async function pickAThingDialog({ things = null, title = null, thingType = "Item", dialogOptions = {} } = {}) {
   const PREFIX = "MHL.PickAThing";
   if (!Array.isArray(things)) {
@@ -139,4 +140,21 @@ export async function pickAThingDialog({ things = null, title = null, thingType 
     close: () => false,
   };
   return await MHLDialog.wait(dialogData, dialogOptions);
+}
+
+
+export function isPlainObject(obj) {
+  if (typeof data !== "object" || data === null) {
+    return false;
+  }
+  const proto = Object.getPrototypeOf(data);
+  return proto === null || proto === Object.prototype;
+}
+
+export function getIconListFromCSS(sheetNeedle, prefix) {
+  const sheet = Array.from(document.styleSheets).find((s) => s.href.includes(String(sheetNeedle)));
+  if (!sheet) return []; //todo add logging
+  return Array.from(sheet.cssRules)
+    .flatMap((r) => (r?.selectorText?.includes(":before") ? r.selectorText.split(",") : []))
+    .map((s) => s.trim().replace(/:{1,2}before/, "").substring(String(prefix).length + 1)); // +1 to account for the . in the selector
 }

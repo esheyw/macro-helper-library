@@ -36,6 +36,15 @@
   "readme": "https://github.com/esheyw/macro-helper-library/blob/main/README.md",
   "bugs": "https://github.com/esheyw/macro-helper-library/issues",
   "changelog": "https://github.com/esheyw/macro-helper-library/blob/main/CHANGELOG.md",
+  "relationships": {
+    "requires": [
+      {
+        "id": "game-icons-net-font",
+        "type": "module",
+        "manifest": "https://github.com/esheyw/game-icon-net-font/releases/latest/download/module.json"
+      }
+    ]
+  },
   "packs": [
     {
       "name": "helper-library-macros",

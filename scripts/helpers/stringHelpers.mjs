@@ -110,8 +110,8 @@ export function sluggify(text, { camel = null } = {}) {
 export function isValidFA(glyph) {
   if (typeof glyph !== "string") return false;
   glyph = glyph.toLowerCase();
-  if (glyph.startsWith('fa-')) glyph = glyph.substring(3);
-  return getFAList().includes(glyph)
+  if (glyph.startsWith("fa-")) glyph = glyph.substring(3);
+  return getFAList().includes(glyph);
 }
 
 export function getFAList() {
@@ -152,7 +152,7 @@ export function getFAString(...inputs) {
 
 export function getFAClasses(...inputs) {
   const func = "getFAClasses";
-  const inferPassed = typeof inputs.at(-1) === "boolean"
+  const inferPassed = typeof inputs.at(-1) === "boolean";
   const infer = inferPassed ? inputs.at(-1) : true;
   if (inferPassed) inputs = inputs.slice(0, -1);
   const stringed = inputs.filter((s) => !isEmpty(s)).map((s) => String(s));
@@ -218,6 +218,7 @@ export function getFAClasses(...inputs) {
 
     const glyphMatches = /^(fa-)?([-a-z0-9_]+)$/i.exec(part);
     if (glyphMatches) {
+      
       const potential = glyphMatches[2].toLowerCase();
       const validIcon = validIconList.includes(potential);
       if (partsSeen.glyph !== null) {
@@ -229,7 +230,7 @@ export function getFAClasses(...inputs) {
       if (validIcon && (glyphMatches[1] ? true : infer)) {
         partsSeen.glyph = `fa-${potential}`;
         continue;
-      }       
+      }
     }
     //final fallback
     partsSeen.others.push(part);
@@ -238,10 +239,22 @@ export function getFAClasses(...inputs) {
     mhlog({ inputs }, { localize: true, prefix: `MHL.Error.Validation.FontAwesomeClasses`, func });
     return "fa-solid fa-question fallback-glyph";
   }
-  partsSeen.style ??= "fa-solid"
+  partsSeen.style ??= "fa-solid";
   return Object.values(partsSeen)
     .flat()
     .filter((p) => !isEmpty(p))
     .join(" ")
     .trim();
+}
+
+// taken from the pf2e system:
+export function signedInteger(value, { emptyStringZero = false, zeroIsNegative = false } = {}) {
+  if (value === 0 && emptyStringZero) return "";
+  const nf = (intlNumberFormat ??= new Intl.NumberFormat(game.i18n.lang, {
+      maximumFractionDigits: 0,
+      signDisplay: "always",
+  }));
+  const maybeNegativeZero = zeroIsNegative && value === 0 ? -0 : value;
+
+  return nf.format(maybeNegativeZero);
 }

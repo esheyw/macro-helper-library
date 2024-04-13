@@ -104,10 +104,10 @@ export class MHLDialog extends Dialog {
   }
 
   static get defaultOptions() {
-    return fu.mergeObject(super.defaultOptions, {
-      jQuery: false,
-      classes: ["mhl-dialog", ...super.defaultOptions.classes],
-    });
+    const options = super.defaultOptions;
+    options.jQuery = false;
+    options.classes.push('mhl-dialog');
+    return options;
   }
 
   submit(button, event) {

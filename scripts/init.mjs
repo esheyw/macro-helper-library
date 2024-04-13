@@ -25,9 +25,7 @@ Hooks.on("init", () => {
       }
     }
     mod.api[key] = helper;
-  }
-
-  
+  }  
 
   const settingManagerOptions = {
     settingPrefix: "MHL.Setting",
@@ -40,6 +38,14 @@ Hooks.on("init", () => {
   //special exposure
   mod.api.mhlSetting = setting;
   mod.api.sm = mod.settingsManager;
+
+  
+  CONFIG.MacroHelperLibrary = {
+    iconLists: {
+      fontawesome: helpers.getIconListFromCSS("fontawesome", "fa-"),
+      gameiconsnet: helpers.getIconListFromCSS("game-icons-net", "ginf-")
+    }
+  }
 });
 Hooks.once("i18nInit", () => {
   const mod = MODULE();

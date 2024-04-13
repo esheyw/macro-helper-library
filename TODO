@@ -20,3 +20,5 @@
 - ||= in hook function
 - test fields as setting types
 - finish appropriating pf2e handlebars helpers
+- generalize icon set retrieval, CONFIG property
+- actually use new json helper
