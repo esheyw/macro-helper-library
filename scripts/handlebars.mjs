@@ -1,5 +1,6 @@
 import { isPlainObject, mhlog } from "./helpers/index.mjs";
-import { getFAString, localize, signedInteger, sluggify } from "./helpers/stringHelpers.mjs";
+import { localize, signedInteger, sluggify } from "./helpers/stringHelpers.mjs";
+import { getFontAwesomeString } from "./helpers/iconHelpers.mjs";
 //the following are provided by pf2e at least, maybe other systems; only register if necessary
 const pf2eReplacements = {
   add: (a, b) => Number(a) + Number(b),
@@ -35,28 +36,31 @@ const pf2eReplacements = {
   },
   sluggify: (value) => sluggify(String(value)),
 };
-
-export function registerHandlebarsHelpers() {
-  Handlebars.registerHelper("mhlocalize", (value, options) => {
+const mhlOriginals = {
+  mhlocalize: (value, options) => {
     if (value instanceof Handlebars.SafeString) value = value.toString();
     const data = options.hash;
     return new Handlebars.SafeString(localize(value, data));
-  });
-  Handlebars.registerHelper("mhlIsColor", (value) => {
+  },
+  mhlIsColor: (value) => {
     if (value instanceof Handlebars.SafeString) value = value.toString();
     return /^#[a-f0-9]{6}$/i.test(value);
-  });
-  Handlebars.registerHelper("mhlYesOrNo", (value) => {
+  },
+  mhlYesOrNo: (value) => {
     return !!value ? localize("Yes") : localize("No");
-  });
-  Handlebars.registerHelper("mhlCheckOrX", (value) => {
+  },
+  mhlCheckOrX: (value) => {
     const type = !!value ? "check" : "xmark";
     return new Handlebars.SafeString(`<i class="fa-solid fa-square-${type}"></i>`);
-  });
-
-  Handlebars.registerHelper("faIcon", (...inputs) => {
-    return new Handlebars.SafeString(getFAString(...inputs.slice(0, -1)));
-  });
+  },
+  faIcon: (...inputs) => {
+    return new Handlebars.SafeString(getFontAwesomeString(...inputs));
+  },
+  // ginfIcon:,
+};
+export function registerHandlebarsHelpers() {
+  //register originals
+  Handlebars.registerHelper(mhlOriginals);
 
   //register various helpers conditionally
   for (const [name, func] of Object.entries(pf2eReplacements)) {

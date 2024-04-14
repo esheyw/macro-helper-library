@@ -4,6 +4,7 @@ import * as classes from "./classes/index.mjs";
 import { SETTINGS, setting } from "./settings.mjs";
 import { MODULE_ID, VERIFIED_SYSTEM_VERSIONS, fu } from "./constants.mjs";
 import { registerHandlebarsHelpers } from "./handlebars.mjs";
+import { DEFAULT_CONFIG } from "./config.mjs";
 export const MODULE = () => game.modules.get(MODULE_ID);
 Hooks.on("init", () => {
   // CONFIG.debug.hooks = true;
@@ -25,7 +26,7 @@ Hooks.on("init", () => {
       }
     }
     mod.api[key] = helper;
-  }  
+  }
 
   const settingManagerOptions = {
     settingPrefix: "MHL.Setting",
@@ -39,13 +40,7 @@ Hooks.on("init", () => {
   mod.api.mhlSetting = setting;
   mod.api.sm = mod.settingsManager;
 
-  
-  CONFIG.MacroHelperLibrary = {
-    iconLists: {
-      fontawesome: helpers.getIconListFromCSS("fontawesome", "fa-"),
-      gameiconsnet: helpers.getIconListFromCSS("game-icons-net", "ginf-")
-    }
-  }
+  CONFIG.MacroHelperLibrary = DEFAULT_CONFIG;
 });
 Hooks.once("i18nInit", () => {
   const mod = MODULE();

@@ -2,7 +2,9 @@ import { MODULE_ID, fu } from "../constants.mjs";
 import { htmlClosest, htmlQuery, htmlQueryAll } from "../helpers/DOMHelpers.mjs";
 import { MHLError, isEmpty, modBanner, modLog } from "../helpers/errorHelpers.mjs";
 import { isRealGM } from "../helpers/otherHelpers.mjs";
-import { localize, getFAString, sluggify, getFAClasses } from "../helpers/stringHelpers.mjs";
+import { localize, sluggify } from "../helpers/stringHelpers.mjs";
+import { getFontAwesomeString } from "../helpers/iconHelpers.mjs";
+import { getFontAwesomeClasses } from "../helpers/iconHelpers.mjs";
 import { MHLDialog } from "./MHLDialog.mjs";
 import { setting } from "../settings.mjs";
 import { MODULE } from "../init.mjs";
@@ -383,7 +385,7 @@ export class MHLSettingsManager {
     //handle registering settings menus
     if (data?.menu || data?.type?.prototype instanceof FormApplication) {
       if ("icon" in data) {
-        data.icon = getFAClasses(data.icon);
+        data.icon = getFontAwesomeClasses(data.icon);
       }
       //TODO: remove gate once v12 stable
       // if (fu.isNewerVersion(game.version, 12)) {
@@ -581,7 +583,7 @@ export class MHLSettingsManager {
     buttonData.label = String(buttonData.label);
 
     if ("icon" in buttonData) {
-      buttonData.icon = getFAString(buttonData.icon);
+      buttonData.icon = getFontAwesomeString(buttonData.icon);
     }
     return buttonData;
   }
@@ -903,7 +905,7 @@ export class MHLSettingsManager {
       const h2 = htmlQuery(section, "h2");
       const span = document.createElement("span");
       span.classList.add("mhl-reset-button");
-      span.innerHTML = `<a data-reset-type="module" data-reset="${this.#module.id}">${getFAString(
+      span.innerHTML = `<a data-reset-type="module" data-reset="${this.#module.id}">${getFontAwesomeString(
         iconSettings.moduleGlyph,
         "fa-regular"
       )}</a>`;
@@ -926,7 +928,7 @@ export class MHLSettingsManager {
         if (resettables.length === 0) continue;
         const span = document.createElement("span");
         span.classList.add("mhl-reset-button");
-        span.innerHTML = `<a data-reset-type="group" data-reset="${group}">${getFAString(
+        span.innerHTML = `<a data-reset-type="group" data-reset="${group}">${getFontAwesomeString(
           iconSettings.groupGlyph,
           "fa-regular"
         )}</a>`;
@@ -956,7 +958,7 @@ export class MHLSettingsManager {
         const anchor = document.createElement("a");
         anchor.dataset.reset = key;
         anchor.dataset.resetType = "setting";
-        anchor.innerHTML = getFAString(iconSettings.settingGlyph, "fa-regular");
+        anchor.innerHTML = getFontAwesomeString(iconSettings.settingGlyph, "fa-regular");
         anchor.dataset.tooltipDirection = "UP";
         const listener = this.#onResetClick.bind(this);
         this.#resetListeners.get("settings").set(key, listener);

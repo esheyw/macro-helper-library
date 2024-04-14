@@ -1,5 +1,4 @@
 import { MHLSettingMenu } from "./classes/MHLSettingMenu.mjs";
-import { isValidFA } from "./helpers/stringHelpers.mjs";
 import { MODULE } from "./init.mjs";
 
 class IconSettingsModel extends foundry.abstract.TypeDataModel {
@@ -22,8 +21,8 @@ class IconSettingsModel extends foundry.abstract.TypeDataModel {
         initial: "fa-reply-all",
         label: "Module Glyph",
         hint: "Module Glyph Hint",
-        validate: (v) => isValidFA(v),
-        validationError: "is not a valid FontAwesome glyph.",
+        // validate: (v) => isValidFA(v),
+        // validationError: "is not a valid FontAwesome glyph.",
       }),
       groupGlyph: new fields.StringField({
         required: true,

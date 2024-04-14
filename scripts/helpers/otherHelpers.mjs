@@ -144,10 +144,10 @@ export async function pickAThingDialog({ things = null, title = null, thingType 
 
 
 export function isPlainObject(obj) {
-  if (typeof data !== "object" || data === null) {
+  if (typeof obj !== "object" || obj === null) {
     return false;
   }
-  const proto = Object.getPrototypeOf(data);
+  const proto = Object.getPrototypeOf(obj);
   return proto === null || proto === Object.prototype;
 }
 
@@ -157,4 +157,14 @@ export function getIconListFromCSS(sheetNeedle, prefix) {
   return Array.from(sheet.cssRules)
     .flatMap((r) => (r?.selectorText?.includes(":before") ? r.selectorText.split(",") : []))
     .map((s) => s.trim().replace(/:{1,2}before/, "").substring(String(prefix).length + 1)); // +1 to account for the . in the selector
+}
+
+export function getFunctionOptions(inputs) {
+  if (!Array.isArray(inputs)) return null;
+  const lastInput = inputs.at(-1);  
+  if (isPlainObject(lastInput)) {    
+    inputs.splice(-1, 1);
+    return lastInput;
+  }
+  return null;
 }
