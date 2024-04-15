@@ -19,7 +19,15 @@
         "The": "the"
       }
     },
-
+    "IconListsManager": {
+      "Error": {
+        "PlainObject": "Icon list entries must be plain objects with name, prefix, and list keys",
+        "UniqueNameRequired": "Icon lists must provide a name key that is not already in use.",
+        "UniquePrefixRequired": "Icon lists must provide a prefix key that is not already in use.",
+        "NonEmptyListRequired": "Icon lists must provide a list key that is a non-empty array of strings.",
+        "SortInteger": "The sort property, if provided in an icon list entry, must be an integer."
+      }
+    },
     "PickAThing": {
       "Title": "Pick A Thing",
       "Error": {
@@ -214,7 +222,7 @@
         "Boolean": "`{var}` must be Boolean."
       }
     },
-    "Warning": {      
+    "Warning": {
       "Fallback": {
         "BannerType": "Provided notification banner type \"{type}\" is not valid, defaulting to \"{defaultType}\".",
         "FirstTarget": "This operation requires a single target, using first target \"{name}\".",
@@ -226,10 +234,10 @@
       "SystemBelowVerified": "Your system version ({version}) is older than what Macro & Helper Library is verified for ({verified}). This may cause things to break, or might not; No guarantees."
     },
     "Setting": {
-      "IconSettings":{
-        "DisabledClass":{
-          "Label":"Disabled Icon CSS Class",
-          "Hint":"The CSS class applied to reset-to-default buttons when their associated setting(s) is/are default."
+      "IconSettings": {
+        "DisabledClass": {
+          "Label": "Disabled Icon CSS Class",
+          "Hint": "The CSS class applied to reset-to-default buttons when their associated setting(s) is/are default."
         }
       },
       "IconSettingsMenu": {

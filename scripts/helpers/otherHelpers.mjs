@@ -151,14 +151,6 @@ export function isPlainObject(obj) {
   return proto === null || proto === Object.prototype;
 }
 
-export function getIconListFromCSS(sheetNeedle, prefix) {
-  const sheet = Array.from(document.styleSheets).find((s) => s.href.includes(String(sheetNeedle)));
-  if (!sheet) return []; //todo add logging
-  return Array.from(sheet.cssRules)
-    .flatMap((r) => (r?.selectorText?.includes(":before") ? r.selectorText.split(",") : []))
-    .map((s) => s.trim().replace(/:{1,2}before/, "").substring(String(prefix).length + 1)); // +1 to account for the . in the selector
-}
-
 export function getFunctionOptions(inputs) {
   if (!Array.isArray(inputs)) return null;
   const lastInput = inputs.at(-1);  

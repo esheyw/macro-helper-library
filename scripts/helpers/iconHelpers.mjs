@@ -131,8 +131,10 @@ export function isValidIcon(input, list = null) {
       : null;
   if (!classes) return false;
   const parts = classes.trim().split(/\s+/);
-  list = isEmpty(list) ? null : Array.isArray(list) ? list : [list];  
-  const validLists = CONFIG.MacroHelperLibrary.iconLists.filter((l) => (list ? list.includes(l.name) : !!l));
+  list = isEmpty(list) ? null : Array.isArray(list) ? list : [list];
+  const validLists = CONFIG.MacroHelperLibrary.iconLists
+    .filter((l) => (list ? list.includes(l.name) : !!l))
+    .toSorted((a, b) => (a.sort < b.sort ? -1 : a.sort === b.sort ? 0 : 1));
   for (const data of validLists) {
     for (const part of parts) {
       const testString = part.startsWith(data.prefix) ? part.substring(data.prefix.length) : part;
@@ -140,4 +142,21 @@ export function isValidIcon(input, list = null) {
     }
   }
   return false;
+}
+
+export function getIconListFromCSS(sheetNeedle, prefix) {
+  const sheet = Array.from(document.styleSheets).find((s) => s.href.includes(String(sheetNeedle)));
+  if (!sheet) return []; //todo add logging
+  return Array.from(sheet.cssRules)
+    .flatMap((r) => (r?.selectorText?.includes(":before") ? r.selectorText.split(",") : []))
+    .reduce((acc, s) => {
+      // made this a reduce because some entries are resolving to ''
+      //todo: be more thorough here (check end of produced list for weirdness)
+      const processed = s
+        .trim()
+        .replace(/:{1,2}before/, "")
+        .substring(String(prefix).length + 1); // +1 to account for the . in the selector
+      if (processed) acc.push(processed);
+      return acc;
+    }, []);
 }
