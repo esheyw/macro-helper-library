@@ -205,8 +205,9 @@
       "LogType": "Log type must be one of \"debug\", \"info\", \"warn\", or \"error\".",
       "InvalidType": "Invalid type \"{type}\" provided.",
       "Validation": {
-        "FontAwesomeClasses": "The provided input(s) failed to validate as a set of FontAwesome icon classes, logged to console.",
-        "FontAwesomeIcon": "The provided input(s) failed to validate as a FontAwesome icon element or set of FA classes, logged to console."
+        "IconGeneric": "The provided arguments did not produce a valid icon string from any registered icon list.",
+        "FontAwesomeClasses": "The provided input(s) failed to validate as a set of FontAwesome icon classes.",
+        "FontAwesomeIcon": "The provided input(s) failed to validate as a FontAwesome icon element or set of FA classes."
       },
       "Type": {
         "Of": {

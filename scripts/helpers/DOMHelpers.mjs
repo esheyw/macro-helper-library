@@ -24,6 +24,7 @@ export function htmlClosest(child, selectors) {
 
 export function elementFromString(string) {
   if (!string) return null;
+  if (string instanceof HTMLElement) return string;
   const template = document.createElement("template");
   template.innerHTML = string;
   return template.content?.firstElementChild;

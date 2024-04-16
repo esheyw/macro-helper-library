@@ -151,12 +151,12 @@ export function isPlainObject(obj) {
   return proto === null || proto === Object.prototype;
 }
 
-export function getFunctionOptions(inputs) {
+export function getFunctionOptions(inputs, {handlebars = false}={}) {
   if (!Array.isArray(inputs)) return null;
   const lastInput = inputs.at(-1);  
   if (isPlainObject(lastInput)) {    
     inputs.splice(-1, 1);
-    return lastInput;
+    return handlebars && lastInput?.hash ? lastInput.hash : lastInput;
   }
   return null;
 }

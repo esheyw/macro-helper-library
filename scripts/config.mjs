@@ -1,6 +1,6 @@
 import { isEmpty, mhlog } from "./helpers/errorHelpers.mjs";
 import { isPlainObject } from "./helpers/otherHelpers.mjs";
-import { getIconListFromCSS } from "./helpers/iconHelpers.mjs";
+import { getFontAwesomeClasses, getGamesIconClasses, getIconListFromCSS } from "./helpers/iconHelpers.mjs";
 
 
 class IconListsManager extends Array {
@@ -53,10 +53,12 @@ Object.defineProperty(DEFAULT_CONFIG, "iconLists", {
     name: "fontawesome",
     prefix: "fa-",
     list: getIconListFromCSS("fontawesome", "fa-"),
+    validator: getFontAwesomeClasses
   }),
 });
 DEFAULT_CONFIG.iconLists.push({
-  name: "game-icons-net",
+  name: "game-icons.net",
   prefix: "ginf-",
   list: getIconListFromCSS("game-icons-net", "ginf-"),
+  validator: getGamesIconClasses
 });
