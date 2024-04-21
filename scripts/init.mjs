@@ -40,7 +40,7 @@ Hooks.on("init", () => {
   mod.api.mhlSetting = setting;
   mod.api.sm = mod.settingsManager;
 
-  CONFIG.MacroHelperLibrary = DEFAULT_CONFIG;
+  CONFIG.MHL = DEFAULT_CONFIG;
 });
 Hooks.once("i18nInit", () => {
   const mod = MODULE();

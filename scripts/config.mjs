@@ -1,24 +1,18 @@
-import { isEmpty, mhlog } from "./helpers/errorHelpers.mjs";
+import { mhlog } from "./helpers/errorHelpers.mjs";
 import { isPlainObject } from "./helpers/otherHelpers.mjs";
 import { getFontAwesomeClasses, getGamesIconClasses, getIconListFromCSS } from "./helpers/iconHelpers.mjs";
 
-
-class IconListsManager extends Array {
-  constructor(...args) {
-    super();
-    if (!isEmpty(args)) this.push(...args);
-  }
-
-  #validateList(entry) {
+class IconListHandler {
+  #validateList(entry, target) {
     let invalid = false;
     let errorstr = "";
     if (!isPlainObject(entry)) {
       invalid = true;
       errorstr = "MHL.IconListsManager.Error.PlainObject";
-    } else if (typeof entry?.name !== "string" || this.find((e) => e.name === entry.name)) {
+    } else if (typeof entry?.name !== "string" || target.find((e) => e.name === entry.name)) {
       invalid = true;
       errorstr = "MHL.IconListsManager.Error.UniqueNameRequired";
-    } else if (typeof entry?.prefix !== "string" || this.find((e) => e.prefix === entry.prefix)) {
+    } else if (typeof entry?.prefix !== "string" || target.find((e) => e.prefix === entry.prefix)) {
       invalid = true;
       errorstr = "MHL.IconListsManager.Error.UniquePrefixRequired";
     } else if (!Array.isArray(entry?.list) || !entry.list.every((e) => !!e && typeof e === "string")) {
@@ -27,9 +21,12 @@ class IconListsManager extends Array {
     } else if ("sort" in entry && !Number.isInteger(entry.sort)) {
       invalid = true;
       errorstr = "MHL.IconListsManager.Error.SortInteger";
-    } else if (!("sort" in entry) || this.find((e) => e.sort === sort)) {
-      let sort = this.length * 5;
-      while (this.find((e) => e.sort === sort)) sort += 5;
+    } else if (typeof entry?.validator === "function") {
+      invalid = true
+      errorstr = "MHL.IconListsManager.Error.ValidatorFunction"
+    } else if (!("sort" in entry) || target.find((e) => e.sort === sort)) {
+      let sort = target.length * 5;
+      while (target.find((e) => e.sort === sort)) sort += 5;
       entry.sort = sort;
     }
     if (invalid) {
@@ -39,26 +36,37 @@ class IconListsManager extends Array {
     return true;
   }
 
-  push(...args) {
-    for (const arg of args) {
-      if (this.#validateList(arg)) super.push(arg);
+  set(target, name, value) {
+    const numIdx = Number(name);
+    if (Number.isInteger(numIdx)) {
+      if (numIdx >= target.length && numIdx !== target.length) {
+        name = target.length;
+      } else {
+        name = numIdx;
+      }
+      if (!this.#validateList(value, target)) {
+        return false;
+      }
     }
+    return Reflect.set(target, name, value);
   }
 }
 export const DEFAULT_CONFIG = {};
 Object.defineProperty(DEFAULT_CONFIG, "iconLists", {
   writable: false,
   configurable: false,
-  value: new IconListsManager({
-    name: "fontawesome",
-    prefix: "fa-",
-    list: getIconListFromCSS("fontawesome", "fa-"),
-    validator: getFontAwesomeClasses
-  }),
+  value: new Proxy(new Array(), new IconListHandler()),
+});
+
+DEFAULT_CONFIG.iconLists.push({
+  name: "fontawesome",
+  prefix: "fa-",
+  list: getIconListFromCSS("fontawesome", "fa-"),
+  validator: getFontAwesomeClasses,
 });
 DEFAULT_CONFIG.iconLists.push({
   name: "game-icons.net",
   prefix: "ginf-",
   list: getIconListFromCSS("game-icons-net", "ginf-"),
-  validator: getGamesIconClasses
+  validator: getGamesIconClasses,
 });

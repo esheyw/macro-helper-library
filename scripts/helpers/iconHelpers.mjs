@@ -37,7 +37,7 @@ export function getIconString(...args) {
   } else {
     mhlog({ stringed }, { type: "warn", prefix: "didnt contain html", func });
     const list = getIconList(stringed);
-    const validated = list?.validator(stringed, options) ?? null;
+    const validated = list.validator(stringed, options) ?? null;
     if (!list || !validated) return failValidation();
     return `<${options.element} class="${validated}"></${options.element}>`;
   }
@@ -240,7 +240,7 @@ export function getIconList(input, limitTo = null) {
   }
 
   limitTo = isEmpty(limitTo) ? null : Array.isArray(limitTo) ? limitTo : [limitTo];
-  const validLists = CONFIG.MacroHelperLibrary.iconLists
+  const validLists = CONFIG.MHL.iconLists
     .filter((l) => (limitTo ? limitTo.includes(l.name) : true))
     .toSorted((a, b) => (a.sort < b.sort ? -1 : a.sort === b.sort ? 0 : 1));
   for (const list of validLists) {
@@ -253,7 +253,7 @@ export function getIconList(input, limitTo = null) {
 }
 
 export function getIconListFromCSS(sheetNeedle, prefix) {
-  const sheet = Array.from(document.styleSheets).find((s) => s.href.includes(String(sheetNeedle)));
+  const sheet = Array.from(document.styleSheets).find((s) => s?.href?.includes(String(sheetNeedle)));
   if (!sheet) return []; //todo add logging
   return Array.from(sheet.cssRules)
     .flatMap((r) => (r?.selectorText?.includes(":before") ? r.selectorText.split(",") : []))
