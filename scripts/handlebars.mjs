@@ -1,6 +1,6 @@
-import { isPlainObject, mhlog } from "./helpers/index.mjs";
+import { isPlainObject } from "./helpers/index.mjs";
 import { localize, signedInteger, sluggify } from "./helpers/stringHelpers.mjs";
-import { getFontAwesomeString, getIconList } from "./helpers/iconHelpers.mjs";
+import { getIconHTMLString } from "./helpers/iconHelpers.mjs";
 //the following are provided by pf2e at least, maybe other systems; only register if necessary
 const pf2eReplacements = {
   add: (a, b) => Number(a) + Number(b),
@@ -54,7 +54,7 @@ const mhlOriginals = {
     return new Handlebars.SafeString(`<i class="fa-solid fa-square-${type}"></i>`);
   },
   getIcon: (...inputs) => {    
-    return new Handlebars.SafeString(getIconString(...inputs));
+    return new Handlebars.SafeString(getIconHTMLString(...inputs));
   },
   // ginfIcon:,
 };

@@ -19,7 +19,7 @@ export class MHLSettingMenu extends FormApplication {
   static get defaultOptions() {
     return fu.mergeObject(super.defaultOptions, {
       title: "MHL Setting Menu Test",
-      template: `modules/${MODULE_ID}/templates/MHLSettingMenu.hbs`,
+      template: `modules/${MODULE_ID}/templates/SettingMenu.hbs`,
       classes: [...super.defaultOptions.classes, "mhl-setting-menu"]
     })
   }

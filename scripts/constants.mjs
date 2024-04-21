@@ -14,5 +14,5 @@ export const CONSOLE_TYPES = ["debug", "info", "warn", "error"];
 export const BANNER_TYPES = CONSOLE_TYPES.slice(1);
 export const LABELABLE_TAGS = ["button", "input", "meter", "output", "progress", "select", "textarea"];
 export const VERIFIED_SYSTEM_VERSIONS = {
-  pf2e: 5.12,
+  pf2e: "5.15",
 };

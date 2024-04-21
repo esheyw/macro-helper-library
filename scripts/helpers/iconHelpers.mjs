@@ -3,7 +3,7 @@ import { elementFromString } from "./DOMHelpers.mjs";
 import { isEmpty, mhlog } from "./errorHelpers.mjs";
 import { getFunctionOptions, isPlainObject } from "./otherHelpers.mjs";
 
-export function getIconString(...args) {
+export function getIconHTMLString(...args) {
   const func = `getIconString`;
   const originalOptions = getFunctionOptions(args, { handlebars: true }) ?? {};
   const options = fu.mergeObject({ fallback: undefined, strict: false, infer: true, element: "i" }, originalOptions);
@@ -35,11 +35,10 @@ export function getIconString(...args) {
     }
     return "";
   } else {
-    mhlog({ stringed }, { type: "warn", prefix: "didnt contain html", func });
     const list = getIconList(stringed);
     const validated = list.validator(stringed, options) ?? null;
     if (!list || !validated) return failValidation();
-    return `<${options.element} class="${validated}"></${options.element}>`;
+    return`<${options.element} class="${validated}"></${options.element}>`;
   }
 }
 export function getFontAwesomeString(...args) {

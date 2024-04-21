@@ -3,7 +3,7 @@ import { htmlClosest, htmlQuery, htmlQueryAll } from "../helpers/DOMHelpers.mjs"
 import { MHLError, isEmpty, modBanner, modLog } from "../helpers/errorHelpers.mjs";
 import { isRealGM } from "../helpers/otherHelpers.mjs";
 import { localize, sluggify } from "../helpers/stringHelpers.mjs";
-import { getFontAwesomeString } from "../helpers/iconHelpers.mjs";
+import { getFontAwesomeString, getIconHTMLString } from "../helpers/iconHelpers.mjs";
 import { getFontAwesomeClasses } from "../helpers/iconHelpers.mjs";
 import { MHLDialog } from "./MHLDialog.mjs";
 import { setting } from "../settings.mjs";
@@ -537,7 +537,7 @@ export class MHLSettingsManager {
     return class MHLGeneratedSettingMenu extends MHLSettingMenu {
       static get defaultOptions() {
         const options = super.defaultOptions;
-        options.classes.push('mhl-setting-menu');
+        options.classes.push("mhl-setting-menu");
         options.width = 400;
         options.resizable = true;
         return options;
@@ -905,9 +905,8 @@ export class MHLSettingsManager {
       const h2 = htmlQuery(section, "h2");
       const span = document.createElement("span");
       span.classList.add("mhl-reset-button");
-      span.innerHTML = `<a data-reset-type="module" data-reset="${this.#module.id}">${getFontAwesomeString(
-        iconSettings.moduleGlyph,
-        "fa-regular"
+      span.innerHTML = `<a data-reset-type="module" data-reset="${this.#module.id}">${getIconHTMLString(
+        iconSettings.moduleGlyph
       )}</a>`;
       const anchor = htmlQuery(span, "a");
       anchor.dataset.tooltipDirection = "UP";
@@ -928,9 +927,8 @@ export class MHLSettingsManager {
         if (resettables.length === 0) continue;
         const span = document.createElement("span");
         span.classList.add("mhl-reset-button");
-        span.innerHTML = `<a data-reset-type="group" data-reset="${group}">${getFontAwesomeString(
+        span.innerHTML = `<a data-reset-type="group" data-reset="${group}">${getIconHTMLString(
           iconSettings.groupGlyph,
-          "fa-regular"
         )}</a>`;
         const anchor = htmlQuery(span, "a");
         anchor.dataset.tooltipDirection = "UP";
@@ -947,18 +945,18 @@ export class MHLSettingsManager {
       const key = div.dataset.settingId.split(".")[1];
       const settingData = this.#settings.get(key);
 
-      const firstInput = htmlQuery(div, "input, select");      
-      if (!firstInput) continue;      
+      const firstInput = htmlQuery(div, "input, select");
+      if (!firstInput) continue;
       firstInput.addEventListener("change", this.#updateResetButtons.bind(this));
       if ("button" in settingData || !("default" in settingData)) continue;
-      
+
       if (opt.includes("settings")) {
         const label = htmlQuery(div, "label");
         const textNode = Array.from(label.childNodes).find((n) => n.nodeName === "#text");
         const anchor = document.createElement("a");
         anchor.dataset.reset = key;
         anchor.dataset.resetType = "setting";
-        anchor.innerHTML = getFontAwesomeString(iconSettings.settingGlyph, "fa-regular");
+        anchor.innerHTML = getIconHTMLString(iconSettings.settingGlyph);
         anchor.dataset.tooltipDirection = "UP";
         const listener = this.#onResetClick.bind(this);
         this.#resetListeners.get("settings").set(key, listener);
@@ -1055,7 +1053,7 @@ export class MHLSettingsManager {
           label: localize("Cancel"),
         },
       },
-      content: `modules/${MODULE_ID}/templates/MHLSettingsManagerReset.hbs`,
+      content: `modules/${MODULE_ID}/templates/SettingsManagerReset.hbs`,
       contentData: {
         defaultlessCount: defaultless.length,
         defaultlessTooltip: defaultless.map((s) => localize(s.name)).join(", "),

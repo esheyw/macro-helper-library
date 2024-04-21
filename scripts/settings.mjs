@@ -18,7 +18,7 @@ class IconSettingsModel extends foundry.abstract.TypeDataModel {
       moduleGlyph: new fields.StringField({
         required: true,
         nullable: false,
-        initial: "fa-reply-all",
+        initial: "ginf-return-arrow",
         label: "Module Glyph",
         hint: "Module Glyph Hint",
         // validate: (v) => isValidFA(v),

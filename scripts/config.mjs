@@ -4,32 +4,25 @@ import { getFontAwesomeClasses, getGamesIconClasses, getIconListFromCSS } from "
 
 class IconListHandler {
   #validateList(entry, target) {
-    let invalid = false;
     let errorstr = "";
     if (!isPlainObject(entry)) {
-      invalid = true;
       errorstr = "MHL.IconListsManager.Error.PlainObject";
     } else if (typeof entry?.name !== "string" || target.find((e) => e.name === entry.name)) {
-      invalid = true;
       errorstr = "MHL.IconListsManager.Error.UniqueNameRequired";
     } else if (typeof entry?.prefix !== "string" || target.find((e) => e.prefix === entry.prefix)) {
-      invalid = true;
       errorstr = "MHL.IconListsManager.Error.UniquePrefixRequired";
     } else if (!Array.isArray(entry?.list) || !entry.list.every((e) => !!e && typeof e === "string")) {
-      invalid = true;
       errorstr = "MHL.IconListsManager.Error.NonEmptyListRequired";
     } else if ("sort" in entry && !Number.isInteger(entry.sort)) {
-      invalid = true;
       errorstr = "MHL.IconListsManager.Error.SortInteger";
-    } else if (typeof entry?.validator === "function") {
-      invalid = true
+    } else if (typeof entry?.validator !== "function") {
       errorstr = "MHL.IconListsManager.Error.ValidatorFunction"
     } else if (!("sort" in entry) || target.find((e) => e.sort === sort)) {
       let sort = target.length * 5;
       while (target.find((e) => e.sort === sort)) sort += 5;
       entry.sort = sort;
     }
-    if (invalid) {
+    if (errorstr) {
       mhlog({ entry }, { type: "error", localize: true, prefix: errorstr, func: `IconListsManager#validateList` });
       return false;
     }

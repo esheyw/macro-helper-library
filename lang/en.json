@@ -25,7 +25,8 @@
         "UniqueNameRequired": "Icon lists must provide a name key that is not already in use.",
         "UniquePrefixRequired": "Icon lists must provide a prefix key that is not already in use.",
         "NonEmptyListRequired": "Icon lists must provide a list key that is a non-empty array of strings.",
-        "SortInteger": "The sort property, if provided in an icon list entry, must be an integer."
+        "SortInteger": "The sort property, if provided in an icon list entry, must be an integer.",
+        "ValidatorFunction": "Icon lists must provide a validator function that can accept a string, or an array of strings, or a series of strings, and validate that at least one argument is a valid icon of your list, returning valid css classes."
       }
     },
     "PickAThing": {
