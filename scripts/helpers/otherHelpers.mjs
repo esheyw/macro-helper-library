@@ -160,13 +160,14 @@ export function getFunctionOptions(inputs, { handlebars = true } = {}) {
   return null;
 }
 
-export function getStringArgs(inputs, { join = false, split = /\s+/ } = {}) {
+export function getStringArgs(inputs, { join = false, split = /\s+/, map = null } = {}) {
   if (!Array.isArray(inputs)) inputs = [inputs];
   inputs = inputs
     .flat(Infinity)
     .filter((i) => !isEmpty(i))
     .map((i) => String(i).trim())
     .flatMap((i) => (split && (typeof split === "string" || split instanceof RegExp) ? i.split(split) : i));
+  if (typeof map === "function") inputs = inputs.map(map);
   if (join && typeof join !== "string") join = " ";
   return join ? inputs.join(String(join)) : inputs;
 }

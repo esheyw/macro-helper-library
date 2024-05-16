@@ -1,4 +1,4 @@
-import { BANNER_TYPES, CONSOLE_TYPES } from "../constants.mjs";
+import { BANNER_TYPES, CONSOLE_TYPES, fu } from "../constants.mjs";
 import { MODULE } from "../init.mjs";
 import { setting } from "../settings.mjs";
 import { mhlocalize } from "./stringHelpers.mjs";
@@ -28,7 +28,7 @@ export function debug(loggable, prefix = "") {
 export function error(loggable, prefix = "") {
   return log(loggable, { type: "error", prefix });
 }
-export function modLog(loggable, { type, prefix, context, func, mod, localize = false } = {}) {
+export function modLog(loggable, { type, prefix, context, func, mod, localize = false, dupe = false } = {}) {
   if (isEmpty(type) || typeof type !== "string") {
     // if type is not provided or bad, and we're not in debug mode, bail.
     if (!setting("debug-mode")) return;
@@ -43,7 +43,7 @@ export function modLog(loggable, { type, prefix, context, func, mod, localize = 
   } else {
     prefix = getLogPrefix("", { mod, func, prefix });
   }
-  return log(loggable, { type, prefix });
+  return log(dupe ? fu.duplicate(loggable) : loggable, { type, prefix });
 }
 
 export function mhlog(loggable, options = {}) {

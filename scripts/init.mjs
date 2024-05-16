@@ -53,6 +53,19 @@ Hooks.once("i18nInit", () => {
     {
       name: "fontawesome",
       prefixes: ["fa-"],
+      aliases: {
+        fas: "fa-solid",
+        far: "fa-regular",
+        fal: "fa-light",
+        fat: "fa-thin",
+        fad: "fa-duotone",
+        fass: "fa-sharp fa-solid",
+        fasr: "fa-sharp fa-regular",
+        fasl: "fa-sharp fa-light",
+        fast: "fa-sharp fa-thin",
+        fasd: "fa-sharp fa-duotone",
+        fab: "fa-brands",
+      },
       schema: {
         fw: {
           pattern: "fw",

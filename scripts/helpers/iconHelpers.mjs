@@ -39,7 +39,7 @@ export function getIconClasses(...args) {
   const func = `getIconClasses`;
   if (args.length === 0 || isPlainObject(args[0])) return "";
   const options = getFunctionOptions(args) ?? {};
-  const stringed = getStringArgs(args, { split: /\s+/ });
+  const stringed = getStringArgs(args, { map: (s) => s.toLowerCase() });
   const infer = options?.infer ?? true;
   const strict = options?.strict ?? false;
   let font;
@@ -55,13 +55,13 @@ export function getIconClasses(...args) {
     required: true,
   };
   const glyphSchema = font?.schema?.glyph ?? {};
-  const schema = fu.duplicate(font?.schema ?? {});
+  const schema = fu.duplicate(font.schema ?? {});
   delete schema.glyph; // ensure glyph is last entry
   schema.glyph = fu.mergeObject(glyphDefault, glyphSchema);
-  const aliases = font?.aliases ?? {};
-  const parts = stringed
-    .map((s) => (s in aliases ? aliases[s] : s))
-    .flatMap((s) => s.trim().toLowerCase().split(/\s+/));
+  const aliases = font.aliases ?? {};
+  mhlog({stringed, aliases}, {func, prefix: 'before alias', dupe: true})
+  const parts = getStringArgs(stringed,{map:(s) => (s in aliases ? aliases[s] : s)})    
+  mhlog({parts}, {func, prefix: 'after alias', dupe: true})
   const partsSeen = Object.fromEntries(Object.keys(schema).map((slug) => [slug, []]));
   partsSeen.others = [];
   const precluded = [];
@@ -98,13 +98,13 @@ export function getIconClasses(...args) {
           if (!matches[1]) matched = false; // if we were inferring, it can get dumped to others
           continue;
         }
-
         if (slug === "glyph" && !isValidIcon(matches[2].toLowerCase(), font.name)) {
           matched = false; // dump to fallback handling
           continue;
         }
         partsSeen[slug].push(exact ? part : (matches[1] || data.prefixes?.[0] || font.prefixes[0]) + matches[2]);
         if ("precludes" in data) precluded.push(...getStringArgs(data.precludes));
+        break;
       }
     }
     //strict means no classes not explicitly in the schema
@@ -148,7 +148,6 @@ export function getIconFontEntry(input, limitTo = null) {
   const allowedIconFonts = CONFIG.MHL.iconFonts
     .filter((f) => (limitTo ? limitTo.includes(f.name) : true))
     .toSorted((a, b) => (a.sort < b.sort ? -1 : a.sort === b.sort ? 0 : 1));
-  mhlog({ parts, limitTo, allowedIconFonts }, { func });
   for (const font of allowedIconFonts) {
     for (const part of parts) {
       const prefix = font.prefixes.find((p) => part.startsWith(p));
