@@ -7,11 +7,7 @@ export function getIconHTMLString(...args) {
   const func = `getIconString`;
   const originalOptions = getFunctionOptions(args) ?? {};
   const options = fu.mergeObject({ strict: false, infer: true, element: "i" }, originalOptions);
-  const stringed = args
-    .flat(Infinity)
-    .filter((s) => !isEmpty(s))
-    .map((s) => String(s))
-    .flatMap((s) => s.split(/\s+/));
+  const stringed = getStringArgs(args);
   const failValidation = () => {
     mhlog(
       { args: isEmpty(originalOptions) ? args : [...args, originalOptions] },
@@ -59,9 +55,9 @@ export function getIconClasses(...args) {
   delete schema.glyph; // ensure glyph is last entry
   schema.glyph = fu.mergeObject(glyphDefault, glyphSchema);
   const aliases = font.aliases ?? {};
-  mhlog({stringed, aliases}, {func, prefix: 'before alias', dupe: true})
-  const parts = getStringArgs(stringed,{map:(s) => (s in aliases ? aliases[s] : s)})    
-  mhlog({parts}, {func, prefix: 'after alias', dupe: true})
+  mhlog({ stringed, aliases }, { func, prefix: "before alias", dupe: true });
+  const parts = getStringArgs(stringed, { map: (s) => (s in aliases ? aliases[s] : s) });
+  mhlog({ parts }, { func, prefix: "after alias", dupe: true });
   const partsSeen = Object.fromEntries(Object.keys(schema).map((slug) => [slug, []]));
   partsSeen.others = [];
   const precluded = [];
@@ -112,14 +108,14 @@ export function getIconClasses(...args) {
       partsSeen.others.push(part);
     }
   }
-  mhlog({ parts, ps: fu.duplicate(partsSeen), schema }, { prefix: "before", func });
+  mhlog({ parts, partsSeen, schema }, { prefix: "before", func, dupe: true });
   for (const [slug, data] of Object.entries(schema)) {
     if (data.required && partsSeen[slug].length === 0) {
       if ("default" in data) partsSeen[slug].push(data.default);
       else return ""; //todo: add logging
     }
   }
-  mhlog({ ps: fu.duplicate(partsSeen) }, { prefix: "after", func });
+  mhlog({ partsSeen }, { prefix: "after", func, dupe: true });
   return Object.values(partsSeen)
     .flat()
     .filter((p) => !isEmpty(p))
