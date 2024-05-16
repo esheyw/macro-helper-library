@@ -3,8 +3,7 @@ import { htmlClosest, htmlQuery, htmlQueryAll } from "../helpers/DOMHelpers.mjs"
 import { MHLError, isEmpty, modBanner, modLog } from "../helpers/errorHelpers.mjs";
 import { isRealGM } from "../helpers/otherHelpers.mjs";
 import { mhlocalize, sluggify } from "../helpers/stringHelpers.mjs";
-import { getFontAwesomeString, getIconHTMLString } from "../helpers/iconHelpers.mjs";
-import { getFontAwesomeClasses } from "../helpers/iconHelpers.mjs";
+import {  getIconHTMLString } from "../helpers/iconHelpers.mjs";
 import { MHLDialog } from "./MHLDialog.mjs";
 import { setting } from "../settings.mjs";
 import { MODULE } from "../init.mjs";

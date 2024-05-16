@@ -1,6 +1,6 @@
 import { mhlog } from "./helpers/errorHelpers.mjs";
 import { isPlainObject } from "./helpers/otherHelpers.mjs";
-import { getFontAwesomeClasses, getGameIconsClasses, getIconListFromCSS } from "./helpers/iconHelpers.mjs";
+import { getIconListFromCSS } from "./helpers/iconHelpers.mjs";
 
 class IconFontsHandler {
   #validateList(entry, target) {
