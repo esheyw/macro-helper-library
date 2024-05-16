@@ -19,6 +19,6 @@
 - test validation of stringfields with regex
 - ||= in hook function
 - test fields as setting types
-- finish appropriating pf2e handlebars helpers
-- generalize icon set retrieval, CONFIG property
+- finish appropriating pf2e handlebars helpers - DONE except for the system update to `json`
 - actually use new json helper
+- finish getIconClasses testing/bugfixing

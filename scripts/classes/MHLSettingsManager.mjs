@@ -2,7 +2,7 @@ import { MODULE_ID, fu } from "../constants.mjs";
 import { htmlClosest, htmlQuery, htmlQueryAll } from "../helpers/DOMHelpers.mjs";
 import { MHLError, isEmpty, modBanner, modLog } from "../helpers/errorHelpers.mjs";
 import { isRealGM } from "../helpers/otherHelpers.mjs";
-import { localize, sluggify } from "../helpers/stringHelpers.mjs";
+import { mhlocalize, sluggify } from "../helpers/stringHelpers.mjs";
 import { getFontAwesomeString, getIconHTMLString } from "../helpers/iconHelpers.mjs";
 import { getFontAwesomeClasses } from "../helpers/iconHelpers.mjs";
 import { MHLDialog } from "./MHLDialog.mjs";
@@ -10,7 +10,6 @@ import { setting } from "../settings.mjs";
 import { MODULE } from "../init.mjs";
 import { DetailsAccordion } from "./DetailsAccordion.mjs";
 import { MHLSettingMenu } from "./MHLSettingMenu.mjs";
-const PREFIX = `MHL.SettingsManager`;
 const funcPrefix = `MHLSettingsManager`;
 export class MHLSettingsManager {
   #colorPattern = "^#[A-Fa-f0-9]{6}";
@@ -33,11 +32,11 @@ export class MHLSettingsManager {
   constructor(module, options = {}) {
     const func = `${funcPrefix}#constructor`;
     this.#module = module instanceof Module ? module : game.modules.get(module);
-    if (!this.#module) throw MHLError(`${PREFIX}.Error.BadModuleID`, { log: { mod }, func: funcPrefix });
+    if (!this.#module) throw MHLError(`MHL.SettingsManager.Error.BadModuleID`, { log: { mod }, func: funcPrefix });
 
     const MHL = MODULE().api;
     if ("settingsManagers" in MHL) {
-      if (MHL.settingsManagers.has(this.#module.id)) throw MHLError(`${PREFIX}.Error.ManagerAlreadyExists`);
+      if (MHL.settingsManagers.has(this.#module.id)) throw MHLError(`MHL.SettingsManager.Error.ManagerAlreadyExists`);
       else MHL.settingsManagers.set(this.#module.id, this);
     }
 
@@ -48,7 +47,13 @@ export class MHLSettingsManager {
         if (typeof group !== "string") {
           modLog(
             { group },
-            { mod: this.options.modPrefix, type: "error", func, localize: true, prefix: `${PREFIX}.Error.InvalidGroup` }
+            {
+              mod: this.options.modPrefix,
+              type: "error",
+              func,
+              localize: true,
+              prefix: `MHL.SettingsManager.Error.InvalidGroup`,
+            }
           );
           continue;
         }
@@ -59,7 +64,7 @@ export class MHLSettingsManager {
     if (this.options.sort && !(this.options.sort === "a" || typeof this.options.sort === "function")) {
       modLog(
         { sort: options.sort },
-        { mod, type: "error", func, localize: true, prefix: `${PREFIX}.Error.InvalidSort` }
+        { mod, type: "error", func, localize: true, prefix: `MHL.SettingsManager.Error.InvalidSort` }
       );
       this.options.sort = null;
     }
@@ -70,7 +75,7 @@ export class MHLSettingsManager {
       if (!resetButtons.every((e) => ["all", "settings", "groups", "module"].includes(e))) {
         modLog(
           { resetButtons: options.resetButtons },
-          { mod, type: "error", func, localize: true, prefix: `${PREFIX}.Error.InvalidResetButttons` }
+          { mod, type: "error", func, localize: true, prefix: `MHL.SettingsManager.Error.InvalidResetButttons` }
         );
         this.options.resetButtons = false;
       }
@@ -174,7 +179,7 @@ export class MHLSettingsManager {
     if (this.options.groups) {
       if (this.options.groups === "a") {
         this.#groupOrder = new Set([
-          ...[...this.#groupOrder].toSorted((a, b) => localize(a).localeCompare(localize(b))),
+          ...[...this.#groupOrder].toSorted((a, b) => mhlocalize(a).localeCompare(mhlocalize(b))),
         ]);
       }
       const groupOrder = [null, ...this.#groupOrder];
@@ -186,7 +191,7 @@ export class MHLSettingsManager {
             node: existingNodes.find(
               (n) => n.dataset?.settingId?.includes(s.key) || htmlQuery(n, `button[data-key$="${s.key}"]`)
             ),
-            name: localize(s.name),
+            name: mhlocalize(s.name),
             id: s.key,
           }));
         if (group !== null) {
@@ -195,7 +200,7 @@ export class MHLSettingsManager {
             const details = document.createElement("details");
             details.dataset.settingGroup = group;
             details.open = true;
-            details.innerHTML = `<summary><h3 data-setting-group="${group}">${localize(
+            details.innerHTML = `<summary><h3 data-setting-group="${group}">${mhlocalize(
               group
             )} </h3></summary><div class="accordion-content"></div>`;
             groupContentDiv = htmlQuery(details, `div.accordion-content`);
@@ -203,7 +208,7 @@ export class MHLSettingsManager {
             sortOrder.push(details);
           } else {
             const groupHeader = document.createElement("h3");
-            groupHeader.innerText = localize(group);
+            groupHeader.innerText = mhlocalize(group);
             groupHeader.dataset.settingGroup = group;
             sortOrder.push(groupHeader);
           }
@@ -241,7 +246,7 @@ export class MHLSettingsManager {
         .filter((s) => s?.config && (s?.scope === "world" ? isGM : true))
         .map((s) => ({
           node: existingNodes.find((n) => n.dataset?.settingId?.includes(s.key)),
-          name: localize(s.name),
+          name: mhlocalize(s.name),
           id: s.key,
         }));
 
@@ -317,7 +322,7 @@ export class MHLSettingsManager {
         : null;
 
     if (isEmpty(settings)) {
-      modLog(`${PREFIX}.Error.NoValidSettings`, {
+      modLog(`MHL.SettingsManager.Error.NoValidSettings`, {
         type: "error",
         mod: this.options.modPrefix,
         context: { module: this.#module.title },
@@ -337,7 +342,7 @@ export class MHLSettingsManager {
           {
             localize: true,
             mod: this.options.modPrefix,
-            prefix: `${PREFIX}.Error.InvalidSettingData`,
+            prefix: `MHL.SettingsManager.Error.InvalidSettingData`,
             func,
             context: { setting, module: this.#module.id },
           }
@@ -357,7 +362,7 @@ export class MHLSettingsManager {
     const func = `${funcPrefix}#registerSetting`;
     if (!this.#potentialSettings.has(key)) this.#potentialSettings.set(key, data);
     if (game.settings.settings.get(`${this.#module.id}.${key}`)) {
-      modLog(`${PREFIX}.Error.DuplicateSetting`, {
+      modLog(`MHL.SettingsManager.Error.DuplicateSetting`, {
         type: "error",
         localize: true,
         mod: this.options.modPrefix,
@@ -384,9 +389,11 @@ export class MHLSettingsManager {
     data.key = key;
     //handle registering settings menus
     if (data?.menu || data?.type?.prototype instanceof FormApplication) {
-      if ("icon" in data) {
-        data.icon = getFontAwesomeClasses(data.icon);
-      }
+      // defer validation to runtime, glyph fallback is responsibiliity of the caller
+      //todo: revisit
+      // if ("icon" in buttonData) {
+      //   buttonData.icon = getFontAwesomeString(buttonData.icon);
+      // }
       //TODO: remove gate once v12 stable
       // if (fu.isNewerVersion(game.version, 12)) {
       if (!data?.type || data?.type?.name === "MHLSettingMenu") {
@@ -413,7 +420,7 @@ export class MHLSettingsManager {
       if (!regex.test(data?.default ?? "")) {
         modLog(
           { key, data },
-          { prefix: `${PREFIX}.Error.InvalidColorPicker`, func, localize: true, mod: this.options.modPrefix }
+          { prefix: `MHL.SettingsManager.Error.InvalidColorPicker`, func, localize: true, mod: this.options.modPrefix }
         );
         data.colorPicker = false;
       }
@@ -448,7 +455,13 @@ export class MHLSettingsManager {
       } else {
         modLog(
           { group: data.group, key },
-          { type: "error", mod: this.options.modPrefix, func, localize: true, prefix: `${PREFIX}.Error.InvalidGroup` }
+          {
+            type: "error",
+            mod: this.options.modPrefix,
+            func,
+            localize: true,
+            prefix: `MHL.SettingsManager.Error.InvalidGroup`,
+          }
         );
         data.group = null;
       }
@@ -472,7 +485,7 @@ export class MHLSettingsManager {
     const badEnrichers = () =>
       modLog(
         { enrichers },
-        { func, localize: true, mod: this.options.modPrefix, prefix: `${PREFIX}.Error.InvalidEnrichers` }
+        { func, localize: true, mod: this.options.modPrefix, prefix: `MHL.SettingsManager.Error.InvalidEnrichers` }
       );
     if (!Array.isArray(enrichers)) {
       if (enrichers instanceof Map) {
@@ -572,7 +585,7 @@ export class MHLSettingsManager {
     if (typeof buttonData !== "object" || !("action" in buttonData) || typeof buttonData.action !== "function") {
       modLog(
         { key, buttonData, module: this.#module.id },
-        { mod: this.options.modPrefix, localize: true, prefix: `${PREFIX}.Error.Button.BadFormat`, func }
+        { mod: this.options.modPrefix, localize: true, prefix: `MHL.SettingsManager.Error.Button.BadFormat`, func }
       );
       return false;
     }
@@ -581,10 +594,11 @@ export class MHLSettingsManager {
       buttonData.label = [this.options.settingPrefix, sluggify(key, { camel: "bactrian" }), "Label"].join(".");
     }
     buttonData.label = String(buttonData.label);
-
-    if ("icon" in buttonData) {
-      buttonData.icon = getFontAwesomeString(buttonData.icon);
-    }
+    // defer validation to runtime, glyph fallback is responsibiliity of the caller
+    //todo: revisit
+    // if ("icon" in buttonData) {
+    //   buttonData.icon = getFontAwesomeString(buttonData.icon);
+    // }
     return buttonData;
   }
 
@@ -599,7 +613,7 @@ export class MHLSettingsManager {
         func,
         localize: true,
         mod: this.options.modPrefix,
-        prefix: `${PREFIX}.Error.Visibility.UnknownDependency`,
+        prefix: `MHL.SettingsManager.Error.Visibility.UnknownDependency`,
         context: data,
       });
       return false;
@@ -631,7 +645,7 @@ export class MHLSettingsManager {
           func,
           context: data,
           localize: true,
-          prefix: `${PREFIX}.Error.Visibility.RequireDependsOn`,
+          prefix: `MHL.SettingsManager.Error.Visibility.RequireDependsOn`,
         });
 
       if (!("test" in visibilityData) || typeof visibilityData.test !== "function") {
@@ -641,7 +655,7 @@ export class MHLSettingsManager {
           func,
           context: data,
           localize: true,
-          prefix: `${PREFIX}.Error.Visibility.RequireTest`,
+          prefix: `MHL.SettingsManager.Error.Visibility.RequireTest`,
         });
         return false;
       }
@@ -673,15 +687,15 @@ export class MHLSettingsManager {
       let invalid = false;
       let errorstr = "";
       if (typeof hookData !== "object" || ("hook" in hookData && typeof hookData.hook !== "string")) {
-        errorstr = `${PREFIX}.Error.Hooks.BadHook`;
+        errorstr = `MHL.SettingsManager.Error.Hooks.BadHook`;
         invalid = true;
       }
       if (!invalid && "action" in hookData && typeof hookData.action !== "function") {
-        errorstr = `${PREFIX}.Error.Hooks.RequiresAction`;
+        errorstr = `MHL.SettingsManager.Error.Hooks.RequiresAction`;
         invalid = true;
       }
       if (!invalid && "test" in hookData && typeof hookData.test !== "function") {
-        errorstr = `${PREFIX}.Error.Hooks.TestFunction`;
+        errorstr = `MHL.SettingsManager.Error.Hooks.TestFunction`;
         invalid = true;
       }
       if (invalid) {
@@ -813,7 +827,7 @@ export class MHLSettingsManager {
         }
         if (!regex.test(event.target.value)) {
           textInput.dataset.tooltipDirection = "UP";
-          textInput.dataset.tooltip = localize(`${PREFIX}.ColorPicker.ValidHexCode`);
+          textInput.dataset.tooltip = mhlocalize(`MHL.SettingsManager.ColorPicker.ValidHexCode`);
         } else {
           textInput.dataset.tooltip = "";
           colorPicker.value = event.target.value;
@@ -826,7 +840,7 @@ export class MHLSettingsManager {
     const fieldDiv = htmlQuery(div, ".form-fields");
     div.classList.add("submenu");
     const button = document.createElement("button");
-    button.innerHTML = `${data.icon} <label>${localize(data.label)}</label>`;
+    button.innerHTML = `${data.icon} <label>${mhlocalize(data.label)}</label>`;
     button.type = "button";
     button.classList.add("mhl-setting-button");
     button.addEventListener("click", data.action);
@@ -928,7 +942,7 @@ export class MHLSettingsManager {
         const span = document.createElement("span");
         span.classList.add("mhl-reset-button");
         span.innerHTML = `<a data-reset-type="group" data-reset="${group}">${getIconHTMLString(
-          iconSettings.groupGlyph,
+          iconSettings.groupGlyph
         )}</a>`;
         const anchor = htmlQuery(span, "a");
         anchor.dataset.tooltipDirection = "UP";
@@ -998,7 +1012,7 @@ export class MHLSettingsManager {
     if (hasDefaults.every((s) => s.isDefault) || event.type === "contextmenu") {
       const formDifferentFromSaved = relevantSettings.filter((s) => s.formEqualsSaved === false);
       if (formDifferentFromSaved.length > 0) {
-        modBanner(`${PREFIX}.Reset.FormResetBanner`, {
+        modBanner(`MHL.SettingsManager.Reset.FormResetBanner`, {
           type: "info",
           mod: this.options.modPrefix,
           localize: true,
@@ -1026,8 +1040,8 @@ export class MHLSettingsManager {
         type: s?.type?.name ?? "Unknown",
         savedValue,
         defaultValue,
-        displaySavedValue: this.#prettifyValue("choices" in s ? localize(s.choices[savedValue]) : savedValue),
-        displayDefaultValue: this.#prettifyValue("choices" in s ? localize(s.choices[defaultValue]) : defaultValue),
+        displaySavedValue: this.#prettifyValue("choices" in s ? mhlocalize(s.choices[savedValue]) : savedValue),
+        displayDefaultValue: this.#prettifyValue("choices" in s ? mhlocalize(s.choices[defaultValue]) : defaultValue),
       });
       return acc;
     }, []);
@@ -1040,23 +1054,23 @@ export class MHLSettingsManager {
     }
 
     const dialogData = {
-      title: localize(`${PREFIX}.Reset.DialogTitle`),
+      title: mhlocalize(`MHL.SettingsManager.Reset.DialogTitle`),
       buttons: {
         reset: {
           callback: MHLDialog.getFormData,
           icon: '<i class="fa-solid fa-check"></i>',
-          label: localize("SETTINGS.Reset"),
+          label: mhlocalize("SETTINGS.Reset"),
         },
         cancel: {
           callback: () => false,
           icon: '<i class="fa-solid fa-xmark"></i>',
-          label: localize("Cancel"),
+          label: mhlocalize("Cancel"),
         },
       },
       content: `modules/${MODULE_ID}/templates/SettingsManagerReset.hbs`,
       contentData: {
         defaultlessCount: defaultless.length,
-        defaultlessTooltip: defaultless.map((s) => localize(s.name)).join(", "),
+        defaultlessTooltip: defaultless.map((s) => mhlocalize(s.name)).join(", "),
         resetType,
         settings: processedSettings,
         target,
@@ -1110,19 +1124,21 @@ export class MHLSettingsManager {
       let tooltip = "";
       if (savedResettables.length > 0) {
         anchor.classList.remove(disabledClass);
-        tooltip = localize(`${PREFIX}.Reset.Module.SavedTooltip`, { count: savedResettables.length });
+        tooltip = mhlocalize(`MHL.SettingsManager.Reset.Module.SavedTooltip`, { count: savedResettables.length });
         anchor.addEventListener("click", listener);
         if (formResettables.length > 0) {
-          tooltip += localize(`${PREFIX}.Reset.Module.FormTooltipAppend`, { count: formResettables.length });
+          tooltip += mhlocalize(`MHL.SettingsManager.Reset.Module.FormTooltipAppend`, {
+            count: formResettables.length,
+          });
         }
       } else {
         if (formResettables.length > 0) {
           anchor.classList.remove(disabledClass);
-          tooltip = localize(`${PREFIX}.Reset.Module.FormTooltipSolo`, { count: formResettables.length });
+          tooltip = mhlocalize(`MHL.SettingsManager.Reset.Module.FormTooltipSolo`, { count: formResettables.length });
           anchor.addEventListener("click", listener);
         } else {
           anchor.classList.add(disabledClass);
-          tooltip = localize(`${PREFIX}.Reset.Module.AllDefaultTooltip`);
+          tooltip = mhlocalize(`MHL.SettingsManager.Reset.Module.AllDefaultTooltip`);
           anchor.removeEventListener("click", listener);
         }
       }
@@ -1139,19 +1155,23 @@ export class MHLSettingsManager {
         let tooltip = "";
         if (groupSavedResettables.length > 0) {
           anchor.classList.remove(disabledClass);
-          tooltip = localize(`${PREFIX}.Reset.Group.SavedTooltip`, { count: groupSavedResettables.length });
+          tooltip = mhlocalize(`MHL.SettingsManager.Reset.Group.SavedTooltip`, { count: groupSavedResettables.length });
           anchor.addEventListener("click", listener);
           if (groupFormResettables.length > 0) {
-            tooltip += localize(`${PREFIX}.Reset.Group.FormTooltipAppend`, { count: groupFormResettables.length });
+            tooltip += mhlocalize(`MHL.SettingsManager.Reset.Group.FormTooltipAppend`, {
+              count: groupFormResettables.length,
+            });
           }
         } else {
           if (groupFormResettables.length > 0) {
             anchor.classList.remove(disabledClass);
-            tooltip = localize(`${PREFIX}.Reset.Group.FormTooltipSolo`, { count: groupFormResettables.length });
+            tooltip = mhlocalize(`MHL.SettingsManager.Reset.Group.FormTooltipSolo`, {
+              count: groupFormResettables.length,
+            });
             anchor.addEventListener("click", listener);
           } else {
             anchor.classList.add(disabledClass);
-            tooltip = localize(`${PREFIX}.Reset.Group.AllDefaultTooltip`);
+            tooltip = mhlocalize(`MHL.SettingsManager.Reset.Group.AllDefaultTooltip`);
             anchor.removeEventListener("click", listener);
           }
         }
@@ -1168,19 +1188,19 @@ export class MHLSettingsManager {
       let tooltip = "";
       if (savedResettable) {
         anchor.classList.remove(disabledClass);
-        tooltip = localize(`${PREFIX}.Reset.Setting.SavedTooltip`);
+        tooltip = mhlocalize(`MHL.SettingsManager.Reset.Setting.SavedTooltip`);
         anchor.addEventListener("click", listener);
         if (formResettable) {
-          tooltip += localize(`${PREFIX}.Reset.Setting.FormTooltipAppend`);
+          tooltip += mhlocalize(`MHL.SettingsManager.Reset.Setting.FormTooltipAppend`);
         }
       } else {
         if (formResettable) {
           anchor.classList.remove(disabledClass);
-          tooltip = localize(`${PREFIX}.Reset.Setting.FormTooltipSolo`);
+          tooltip = mhlocalize(`MHL.SettingsManager.Reset.Setting.FormTooltipSolo`);
           anchor.addEventListener("click", listener);
         } else {
           anchor.classList.add(disabledClass);
-          tooltip = localize(`${PREFIX}.Reset.Setting.IsDefaultTooltip`);
+          tooltip = mhlocalize(`MHL.SettingsManager.Reset.Setting.IsDefaultTooltip`);
           anchor.removeEventListener("click", listener);
         }
       }
@@ -1256,7 +1276,7 @@ export class MHLSettingsManager {
           mod: this.options.modPrefix,
           func,
           localize: true,
-          prefix: `${PREFIX}.Error.NotAnElement`,
+          prefix: `MHL.SettingsManager.Error.NotAnElement`,
           context: { variable: "section" },
         }
       );
@@ -1278,7 +1298,10 @@ export class MHLSettingsManager {
     return typeof value === "object" ? JSON.stringify(value, null, 2) : value;
   }
 
-  #requireSetting(key, { func = null, potential = false, error = `${PREFIX}.Error.NotRegistered`, context = {} } = {}) {
+  #requireSetting(
+    key,
+    { func = null, potential = false, error = `MHL.SettingsManager.Error.NotRegistered`, context = {} } = {}
+  ) {
     if (!this.#settings.has(key) && potential && !this.#potentialSettings.has(key)) {
       modLog(error, {
         type: "error",

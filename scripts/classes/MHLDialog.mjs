@@ -1,12 +1,12 @@
 import { LABELABLE_TAGS, fu } from "../constants.mjs";
 import { MHLError, localizedBanner, mhlog, log, isEmpty } from "../helpers/errorHelpers.mjs";
-import { localize } from "../helpers/stringHelpers.mjs";
+import { mhlocalize } from "../helpers/stringHelpers.mjs";
 import { htmlQuery, htmlQueryAll } from "../helpers/DOMHelpers.mjs";
-const PREFIX = "MHL.Dialog";
 const funcPrefix = `MHLDialog`;
+
 export class MHLDialog extends Dialog {
   prefix = null;
-  constructor(data, options = {}) {
+  constructor(data = {}, options = {}) {
     const func = `${funcPrefix}#constructor`;
     // gotta work around Application nuking the classes array with mergeObject
     let tempClasses;
@@ -31,7 +31,7 @@ export class MHLDialog extends Dialog {
       const contentData = this.data.contentData;
       const disallowedKeys = ["buttons", "content"];
       if (!Object.keys(contentData).every((k) => !disallowedKeys.includes(k))) {
-        throw MHLError(`${PREFIX}.Error.ReservedKeys`, {
+        throw MHLError(`MHL.Dialog.Error.ReservedKeys`, {
           context: { keys: disallowedKeys.join(", ") },
           func: "MHLDialog: ",
           log: { contentData },
@@ -43,7 +43,7 @@ export class MHLDialog extends Dialog {
       const cancelButtons = this.data.cancelButtons;
       if (!Array.isArray(cancelButtons) || !cancelButtons.every((b) => typeof b === "string")) {
         throw MHLError(`MHL.Error.Type.Array`, {
-          context: { var: "cancelButtons", of: localize(`MHL.Error.Type.Of.ButtonLabelStrings`) },
+          context: { arg: "cancelButtons", of: mhlocalize(`MHL.Error.Type.Of.ButtonLabelStrings`) },
           func,
           log: { cancelButtons },
         });
@@ -73,7 +73,7 @@ export class MHLDialog extends Dialog {
                 )
                 .join(", ");
               // don't use MHLBanner for genericity, use data.prefix for specificity
-              localizedBanner(`${PREFIX}.Warning.RequiredFields`, {
+              localizedBanner(`MHL.Dialog.Warning.RequiredFields`, {
                 context: { fields: fieldsError },
                 type: "warn",
                 console: false,
@@ -87,7 +87,7 @@ export class MHLDialog extends Dialog {
           break;
         }
       default:
-        throw MHLError(`${PREFIX}.Error.BadValidator`, { func: "MHLDialog: ", log: { validator } });
+        throw MHLError(`MHL.Dialog.Error.BadValidator`, { func: "MHLDialog: ", log: { validator } });
     }
     return validator;
   }
@@ -106,7 +106,7 @@ export class MHLDialog extends Dialog {
   static get defaultOptions() {
     const options = super.defaultOptions;
     options.jQuery = false;
-    options.classes.push('mhl-dialog');
+    options.classes.push("mhl-dialog");
     return options;
   }
 
@@ -197,7 +197,7 @@ export class MHLDialog extends Dialog {
           allowProtoPropertiesByDefault: true,
         });
       }
-      data.content ||= localize(`${PREFIX}.Error.TemplateFailure`);
+      data.content ||= mhlocalize(`MHL.Dialog.Error.TemplateFailure`);
     }
     return super._renderInner(data);
   }
@@ -210,14 +210,17 @@ export class MHLDialog extends Dialog {
     const func = `${funcPrefix}.getFormsData`;
     html = html instanceof jQuery ? html[0] : html;
     const forms = htmlQueryAll(html, "form");
-    return forms.reduce((acc, form, i) => {
-      const data = new FormDataExtended(form).object;
-      acc[i] = data;
-      const name = form.getAttribute("name");
-      if (name) acc[name] = data;
-      acc.length++;
-      return acc;
-    }, {length:0});
+    return forms.reduce(
+      (acc, form, i) => {
+        const data = new FormDataExtended(form).object;
+        acc[i] = data;
+        const name = form.getAttribute("name");
+        if (name) acc[name] = data;
+        acc.length++;
+        return acc;
+      },
+      { length: 0 }
+    );
   }
 
   static getLabelMap(html) {

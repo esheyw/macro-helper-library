@@ -1,5 +1,5 @@
 import { isPlainObject } from "./helpers/index.mjs";
-import { localize, signedInteger, sluggify } from "./helpers/stringHelpers.mjs";
+import { mhlocalize, signedInteger, sluggify } from "./helpers/stringHelpers.mjs";
 import { getIconHTMLString } from "./helpers/iconHelpers.mjs";
 //the following are provided by pf2e at least, maybe other systems; only register if necessary
 const pf2eReplacements = {
@@ -40,20 +40,20 @@ const mhlOriginals = {
   mhlocalize: (value, options) => {
     if (value instanceof Handlebars.SafeString) value = value.toString();
     const data = options.hash;
-    return new Handlebars.SafeString(localize(value, data));
+    return new Handlebars.SafeString(mhlocalize(value, data));
   },
   mhlIsColor: (value) => {
     if (value instanceof Handlebars.SafeString) value = value.toString();
     return /^#[a-f0-9]{6}$/i.test(value);
   },
   mhlYesOrNo: (value) => {
-    return !!value ? localize("Yes") : localize("No");
+    return !!value ? mhlocalize("Yes") : mhlocalize("No");
   },
   mhlCheckOrX: (value) => {
     const type = !!value ? "check" : "xmark";
     return new Handlebars.SafeString(`<i class="fa-solid fa-square-${type}"></i>`);
   },
-  getIcon: (...inputs) => {    
+  getIcon: (...inputs) => {
     return new Handlebars.SafeString(getIconHTMLString(...inputs));
   },
   // ginfIcon:,

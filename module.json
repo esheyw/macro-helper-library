@@ -29,7 +29,7 @@
       "extensions": ["css", "hbs", "json"]
     }
   },
-  "version": "0.2.8",
+  "version": "0.5.0",
   "manifest": "updatedByRelease",
   "url": "updatedByRelease",
   "download": "updatedByRelease",
@@ -39,9 +39,9 @@
   "relationships": {
     "requires": [
       {
-        "id": "game-icons-net-font",
+        "id": "additional-icon-fonts",
         "type": "module",
-        "manifest": "https://github.com/esheyw/game-icon-net-font/releases/latest/download/module.json"
+        "manifest": "https://github.com/esheyw/additional-icon-fonts/releases/latest/download/module.json"
       }
     ]
   },

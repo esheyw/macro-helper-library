@@ -1,25 +1,5 @@
 import { MODULE_ID, fu } from "../constants.mjs";
-import { MHLError, isPlainObject, mhlog } from "./index.mjs";
-
-export function getLogPrefix(text, options = {}) {
-  let out = "";
-  let { prefix, mod, func } = options;
-  if (typeof text !== "string") {
-    mhlog(`MHL.Warning.Fallback.Type`, {
-      func: `getLogPrefix`,
-      localize: true,
-      context: { var: "text", type: typeof text, expected: "string" },
-    });
-    text = String(text);
-  }
-  mod = String(mod ?? "");
-  func = String(func ?? "");
-  prefix = String(prefix ?? "");
-  if (mod && !text.startsWith(`${mod} |`)) out += `${mod} | `;
-  if (func && !text.includes(`${func} |`)) out += `${func} | `;
-  if (prefix) out += prefix;
-  return out;
-}
+import { MHLError, mhlog } from "./index.mjs";
 
 export function prependIndefiniteArticle(text) {
   const vowels = "aeiou";
@@ -27,35 +7,35 @@ export function prependIndefiniteArticle(text) {
     mhlog(`MHL.Warning.Fallback.Type`, {
       func: "prependIndefiniteArticle",
       localize: true,
-      context: { var: "text", type: typeof text, expected: "string" },
+      context: { arg: "text", type: typeof text, expected: "string" },
     });
     text = String(text);
   }
   const article =
     vowels.indexOf(text[0].toLowerCase()) > -1
-      ? localize(`MHL.Grammar.Articles.An`)
-      : localize(`MHL.Grammar.Articles.A`);
+      ? mhlocalize(`MHL.Grammar.Articles.An`)
+      : mhlocalize(`MHL.Grammar.Articles.A`);
   return `${article} ${text}`;
 }
 
-export function localize(text, data = {}, { defaultEmpty = true } = {}) {
+export function mhlocalize(text, context = {}, { defaultEmpty = true } = {}) {
   if (typeof text !== "string") {
     mhlog(`MHL.Warning.Fallback.Type`, {
       func: "localize",
       localize: true,
-      context: { var: "text", type: typeof text, expected: "string" },
+      context: { arg: "text", type: typeof text, expected: "string" },
     });
     text = String(text);
   }
   if (fu.isEmpty(game.i18n?.translations)) {
     return `Localization attempted before i18n initialization, pasteable command: 
-    game.modules.get('${MODULE_ID}').api.localize('${text}', ${JSON.stringify(data)})`;
+    game.modules.get('${MODULE_ID}').api.localize('${text}', ${JSON.stringify(context)})`;
   }
   return game.i18n
     .localize(text)
     .replace(/(?<!\\)({[^}]+})/g, (match) => {
       // match all {} not preceded by \
-      return data[match.slice(1, -1)] ?? (defaultEmpty ? "" : undefined);
+      return context[match.slice(1, -1)] ?? (defaultEmpty ? "" : undefined);
     })
     .replace(/\\{/, "{"); //strip \ before { from final string
 }
@@ -78,7 +58,7 @@ export function sluggify(text, { camel = null } = {}) {
     mhlog(`MHL.Warning.Fallback.Type`, {
       func: "sluggify",
       localize: true,
-      context: { var: "text", type: typeof text, expected: "string" },
+      context: { arg: "text", type: typeof text, expected: "string" },
     });
     text = String(text);
   }
@@ -117,4 +97,13 @@ export function signedInteger(value, { emptyStringZero = false, zeroIsNegative =
   const maybeNegativeZero = zeroIsNegative && value === 0 ? -0 : value;
 
   return nf.format(maybeNegativeZero);
+}
+
+export function oxfordList(list) {
+  list = (Array.isArray(list) ? list : [list]).filter((e) => !!e).map((e) => String(e));
+  if (list.length <= 1) return list?.[0] ?? "";
+  if (list.length === 2) return list.join(" and ");
+  const last = list.at(-1);
+  const others = list.splice(0, list.length - 1);
+  return `${others.join(", ")}, and ${last}`;
 }

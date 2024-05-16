@@ -3,15 +3,14 @@ import { MODULE } from "./init.mjs";
 
 class IconSettingsModel extends foundry.abstract.TypeDataModel {
   static defineSchema() {
-    const PREFIX = "MHL.Setting.IconSettings";
     const fields = foundry.data.fields;
     return {
       // disabledClass: new fields.StringField({
       //   required: true,
       //   nullable: false,
       //   initial: "disabled-transparent",
-      //   label: `${PREFIX}.DisabledClass.Label`,
-      //   hint: `${PREFIX}.DisabledClass.Hint`,
+      //   label: `MHL.Setting.IconSettings.DisabledClass.Label`,
+      //   hint: `MHL.Setting.IconSettings.DisabledClass.Hint`,
       //   choices: ["disabled-transparent", "disabled-hidden", "disabled-blurry"],
       //   group: ".CSS",
       // }),
@@ -72,6 +71,15 @@ export const SETTINGS = {
       settingGlyph: "fa-arrow-rotate-left",
     },
   },
+  "debug-mode": {
+    config: true,
+    type: Boolean,
+    name: null,
+    hint: null,
+    scope: "client",
+    group: ".ErrorHandling",
+    default: false,
+  },
   "log-level": {
     config: true,
     type: String,
@@ -84,7 +92,7 @@ export const SETTINGS = {
       error: null,
     },
     default: "warn",
-    scope: "world",
+    scope: "client",
     group: ".ErrorHandling",
   },
   "global-access": {
@@ -117,7 +125,7 @@ export const SETTINGS = {
 
 export function setting(key) {
   const SM = MODULE()?.settingsManager;
-  if (SM?.initialized && game?.user) {
+  if (SM.initialized) {
     return SM.get(key);
   }
   return undefined;

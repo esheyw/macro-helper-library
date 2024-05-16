@@ -18,7 +18,7 @@ export function anyTargets(options = {}) {
   user ??= game.user;
   if (typeof user === "string") user = game.users.get(user) ?? game.users.getName(user);
   if (!(user instanceof User)) {
-    throw MHLError(`MHL.Error.Type.User`, { context: { var: "user" }, log: { user }, func });
+    throw MHLError(`MHL.Error.Type.User`, { context: { arg: "user" }, log: { user }, func });
   }
   if (user.targets.size === 0) {
     throw MHLError(`MHL.Error.Target.NotAnyTargetted`, { func });

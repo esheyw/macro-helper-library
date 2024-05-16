@@ -2,12 +2,12 @@ import { oneTokenOnly } from "../helpers/tokenHelpers.mjs";
 import { MHLError, requireSystem } from "../helpers/errorHelpers.mjs";
 
 export async function dropHeldTorch() {
-  const PREFIX = "MHL.Macros.DropHeldTorch";
   const func = "dropHeldTorch";
   requireSystem("pf2e", `MHL | ${func}`);
   //Check for exactly one selected token
   const token = oneTokenOnly();
-  if (!game.modules.get("item-piles")?.active) throw MHLError(`${PREFIX}.Error.ItemPilesDependency`, { func });
+  if (!game.modules.get("item-piles")?.active)
+    throw MHLError(`MHL.Macros.DropHeldTorch.Error.ItemPilesDependency`, { func });
   const held = token.actor.items.filter((i) => i.carryType === "held");
   //eventually want this to be a select held item dialog, hardcoding to Torch for now)
   const [torch] = held.filter((i) => i.name === "Torch");

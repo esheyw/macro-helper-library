@@ -1,31 +1,34 @@
 import { mhlog } from "./helpers/errorHelpers.mjs";
 import { isPlainObject } from "./helpers/otherHelpers.mjs";
-import { getFontAwesomeClasses, getGamesIconClasses, getIconListFromCSS } from "./helpers/iconHelpers.mjs";
+import { getFontAwesomeClasses, getGameIconsClasses, getIconListFromCSS } from "./helpers/iconHelpers.mjs";
 
-class IconListHandler {
+class IconFontsHandler {
   #validateList(entry, target) {
     let errorstr = "";
-    if (!isPlainObject(entry)) {
-      errorstr = "MHL.IconListsManager.Error.PlainObject";
-    } else if (typeof entry?.name !== "string" || target.find((e) => e.name === entry.name)) {
-      errorstr = "MHL.IconListsManager.Error.UniqueNameRequired";
-    } else if (typeof entry?.prefix !== "string" || target.find((e) => e.prefix === entry.prefix)) {
-      errorstr = "MHL.IconListsManager.Error.UniquePrefixRequired";
-    } else if (!Array.isArray(entry?.list) || !entry.list.every((e) => !!e && typeof e === "string")) {
-      errorstr = "MHL.IconListsManager.Error.NonEmptyListRequired";
-    } else if ("sort" in entry && !Number.isInteger(entry.sort)) {
-      errorstr = "MHL.IconListsManager.Error.SortInteger";
-    } else if (typeof entry?.validator !== "function") {
-      errorstr = "MHL.IconListsManager.Error.ValidatorFunction"
-    } else if (!("sort" in entry) || target.find((e) => e.sort === sort)) {
+    const fail = (errorstr) => {
+      mhlog({ entry }, { type: "error", localize: true, prefix: errorstr, func: `IconFontsHandler#validateList` });
+      return false;
+    };
+
+    if (!isPlainObject(entry)) return fail("MHL.IconFontsHandler.Error.PlainObject");
+    if (typeof entry.name !== "string" || target.find((e) => e.name === entry.name))
+      return fail("MHL.IconFontsHandler.Error.UniqueNameRequired");
+    if (!Array.isArray(entry.prefixes) || entry.prefixes.some((p) => target.flatMap((e) => e.prefixes).includes(p)))
+      return fail("MHL.IconFontsHandler.Error.UniquePrefixRequired");
+    entry.list ??= getIconListFromCSS(entry.name, entry.prefixes);
+    if (!Array.isArray(entry.list) || !entry.list.every((e) => !!e && typeof e === "string"))
+      return fail("MHL.IconFontsHandler.Error.NonEmptyListRequired");
+    if ("schema" in entry) {
+      //todo: glyph can't be deterministic validation
+    }
+    if ("sort" in entry && !Number.isInteger(entry.sort)) return fail("MHL.IconFontsHandler.Error.SortInteger");
+    if (!("sort" in entry) || target.find((e) => e.sort === sort)) {
+      mhlog(`MHL.IconFontsHandler.Fallback.Sort`, { type: "debug" });
       let sort = target.length * 5;
       while (target.find((e) => e.sort === sort)) sort += 5;
       entry.sort = sort;
     }
-    if (errorstr) {
-      mhlog({ entry }, { type: "error", localize: true, prefix: errorstr, func: `IconListsManager#validateList` });
-      return false;
-    }
+    if (errorstr) return fail(errorstr);
     return true;
   }
 
@@ -45,21 +48,8 @@ class IconListHandler {
   }
 }
 export const DEFAULT_CONFIG = {};
-Object.defineProperty(DEFAULT_CONFIG, "iconLists", {
+Object.defineProperty(DEFAULT_CONFIG, "iconFonts", {
   writable: false,
   configurable: false,
-  value: new Proxy(new Array(), new IconListHandler()),
-});
-
-DEFAULT_CONFIG.iconLists.push({
-  name: "fontawesome",
-  prefix: "fa-",
-  list: getIconListFromCSS("fontawesome", "fa-"),
-  validator: getFontAwesomeClasses,
-});
-DEFAULT_CONFIG.iconLists.push({
-  name: "game-icons.net",
-  prefix: "ginf-",
-  list: getIconListFromCSS("game-icons-net", "ginf-"),
-  validator: getGamesIconClasses,
+  value: new Proxy(new Array(), new IconFontsHandler()),
 });

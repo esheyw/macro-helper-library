@@ -3,7 +3,6 @@ import { pickItemFromActor } from "../helpers/pf2eHelpers.mjs";
 import { MHLError, localizedBanner, requireSystem } from "../helpers/errorHelpers.mjs";
 
 export async function lashingCurrents() {
-  const PREFIX = "MHL.Macro.LashingCurrents";
   const func = "lashingCurrents";
   requireSystem("pf2e", `MHL | ${func}`);
   const token = oneTokenOnly();
@@ -37,7 +36,7 @@ export async function lashingCurrents() {
       held: true,
       itemType: "weapon",
     });
-    if (!relicWeapon) throw MHLError(`${PREFIX}.Error.NoneSelected`, { func });
+    if (!relicWeapon) throw MHLError(`MHL.Macro.LashingCurrents.Error.NoneSelected`, { func });
     rules.push({
       key: "Striking",
       selector: "lashing-currents-damage",
@@ -69,6 +68,6 @@ export async function lashingCurrents() {
         )
     );
     await existingLC.update({ "system.rules": oldRules });
-    localizedBanner(`${PREFIX}.Info.Removing`, { context: { name: existingLC.name }, console: false });
+    localizedBanner(`MHL.Macro.LashingCurrents.Info.Removing`, { context: { name: existingLC.name }, console: false });
   }
 }

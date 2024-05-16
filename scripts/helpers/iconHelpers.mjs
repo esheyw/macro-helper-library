@@ -1,12 +1,12 @@
 import { fu } from "../constants.mjs";
 import { elementFromString } from "./DOMHelpers.mjs";
 import { isEmpty, mhlog } from "./errorHelpers.mjs";
-import { getFunctionOptions, isPlainObject } from "./otherHelpers.mjs";
+import { getFunctionOptions, getStringArgs, isPlainObject } from "./otherHelpers.mjs";
 
 export function getIconHTMLString(...args) {
   const func = `getIconString`;
-  const originalOptions = getFunctionOptions(args, { handlebars: true }) ?? {};
-  const options = fu.mergeObject({ fallback: undefined, strict: false, infer: true, element: "i" }, originalOptions);
+  const originalOptions = getFunctionOptions(args) ?? {};
+  const options = fu.mergeObject({ strict: false, infer: true, element: "i" }, originalOptions);
   const stringed = args
     .flat(Infinity)
     .filter((s) => !isEmpty(s))
@@ -24,21 +24,14 @@ export function getIconHTMLString(...args) {
   if (containsHTML) {
     const element = elementFromString(containsHTML);
     if (!element || !element.className) return failValidation();
-    const parts = element.className.split(/\s+/);
-    for (const part of parts) {
-      const list = getIconList(part);
-      if (!list) continue;
-      const validated = list.validate(element.className, options);
-      if (!validated) continue;
-      element.className = validated;
-      return element.outerHTML;
-    }
-    return "";
+    const validated = getIconClasses(element.className, options);
+    if (!validated) return "";
+    element.className = validated;
+    return element.outerHTML;
   } else {
-    const list = getIconList(stringed);
-    const validated = list.validator(stringed, options) ?? null;
-    if (!list || !validated) return failValidation();
-    return`<${options.element} class="${validated}"></${options.element}>`;
+    const validated = getIconClasses(stringed, options) ?? null;
+    if (!validated) return failValidation();
+    return `<${options.element} class="${validated}"></${options.element}>`;
   }
 }
 export function getFontAwesomeString(...args) {
@@ -66,8 +59,8 @@ export function getFontAwesomeString(...args) {
   return `<${element} class="${classes}"></${element}>`;
 }
 
-export function getGamesIconClasses(...args) {
-  const func = "getGanesIconClasses";
+export function getGameIconsClasses(...args) {
+  const func = "getGameIconsClasses";
   if (args.length === 0 || isPlainObject(args[0])) return "";
   const options = getFunctionOptions(args, { handlebars: true }) ?? {};
   const { infer, strict, fallback } = fu.mergeObject({ infer: true, strict: false, fallback: undefined }, options);
@@ -75,10 +68,7 @@ export function getGamesIconClasses(...args) {
     glyph: null,
     others: [],
   };
-  const parts = args
-    .flat(Infinity)
-    .filter((a) => !isEmpty(a))
-    .map((a) => String(a));
+  const parts = getStringArgs(args);
   for (const part of parts) {
     const glyphMatches = /^(ginf-)?([-a-z0-9_]+)$/i.exec(part);
     if (glyphMatches) {
@@ -116,15 +106,104 @@ export function getGamesIconClasses(...args) {
     .trim();
 }
 
+export function getIconClasses(...args) {
+  const func = `getIconClasses`;
+  if (args.length === 0 || isPlainObject(args[0])) return "";
+  const options = getFunctionOptions(args) ?? {};
+  const stringed = getStringArgs(args, { split: /\s+/ });
+  const infer = options?.infer ?? true;
+  const strict = options?.strict ?? false;
+  let font;
+  if (isPlainObject(options?.font)) {
+    font = options.font;
+  } else if (!("font" in options) || isEmpty(options.font) || typeof options.font === "string") {
+    font = getIconFontEntry(stringed, typeof options?.font === "string" ? options.font : null);
+    if (!font) return ""; //todo: logging
+  }
+  if (!Array.isArray(getStringArgs(font?.prefixes))) return ""; //todo: more logging
+  const glyphDefault = {
+    pattern: "[-a-z0-9_]+",
+    required: true,
+  };
+  const glyphSchema = font?.schema?.glyph ?? {};
+  const schema = fu.duplicate(font?.schema ?? {});
+  delete schema.glyph; // ensure glyph is last entry
+  schema.glyph = fu.mergeObject(glyphDefault, glyphSchema);
+  const aliases = font?.aliases ?? {};
+  const parts = stringed
+    .map((s) => (s in aliases ? aliases[s] : s))
+    .flatMap((s) => s.trim().toLowerCase().split(/\s+/));
+  const partsSeen = Object.fromEntries(Object.keys(schema).map((slug) => [slug, []]));
+  partsSeen.others = [];
+  const precluded = [];
+  for (const part of parts) {
+    let matched = false;
+    for (const [slug, data] of Object.entries(schema)) {
+      let matches, exact;
+      if ("value" in data) {
+        if (slug === "glyph") {
+          mhlog(`MHL.Error.Validation.IconSchemaGlyphExact`, { type: error, localize: true, func });
+          return "";
+        }
+        if (part !== data.value.toLowerCase()) continue;
+        exact = true;
+      } else {
+        const prefixes = getStringArgs(data.prefixes ?? font.prefixes);
+        matches = new RegExp(
+          `^(${prefixes.map(RegExp.escape).join("|")})?(${
+            "choices" in data ? data.choices.map(RegExp.escape).join("|") : data.pattern ?? "\n" //presumably/hopefully a \n will never match?
+          })$`,
+          "i"
+        ).exec(part);
+      }
+      if (matches || exact) {
+        mhlog({ matches, exact, infer, strict, part, slug }, { func, prefix: "match!" });
+        // not exact, can't infer, and no prefix
+        if (!exact && !infer && !matches[1]) continue;
+        // matched = skip fallback add to others
+        matched = true;
+        // an exact match is precluded, discard
+        if (precluded.includes(slug) && (exact || matches[1])) continue;
+        //cap reached, discard
+        if (partsSeen[slug].length >= (data.max ?? 1)) {
+          if (!matches[1]) matched = false; // if we were inferring, it can get dumped to others
+          continue;
+        }
+
+        if (slug === "glyph" && !isValidIcon(matches[2].toLowerCase(), font.name)) {
+          matched = false; // dump to fallback handling
+          continue;
+        }
+        partsSeen[slug].push(exact ? part : (matches[1] || data.prefixes?.[0] || font.prefixes[0]) + matches[2]);
+        if ("precludes" in data) precluded.push(...getStringArgs(data.precludes));
+      }
+    }
+    //strict means no classes not explicitly in the schema
+    if (!matched && !strict) {
+      partsSeen.others.push(part);
+    }
+  }
+  mhlog({ parts, ps: fu.duplicate(partsSeen), schema }, { prefix: "before", func });
+  for (const [slug, data] of Object.entries(schema)) {
+    if (data.required && partsSeen[slug].length === 0) {
+      if ("default" in data) partsSeen[slug].push(data.default);
+      else return ""; //todo: add logging
+    }
+  }
+  mhlog({ ps: fu.duplicate(partsSeen) }, { prefix: "after", func });
+  return Object.values(partsSeen)
+    .flat()
+    .filter((p) => !isEmpty(p))
+    .join(" ")
+    .trim();
+}
+
 export function getFontAwesomeClasses(...inputs) {
   const func = "getFontAwesomeClasses";
   const options = getFunctionOptions(inputs, { handlebars: true }) ?? {};
   options.default ??= undefined;
   options.infer ??= true;
-  const stringed = inputs
-    .flat(Infinity)
-    .filter((s) => !isEmpty(s))
-    .map((s) => String(s));
+  const stringed = getStringArgs(inputs);
   const aliases = {
     fas: "fa-solid",
     far: "fa-regular",
@@ -219,51 +298,52 @@ export function getFontAwesomeClasses(...inputs) {
 }
 
 export function isValidIcon(input, limitTo = null) {
-  return !!getIconList(input, limitTo);
+  return !!getIconFontEntry(input, limitTo);
 }
 
-export function getIconList(input, limitTo = null) {
-  const func = `getIconList`;
+export function getIconFontEntry(input, limitTo = null) {
+  const func = `getIconFontEntry`;
   let parts;
   if (input instanceof HTMLElement) {
     parts = input.className.split(/\s+/);
   } else if (typeof input === "string") {
     parts = (elementFromString(input)?.className ?? input).split(/\s+/);
   } else if (Array.isArray(input)) {
-    parts = input
-      .flat(Infinity)
-      .filter((e) => !isEmpty(e))
-      .map((s) => String(s).trim());
+    parts = getStringArgs(input);
   } else {
     return null;
   }
 
-  limitTo = isEmpty(limitTo) ? null : Array.isArray(limitTo) ? limitTo : [limitTo];
-  const validLists = CONFIG.MHL.iconLists
-    .filter((l) => (limitTo ? limitTo.includes(l.name) : true))
+  limitTo = !isEmpty(limitTo) ? getStringArgs(limitTo) : null;
+  const allowedIconFonts = CONFIG.MHL.iconFonts
+    .filter((f) => (limitTo ? limitTo.includes(f.name) : true))
     .toSorted((a, b) => (a.sort < b.sort ? -1 : a.sort === b.sort ? 0 : 1));
-  for (const list of validLists) {
+  mhlog({ parts, limitTo, allowedIconFonts }, { func });
+  for (const font of allowedIconFonts) {
     for (const part of parts) {
-      const testString = part.startsWith(list.prefix) ? part.substring(list.prefix.length) : part;
-      if (list.list.includes(testString)) return list;
+      const prefix = font.prefixes.find((p) => part.startsWith(p));
+      const testString = prefix ? part.substring(prefix.length) : part;
+      if (font.list.includes(testString)) return font;
     }
   }
   return null;
 }
 
-export function getIconListFromCSS(sheetNeedle, prefix) {
-  const sheet = Array.from(document.styleSheets).find((s) => s?.href?.includes(String(sheetNeedle)));
+export function getIconListFromCSS(needle, prefixes) {
+  const sheet = Array.from(document.styleSheets).find((s) => s?.href?.includes(String(needle)));
   if (!sheet) return []; //todo add logging
-  return Array.from(sheet.cssRules)
-    .flatMap((r) => (r?.selectorText?.includes(":before") ? r.selectorText.split(",") : []))
-    .reduce((acc, s) => {
-      // made this a reduce because some entries are resolving to ''
-      //todo: be more thorough here (check end of produced list for weirdness)
-      const processed = s
-        .trim()
-        .replace(/:{1,2}before/, "")
-        .substring(String(prefix).length + 1); // +1 to account for the . in the selector
-      if (processed) acc.push(processed);
-      return acc;
-    }, []);
+  prefixes = getStringArgs(prefixes);
+  return [
+    ...Array.from(sheet.cssRules)
+      .filter(
+        // the after filter is, I think, entirely for duotone stuff
+        (rule) => rule instanceof CSSStyleRule && rule.style[0] === "content" && !rule.selectorText.includes("after")
+      )
+      .reduce((acc, rule) => {
+        const regex = new RegExp(`\.(?:${prefixes.join("|")})([^:]+):{1,2}before`);
+        const selectors = rule.selectorText.split(",").map((e) => e.trim().replace(regex, "$1"));
+        for (const selector of selectors) acc.add(selector.toLowerCase());
+        return acc;
+      }, new Set()),
+  ];
 }

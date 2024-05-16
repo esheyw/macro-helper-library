@@ -1,42 +1,44 @@
 import { BANNER_TYPES, CONSOLE_TYPES } from "../constants.mjs";
+import { MODULE } from "../init.mjs";
 import { setting } from "../settings.mjs";
-import { getLogPrefix, localize } from "./stringHelpers.mjs";
+import { mhlocalize } from "./stringHelpers.mjs";
 
-export function log(loggable, options = {}) {
+export function log(loggable, { type, prefix } = {}) {
   const func = "log";
-  const defaultType = "debug";
-  let { type, prefix } = options;
+  const defaultType = "log";
   type = String(type ?? defaultType);
   prefix = String(prefix ?? "");
   if (!CONSOLE_TYPES.includes(type)) {
     mhlog(`MHL.Warning.Fallback.LogType`, {
-      type: "warn",
       func,
       localize: true,
       context: { type, defaultType },
     });
     type = defaultType;
   }
-  if (typeof loggable === "string") {
-    loggable = prefix + loggable;
-    console[type](loggable);
-    return loggable;
-  } else {
-    console[type](prefix, loggable);
-    return loggable;
-  }
+  console[type](prefix.trim(), loggable);
+  return loggable;
 }
-
-export function modLog(loggable, options = {}) {
-  let { type, prefix, context, func, mod } = options;
-  options.localize ??= false; // don't destructure so as to not conflict with the function; probably a tidier way to do this
-  type ??= setting("log-level") ?? "error";
-  prefix = String(prefix ?? "");
+export function warn(loggable, prefix = "") {
+  return log(loggable, { type: "warn", prefix });
+}
+export function debug(loggable, prefix = "") {
+  return log(loggable, { type: "debug", prefix });
+}
+export function error(loggable, prefix = "") {
+  return log(loggable, { type: "error", prefix });
+}
+export function modLog(loggable, { type, prefix, context, func, mod, localize = false } = {}) {
+  if (isEmpty(type) || typeof type !== "string") {
+    // if type is not provided or bad, and we're not in debug mode, bail.
+    if (!setting("debug-mode")) return;
+    type = setting("log-level");
+  }
   if (typeof loggable === "string") {
-    loggable = options?.localize ? localize(loggable, context) : loggable;
+    loggable = localize ? mhlocalize(loggable, context) : loggable;
     prefix = getLogPrefix(loggable, { mod, func, prefix });
-  } else if (options?.localize) {
-    let localized = localize(prefix, context);
+  } else if (localize) {
+    let localized = mhlocalize(prefix, context);
     prefix = getLogPrefix(localized, { mod, func }) + localized;
   } else {
     prefix = getLogPrefix("", { mod, func, prefix });
@@ -65,13 +67,13 @@ export function localizedBanner(text, options = {}) {
     mhlog(`MHL.Warning.Fallback.Type`, {
       func,
       localize: true,
-      context: { var: "text", type: typeof text, expected: "string" },
+      context: { arg: "text", type: typeof text, expected: "string" },
     });
     text = String(text);
   }
-  let bannerstr = prefix + localize(text, context);
+  let bannerstr = prefix + mhlocalize(text, context);
   if (!game.ready) {
-    console.error(localize(`MHL.Error.TooEarlyForBanner`, { type, bannerstr }));
+    console.error(mhlocalize(`MHL.Error.TooEarlyForBanner`, { type, bannerstr }));
   } else {
     ui.notifications[type](bannerstr, { console: doConsole, permanent });
   }
@@ -81,7 +83,13 @@ export function localizedBanner(text, options = {}) {
 
 export function modBanner(text, options = {}) {
   let { context, prefix, type, console, permanent, log, func, mod } = options;
-  type ??= setting("log-level") ?? "info";
+  const setup = MODULE().setup;
+  if (isEmpty(type) || typeof type !== "string") {
+    // if type is not provided, and we're passed setup and not in debug mode, bail.
+    if (setup && !setting("debug-mode")) return;
+    // if we're logging before setup, assume error
+    type = setup ? setting("log-level") : "error";
+  }
   prefix = getLogPrefix(text, { mod, func, prefix });
   options.prefix = prefix;
   const out = localizedBanner(text, { context, prefix, type, console, permanent });
@@ -104,11 +112,11 @@ export function localizedError(text, options = {}) {
     mhlog(`MHL.Warning.Fallback.Type`, {
       func,
       localize: true,
-      context: { var: "text", type: typeof text, expected: "string" },
+      context: { arg: "text", type: typeof text, expected: "string" },
     });
     text = String(text);
   }
-  const errorstr = prefix + localize(text, context);
+  const errorstr = prefix + mhlocalize(text, context);
   if (banner) localizedBanner(errorstr, { type: "error", console: false, permanent });
   if (typeof log === "object" && Object.keys(log).length) log(log, { type: "error", prefix });
   return Error(errorstr);
@@ -159,4 +167,23 @@ export function isEmpty(value) {
     value == null ||
     (typeof value === "object" && isEmptyObject(value))
   );
+}
+
+export function getLogPrefix(text, { prefix, mod, func } = {}) {
+  let out = "";
+  if (typeof text !== "string") {
+    mhlog(`MHL.Warning.Fallback.Type`, {
+      func: "getLogPrefix",
+      localize: true,
+      context: { arg: "text", type: typeof text, expected: "string" },
+    });
+    text = String(text);
+  }
+  mod = String(mod ?? "");
+  func = String(func ?? "");
+  prefix = String(prefix ?? "");
+  if (mod && !text.startsWith(`${mod} |`)) out += `${mod} | `;
+  if (func && !text.includes(`${func} |`)) out += `${func} | `;
+  if (prefix) out += prefix;
+  return out;
 }

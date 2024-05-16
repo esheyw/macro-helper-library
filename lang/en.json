@@ -19,14 +19,17 @@
         "The": "the"
       }
     },
-    "IconListsManager": {
+    "IconFontsHandler": {
+      "Fallback": {
+        "Sort": "Sort value not supplied or already exists, falling back to highest sort + 5."
+      },
       "Error": {
-        "PlainObject": "Icon list entries must be plain objects with name, prefix, and list keys",
-        "UniqueNameRequired": "Icon lists must provide a name key that is not already in use.",
-        "UniquePrefixRequired": "Icon lists must provide a prefix key that is not already in use.",
-        "NonEmptyListRequired": "Icon lists must provide a list key that is a non-empty array of strings.",
-        "SortInteger": "The sort property, if provided in an icon list entry, must be an integer.",
-        "ValidatorFunction": "Icon lists must provide a validator function that can accept a string, or an array of strings, or a series of strings, and validate that at least one argument is a valid icon of your list, returning valid css classes."
+        "PlainObject": "Icon font entries must be plain objects with name, prefix, and list keys",
+        "UniqueNameRequired": "Icon font entries must provide a name key that is not already in use.",
+        "UniquePrefixRequired": "Icon font entries must provide a prefix key, or array of keys, none of which are already in use.",
+        "NonEmptyListRequired": "Icon font entries must provide a list key that is a non-empty array of strings.",
+        "SortInteger": "The sort property, if provided in an icon font entry, must be an integer.",
+        "ValidatorFunction": "Icon font entries must provide a validator function that can accept a string, or an array of strings, or a series of strings, and validate that at least one argument is a valid icon of your list, returning a string containing all the css classes required to make that icon valid, or empty string on failure."
       }
     },
     "PickAThing": {
@@ -206,22 +209,26 @@
       "LogType": "Log type must be one of \"debug\", \"info\", \"warn\", or \"error\".",
       "InvalidType": "Invalid type \"{type}\" provided.",
       "Validation": {
-        "IconGeneric": "The provided arguments did not produce a valid icon string from any registered icon list.",
+        "IconSchemaGlyphExact": "The glyph field of an icon font schema cannot define an exact `value`; use `choices` or `pattern`",
+        "IconGeneric": "The provided arguments did not produce a valid icon string from any registered Icon font.",
         "FontAwesomeClasses": "The provided input(s) failed to validate as a set of FontAwesome icon classes.",
         "FontAwesomeIcon": "The provided input(s) failed to validate as a FontAwesome icon element or set of FA classes."
       },
+      "RequireSameInheritanceChain": "Both objects' classes must be from the same inheritance chain.",
+      "BothMustBeClassesOrClassedObjects": "Both parameters must be classes or objects with a constructor.",
+      "BothMustBeMaps": "At least one of original or other are not Maps or subclasses of Map.",
       "Type": {
         "Of": {
           "TraitSlugs": " of trait slug strings",
           "ButtonLabelStrings": " of button label strings"
         },
-        "Array": "`{var}` must be an Array{of}.",
-        "User": "`{var}` must be a User or the ID of one.",
-        "Folder": "`{var}` must be a Folder document or the ID of one.",
-        "Function": "`{var}` must be a Function.",
-        "Number": "`{var}` must be a Number.",
-        "String": "`{var}` must be a String.",
-        "Boolean": "`{var}` must be Boolean."
+        "Array": "`{arg}` must be an Array{of}.",
+        "User": "`{arg}` must be a User or the ID of one.",
+        "Folder": "`{arg}` must be a Folder document or the ID of one.",
+        "Function": "`{arg}` must be a Function.",
+        "Number": "`{arg}` must be a Number.",
+        "String": "`{arg}` must be a String.",
+        "Boolean": "`{arg}` must be Boolean."
       }
     },
     "Warning": {
@@ -230,12 +237,16 @@
         "FirstTarget": "This operation requires a single target, using first target \"{name}\".",
         "FirstToken": "This operation requires a single selected token, using first token \"{name}\".",
         "LogType": "Provided log type \"{type}\" is not valid, defaulting to \"{defaultType}\".",
-        "Type": "Expected parameter \"{var}\" to be of type \"{expected}\", not \"{type}\". Casting.",
+        "Type": "Expected parameter \"{arg}\" to be of type \"{expected}\", not \"{type}\". Casting.",
         "LevelOutOfBounds": "Provided level ({level}) out of bounds! Defaulting to level 25."
       },
       "SystemBelowVerified": "Your system version ({version}) is older than what Macro & Helper Library is verified for ({verified}). This may cause things to break, or might not; No guarantees."
     },
     "Setting": {
+      "DebugMode": {
+        "Name": "Debug Mode",
+        "Hint": "Enable debug logging. Showstopper errors will fire without this, but fallback"
+      },
       "IconSettings": {
         "DisabledClass": {
           "Label": "Disabled Icon CSS Class",
@@ -252,8 +263,8 @@
         "Hint": "The CSS class applied to reset-to-default buttons that are currently disabled, if not overridden by a given module's MHLSettingsManager options. MHL ships with `disabled-transparent`, `disabled-blurry`, and `disabled-hidden`."
       },
       "LogLevel": {
-        "Name": "Default Log Level",
-        "Hint": "The default level for `mhlog()`/`modLog()` calls. Setting this to Warning or Error can be helpful with troubleshooting.",
+        "Name": "Log Level for Debug Mode",
+        "Hint": "The level at which `mhlog()`/`modLog()` calls will be made in debug mode if an explict type isn't passed.",
         "Choice": {
           "Debug": "Debug",
           "Info": "Info",

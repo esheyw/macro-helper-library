@@ -1,12 +1,5 @@
 {{log this}}
 <form>
-  {{#if v12}}
-    <h2>Generated Model Form</h2>
-    {{#each model.schema.fields as |field|}}
-      {{log field}}
-      {{formField field localize=true name=field.name label=field.label hint=field.hint value=(lookup @root.model field.name) }}
-    {{/each}}
-  {{else}}
     {{#each model.schema.fields as |field|}}
     <div class="form-group">
       <label for="{{concat @root.module "-" @root.key "-" field.name}}">{{mhlocalize field.label}}</label>
@@ -18,7 +11,7 @@
       {{/if}}
     </div>
     {{/each}}
-  {{/if}}
+
   <button type="submit" name="submit">
     {{getIcon "check" "fa-regular"}} {{mhlocalize "EFFECT.Submit"}}
   </button>

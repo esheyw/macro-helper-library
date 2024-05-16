@@ -1,5 +1,5 @@
 import { MHLError } from "./errorHelpers.mjs";
-import { localize } from "./stringHelpers.mjs";
+import { mhlocalize } from "./stringHelpers.mjs";
 const PREFIX = `MHL.Token`;
 export function oneTokenOnly(options = {}) {
   let { fallback, func, useFirst } = options;
@@ -25,7 +25,7 @@ export function anyTokens(options = {}) {
       if (activeTokens.length) return activeTokens[0];
     }
     throw MHLError(`MHL.Error.Token.NotAnySelected`, {
-      context: { fallback: fallback ? localize(`MHL.Error.Token.Fallback`) : "" },
+      context: { fallback: fallback ? mhlocalize(`MHL.Error.Token.Fallback`) : "" },
       func,
     });
   }

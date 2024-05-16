@@ -23,8 +23,20 @@ export function htmlClosest(child, selectors) {
 }
 
 export function elementFromString(string) {
-  if (!string) return null;
   if (string instanceof HTMLElement) return string;
+  if (typeof string !== "string") {
+    mhlog(`MHL.Warning.Fallback.Type`, {
+      localize: true,
+      context: {
+        arg: "string",
+        expected: "string or HTMLElement",
+        type: typeof string,
+      },
+      func: "elementFromString",
+    });
+    return null;
+  }
+  if (!string) return null;
   const template = document.createElement("template");
   template.innerHTML = string;
   return template.content?.firstElementChild;

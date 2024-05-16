@@ -3,7 +3,6 @@ import { oneTokenOnly } from "../helpers/tokenHelpers.mjs";
 import { anyTargets } from "../helpers/targetHelpers.mjs";
 
 export async function fascinatingPerformance() {
-  const PREFIX = `MHL.Macro.FascinatingPerformance`;
   const func = `fascinatingPerformance`;
   requireSystem("pf2e", `MHL | ${func}`);
   const token = oneTokenOnly();
@@ -11,22 +10,22 @@ export async function fascinatingPerformance() {
 
   const feat = actor.items.find((f) => f.slug === "fascinating-performance");
   if (!feat) {
-    throw MHLError(`${PREFIX}.Error.MustHaveFeat`);
+    throw MHLError(`MHL.Macro.FascinatingPerformance.Error.MustHaveFeat`);
   }
   const targets = anyTargets({ func });
 
   const prfRank = actor.skills.performance.rank;
   switch (prfRank) {
     case 0:
-      throw MHLError(`${PREFIX}.Error.MinimumTrained`);
+      throw MHLError(`MHL.Macro.FascinatingPerformance.Error.MinimumTrained`);
     case 1:
-      if (targets.size > 1) throw MHLError(`${PREFIX}.Error.SingleTargetOnly`);
+      if (targets.size > 1) throw MHLError(`MHL.Macro.FascinatingPerformance.Error.SingleTargetOnly`);
       break;
     case 2:
-      if (targets.size > 4) throw MHLError(`${PREFIX}.Error.FourTargetsOnly`);
+      if (targets.size > 4) throw MHLError(`MHL.Macro.FascinatingPerformance.Error.FourTargetsOnly`);
       break;
     case 3:
-      if (targets.size > 10) throw MHLError(`${PREFIX}.Error.TenTargetsOnly`);
+      if (targets.size > 10) throw MHLError(`MHL.Macro.FascinatingPerformance.Error.TenTargetsOnly`);
       break;
     case 4:
       break;
@@ -124,7 +123,7 @@ export async function fascinatingPerformance() {
         (i) => i.name.toLowerCase().includes("immun") && i.name.toLowerCase().includes("fascinating performance")
       );
       if (immunityEffect) {
-        MHLBanner(`${PREFIX}.Warning.TargetImmune`, { context: { name: targetToken.name }, func });
+        MHLBanner(`MHL.Macro.FascinatingPerformance.Warning.TargetImmune`, { context: { name: targetToken.name }, func });
         continue;
       }
       const extraRollOptions = [];

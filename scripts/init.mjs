@@ -38,12 +38,111 @@ Hooks.on("init", () => {
   mod.settingsManager = new classes.MHLSettingsManager(MODULE_ID, settingManagerOptions);
   //special exposure
   mod.api.mhlSetting = setting;
+  //todo: remove before release
   mod.api.sm = mod.settingsManager;
 
   CONFIG.MHL = DEFAULT_CONFIG;
+  mod.init = true;
+  mod.i18nInit = false;
+  mod.setup = false;
 });
 Hooks.once("i18nInit", () => {
+  //do as much here as possible so errors can be localized
   const mod = MODULE();
+  CONFIG.MHL.iconFonts.push(
+    {
+      name: "fontawesome",
+      prefixes: ["fa-"],
+      schema: {
+        fw: {
+          pattern: "fw",
+        },
+        brands: {
+          pattern: "brands",
+        },
+        sharp: {
+          pattern: "sharp",
+        },
+        style: {
+          choices: ["solid", "regular", "duotone", "light", "thin"],
+          required: true,
+          default: "fa-solid",
+        },
+      },
+    },
+    {
+      name: "materialdesign",
+      prefixes: ["mdi-"],
+      schema: {
+        domain: {
+          required: true,
+          value: "mdi",
+          default: "mdi",
+        },
+        rotate: {
+          choices: ["rotate-45", "rotate-90", "rotate-135", "rotate-180", "rotate-225", "rotate-270", "rotate-315"],
+          precludes: "flip",
+        },
+        flip: {
+          choices: ["flip-h", "flip-v"],
+          precludes: "rotate",
+        },
+        spin: {
+          value: "spin",
+        },
+      },
+    },
+    {
+      name: "game-icons.net",
+      prefixes: ["ginf-"],
+    },
+    {
+      name: "boxicons",
+      prefixes: ["bx-", "bxs-", "bxl-"],
+      schema: {
+        domain: {
+          required: true,
+          value: "bx",
+          default: "bx",
+        },
+        fw: {
+          prefixes: ["bx-"],
+          pattern: "fw",
+        },
+        size: {
+          prefixes: ["bx-"],
+          choices: ["xs", "sm", "md", "lg"],
+        },
+        flip: {
+          prefixes: ["bx-"],
+          prefixes: ["bx-"],
+          precludes: "rotate",
+          choices: ["flip-horizontal", "flip-vertical"],
+        },
+        rotate: {
+          prefixes: ["bx-"],
+          precludes: "flip",
+          choices: ["rotate-90", "rotate-180", "rotate-270"],
+        },
+        border: {
+          prefixes: ["bx-"],
+          choices: ["border", "border-circle"],
+        },
+        animation: {
+          prefixes: ["bx-"],
+          choices: ["spin", "tada", "flashing", "burst", "fade-left", "fade-right", "fade-up", "fade-down"],
+        },
+        hover: {
+          prefixes: ["bx-"],
+          choices: ["spin", "tada", "flashing", "burst", "fade-left", "fade-right", "fade-up", "fade-down"],
+        },
+      },
+    },
+    {
+      name: "jamicons",
+      prefixes: ["jam-"],
+    }
+  );
   mod.settingsManager.registerSettings(SETTINGS);
 });
 Hooks.once("setup", () => {
