@@ -66,9 +66,9 @@ export const SETTINGS = {
     scope: "world",
     default: {
       disabledClass: "disabled-transparent",
-      moduleGlyph: "fa-reply-all",
-      groupGlyph: "fa-reply",
-      settingGlyph: "fa-arrow-rotate-left",
+      moduleGlyph: "mdi-reply-all-outline",
+      groupGlyph: "mdi-reply-outline",
+      settingGlyph: "mdi-restore",
     },
   },
   "debug-mode": {

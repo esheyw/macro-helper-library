@@ -55,9 +55,7 @@ export function getIconClasses(...args) {
   delete schema.glyph; // ensure glyph is last entry
   schema.glyph = fu.mergeObject(glyphDefault, glyphSchema);
   const aliases = font.aliases ?? {};
-  mhlog({ stringed, aliases }, { func, prefix: "before alias", dupe: true });
   const parts = getStringArgs(stringed, { map: (s) => (s in aliases ? aliases[s] : s) });
-  mhlog({ parts }, { func, prefix: "after alias", dupe: true });
   const partsSeen = Object.fromEntries(Object.keys(schema).map((slug) => [slug, []]));
   partsSeen.others = [];
   const precluded = [];
@@ -82,7 +80,7 @@ export function getIconClasses(...args) {
         ).exec(part);
       }
       if (matches || exact) {
-        mhlog({ matches, exact, infer, strict, part, slug }, { func, prefix: "match!" });
+        // mhlog({ matches, exact, infer, strict, part, slug }, { func, prefix: "match!" });
         // not exact, can't infer, and no prefix
         if (!exact && !infer && !matches[1]) continue;
         // matched = skip fallback add to others
@@ -108,14 +106,12 @@ export function getIconClasses(...args) {
       partsSeen.others.push(part);
     }
   }
-  mhlog({ parts, partsSeen, schema }, { prefix: "before", func, dupe: true });
   for (const [slug, data] of Object.entries(schema)) {
     if (data.required && partsSeen[slug].length === 0) {
       if ("default" in data) partsSeen[slug].push(data.default);
       else return ""; //todo: add logging
     }
   }
-  mhlog({ partsSeen }, { prefix: "after", func, dupe: true });
   return Object.values(partsSeen)
     .flat()
     .filter((p) => !isEmpty(p))
