@@ -1,8 +1,8 @@
-import { mhlog } from "./helpers/errorHelpers.mjs";
-import { isPlainObject } from "./helpers/otherHelpers.mjs";
-import { getIconListFromCSS } from "./helpers/iconHelpers.mjs";
+import { mhlog } from "../helpers/errorHelpers.mjs";
+import { isPlainObject } from "../helpers/otherHelpers.mjs";
+import { getIconListFromCSS } from "../helpers/iconHelpers.mjs";
 
-class IconFontsHandler {
+export class IconFontsHandler {
   #validateList(entry, target) {
     let errorstr = "";
     const fail = (errorstr) => {
@@ -47,9 +47,3 @@ class IconFontsHandler {
     return Reflect.set(target, name, value);
   }
 }
-export const DEFAULT_CONFIG = {};
-Object.defineProperty(DEFAULT_CONFIG, "iconFonts", {
-  writable: false,
-  configurable: false,
-  value: new Proxy(new Array(), new IconFontsHandler()),
-});

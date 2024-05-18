@@ -5,15 +5,15 @@ class IconSettingsModel extends foundry.abstract.TypeDataModel {
   static defineSchema() {
     const fields = foundry.data.fields;
     return {
-      // disabledClass: new fields.StringField({
-      //   required: true,
-      //   nullable: false,
-      //   initial: "disabled-transparent",
-      //   label: `MHL.Setting.IconSettings.DisabledClass.Label`,
-      //   hint: `MHL.Setting.IconSettings.DisabledClass.Hint`,
-      //   choices: ["disabled-transparent", "disabled-hidden", "disabled-blurry"],
-      //   group: ".CSS",
-      // }),
+      disabledClass: new fields.StringField({
+        required: true,
+        nullable: false,
+        initial: "disabled-transparent",
+        label: `MHL.Setting.IconSettings.DisabledClass.Label`,
+        hint: `MHL.Setting.IconSettings.DisabledClass.Hint`,
+        choices: ["disabled-transparent", "disabled-hidden", "disabled-blurry"],
+        group: ".CSS",
+      }),
       moduleGlyph: new fields.StringField({
         required: true,
         nullable: false,

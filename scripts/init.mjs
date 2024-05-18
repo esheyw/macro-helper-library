@@ -4,7 +4,7 @@ import * as classes from "./classes/index.mjs";
 import { SETTINGS, setting } from "./settings.mjs";
 import { MODULE_ID, VERIFIED_SYSTEM_VERSIONS, fu } from "./constants.mjs";
 import { registerHandlebarsHelpers } from "./handlebars.mjs";
-import { DEFAULT_CONFIG } from "./config.mjs";
+import { DEFAULT_CONFIG } from "./config/config.mjs";
 export const MODULE = () => game.modules.get(MODULE_ID);
 Hooks.on("init", () => {
   // CONFIG.debug.hooks = true;

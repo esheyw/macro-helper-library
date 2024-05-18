@@ -53,7 +53,7 @@ const mhlOriginals = {
     const type = !!value ? "check" : "xmark";
     return new Handlebars.SafeString(`<i class="fa-solid fa-square-${type}"></i>`);
   },
-  getIcon: (...inputs) => {
+  mhlIcon: (...inputs) => {
     return new Handlebars.SafeString(getIconHTMLString(...inputs));
   },
   // ginfIcon:,
