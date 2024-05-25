@@ -1,3 +1,5 @@
+//This file lifted in its entirety from the foundry dnd5e system, under MIT license as seen at https://github.com/foundryvtt/dnd5e/blob/master/LICENSE.txt
+
 /**
  * @typedef {object} AccordionConfiguration
  * @property {string} headingSelector    The CSS selector that identifies accordion headers in the given markup.

@@ -1,5 +1,5 @@
 import { MODULE_ID, fu } from "../constants.mjs";
-import { htmlClosest, htmlQuery, htmlQueryAll } from "../helpers/HTMLHelpers.mjs";
+import { elementFromString, htmlClosest, htmlQuery, htmlQueryAll } from "../helpers/HTMLHelpers.mjs";
 import { MHLError, isEmpty, modBanner, modLog } from "../helpers/errorHelpers.mjs";
 import { isRealGM } from "../helpers/foundryHelpers.mjs";
 import { mhlocalize, sluggify } from "../helpers/stringHelpers.mjs";
@@ -9,6 +9,7 @@ import { setting } from "../settings.mjs";
 import { MODULE } from "../init.mjs";
 import { DetailsAccordion } from "./DetailsAccordion.mjs";
 import { MHLSettingMenu } from "./MHLSettingMenu.mjs";
+import { Accordion } from "./Accordion.mjs";
 const funcPrefix = `MHLSettingsManager`;
 export class MHLSettingsManager {
   #colorPattern = "^#[A-Fa-f0-9]{6}";
@@ -195,21 +196,24 @@ export class MHLSettingsManager {
           }));
         if (group !== null) {
           if (settings.length === 0) continue; // no headers for empty groups
+          const groupHeader = document.createElement("h3");
+          groupHeader.innerText = mhlocalize(group);
+          groupHeader.dataset.settingGroup = group;          
+          sortOrder.push(groupHeader);
           if (this.options.collapsableGroups) {
-            const details = document.createElement("details");
-            details.dataset.settingGroup = group;
-            details.open = true;
-            details.innerHTML = `<summary><h3 data-setting-group="${group}">${mhlocalize(
-              group
-            )} </h3></summary><div class="accordion-content"></div>`;
-            groupContentDiv = htmlQuery(details, `div.accordion-content`);
-            new DetailsAccordion(details);
-            sortOrder.push(details);
+            // const details = document.createElement("details");
+            // details.dataset.settingGroup = group;
+            // details.open = true;
+            // details.innerHTML = `<summary><h3 data-setting-group="${group}">${mhlocalize(
+            //   group
+            // )} </h3></summary><div class="accordion-content"></div>`;
+            // groupContentDiv = htmlQuery(details, `div.accordion-content`);
+            // new DetailsAccordion(details);
+            // sortOrder.push(details);
+            groupHeader.classList.add('accordion-heading')
+            groupContentDiv = elementFromString(`<div class="accordion-content"></div>`);
+            sortOrder.push(groupContentDiv);
           } else {
-            const groupHeader = document.createElement("h3");
-            groupHeader.innerText = mhlocalize(group);
-            groupHeader.dataset.settingGroup = group;
-            sortOrder.push(groupHeader);
           }
         }
 
@@ -229,17 +233,17 @@ export class MHLSettingsManager {
           }
         }
       }
-      if (this.options.collapsableGroups) {
-        const [h2, ...targets] = sortOrder;
-        h2.addEventListener("click", () => {
-          const details = targets.filter((n) => n.nodeName === "DETAILS");
-          const [closed, open] = details.partition((d) => d.open);
-          for (const target of details) {
-            const h3 = htmlQuery(target, "h3");
-            if (open.length === 0 || closed.length === 0 || target.open) h3.dispatchEvent(new Event("click"));
-          }
-        });
-      }
+      // if (this.options.collapsableGroups) {
+      //   const [h2, ...targets] = sortOrder;
+      //   h2.addEventListener("click", () => {
+      //     const details = targets.filter((n) => n.nodeName === "DETAILS");
+      //     const [closed, open] = details.partition((d) => d.open);
+      //     for (const target of details) {
+      //       const h3 = htmlQuery(target, "h3");
+      //       if (open.length === 0 || closed.length === 0 || target.open) h3.dispatchEvent(new Event("click"));
+      //     }
+      //   });
+      // }
     } else if (this.options.sort) {
       const settings = this.#settings
         .filter((s) => s?.config && (s?.scope === "world" ? isGM : true))
@@ -265,6 +269,8 @@ export class MHLSettingsManager {
     for (const node of sortOrder) {
       section.appendChild(node);
     }
+    if (this.options.collapsableGroups)
+      new Accordion({ headingSelector: `.accordion-heading`, contentSelector: `.accordion-content` }).bind(section);
   }
 
   get(key) {
