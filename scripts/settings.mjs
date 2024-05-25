@@ -1,3 +1,4 @@
+import { MHLIconSettingsMenu } from "./classes/MHLIconSettingsMenu.mjs";
 import { MHLSettingMenu } from "./classes/MHLSettingMenu.mjs";
 import { MODULE } from "./init.mjs";
 
@@ -14,28 +15,28 @@ class IconSettingsModel extends foundry.abstract.TypeDataModel {
         choices: ["disabled-transparent", "disabled-hidden", "disabled-blurry"],
         group: ".CSS",
       }),
-      moduleGlyph: new fields.StringField({
+      moduleResetIcon: new fields.StringField({
         required: true,
         nullable: false,
-        initial: "ginf-return-arrow",
-        label: "Module Glyph",
-        hint: "Module Glyph Hint",
+        initial: "mdi-reply-all",
+        label: "MHL.Setting.IconSettings.ModuleResetIcon.Label",
+        hint: "MHL.Setting.IconSettings.ModuleResetIcon.Hint",
         // validate: (v) => isValidFA(v),
         // validationError: "is not a valid FontAwesome glyph.",
       }),
-      groupGlyph: new fields.StringField({
+      groupResetIcon: new fields.StringField({
         required: true,
         nullable: false,
-        initial: "fa-reply",
-        label: "Group Glyph",
-        hint: "Group Glyph Hint",
+        initial: "mdi-reply",
+        label: "MHL.Setting.IconSettings.GroupResetIcon.Label",
+        hint: "MHL.Setting.IconSettings.GroupResetIcon.Hint",
       }),
-      settingGlyph: new fields.StringField({
+      settingResetIcon: new fields.StringField({
         required: true,
         nullable: false,
-        initial: "fa-arrow-rotate-left",
-        label: "Setting Glyph",
-        hint: "Setting Glyph Hint",
+        initial: "mdi-restore",
+        label: "MHL.Setting.IconSettings.SettingResetIcon.Label",
+        hint: "MHL.Setting.IconSettings.SettingResetIcon.Hint",
       }),
     };
   }
@@ -51,7 +52,7 @@ export const SETTINGS = {
     default: "disabled-transparent",
   },
   "icon-settings-menu": {
-    type: MHLSettingMenu,
+    type: MHLIconSettingsMenu,
     name: null,
     hint: null,
     label: null,

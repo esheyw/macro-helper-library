@@ -1,5 +1,5 @@
 import { MODULE_ID, fu } from "../constants.mjs";
-import { MHLError, mhlog } from "./index.mjs";
+import { MHLError, isEmpty, isPlainObject, logCast, mhlog } from "./index.mjs";
 
 export function prependIndefiniteArticle(text) {
   const vowels = "aeiou";
@@ -19,23 +19,24 @@ export function prependIndefiniteArticle(text) {
 }
 
 export function mhlocalize(text, context = {}, { defaultEmpty = true } = {}) {
-  if (typeof text !== "string") {
-    mhlog(`MHL.Warning.Fallback.Type`, {
-      func: "localize",
-      localize: true,
-      context: { arg: "text", type: typeof text, expected: "string" },
-    });
-    text = String(text);
-  }
+  const func = "mhlocalize";
+  text = logCast(text, String, 'text', func);
+  const processedContext =
+    isEmpty(context) || !isPlainObject(context)
+      ? {}
+      : Object.entries(context).reduce((acc, [k, v]) => {
+          acc[k] = isPlainObject(v) ? mhlocalize(String(v.key ?? ""), v.context ?? {}, { defaultEmpty }) : mhlocalize(String(v));
+          return acc;
+        }, {});
   if (fu.isEmpty(game.i18n?.translations)) {
     return `Localization attempted before i18n initialization, pasteable command: 
-    game.modules.get('${MODULE_ID}').api.localize('${text}', ${JSON.stringify(context)})`;
+    game.modules.get('${MODULE_ID}').api.mhlocalize('${text}', ${JSON.stringify(context)})`;
   }
   return game.i18n
     .localize(text)
     .replace(/(?<!\\)({[^}]+})/g, (match) => {
       // match all {} not preceded by \
-      return context[match.slice(1, -1)] ?? (defaultEmpty ? "" : undefined);
+      return processedContext[match.slice(1, -1)] ?? (defaultEmpty ? "" : undefined);
     })
     .replace(/\\{/, "{"); //strip \ before { from final string
 }

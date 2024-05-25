@@ -1,9 +1,9 @@
 import { MODULE_ID, fu } from "../constants.mjs";
-import { htmlClosest, htmlQuery, htmlQueryAll } from "../helpers/DOMHelpers.mjs";
+import { htmlClosest, htmlQuery, htmlQueryAll } from "../helpers/HTMLHelpers.mjs";
 import { MHLError, isEmpty, modBanner, modLog } from "../helpers/errorHelpers.mjs";
-import { isRealGM } from "../helpers/otherHelpers.mjs";
+import { isRealGM } from "../helpers/foundryHelpers.mjs";
 import { mhlocalize, sluggify } from "../helpers/stringHelpers.mjs";
-import {  getIconHTMLString } from "../helpers/iconHelpers.mjs";
+import { getIconClasses, getIconHTMLString } from "../helpers/iconHelpers.mjs";
 import { MHLDialog } from "./MHLDialog.mjs";
 import { setting } from "../settings.mjs";
 import { MODULE } from "../init.mjs";
@@ -174,7 +174,7 @@ export class MHLSettingsManager {
     const func = `${funcPrefix}#applyGroupsAndSort`;
     const isGM = isRealGM(game.user);
     const existingNodes = Array.from(section.children);
-    const sortOrder = [existingNodes.shift()]; // add the h2 in first
+    const sortOrder = [existingNodes.shift()]; // add the module title h2 in first
     if (this.options.groups) {
       if (this.options.groups === "a") {
         this.#groupOrder = new Set([
@@ -388,11 +388,9 @@ export class MHLSettingsManager {
     data.key = key;
     //handle registering settings menus
     if (data?.menu || data?.type?.prototype instanceof FormApplication) {
-      // defer validation to runtime, glyph fallback is responsibiliity of the caller
-      //todo: revisit
-      // if ("icon" in buttonData) {
-      //   buttonData.icon = getFontAwesomeString(buttonData.icon);
-      // }
+      if ("icon" in data) {
+        data.icon = getIconClasses(data.icon);
+      }
       //TODO: remove gate once v12 stable
       // if (fu.isNewerVersion(game.version, 12)) {
       if (!data?.type || data?.type?.name === "MHLSettingMenu") {
@@ -839,7 +837,7 @@ export class MHLSettingsManager {
     const fieldDiv = htmlQuery(div, ".form-fields");
     div.classList.add("submenu");
     const button = document.createElement("button");
-    button.innerHTML = `${data.icon} <label>${mhlocalize(data.label)}</label>`;
+    button.innerHTML = `${getIconHTMLString(data.icon)} <label>${mhlocalize(data.label)}</label>`;
     button.type = "button";
     button.classList.add("mhl-setting-button");
     button.addEventListener("click", data.action);
@@ -919,7 +917,7 @@ export class MHLSettingsManager {
       const span = document.createElement("span");
       span.classList.add("mhl-reset-button");
       span.innerHTML = `<a data-reset-type="module" data-reset="${this.#module.id}">${getIconHTMLString(
-        iconSettings.moduleGlyph
+        iconSettings.moduleResetIcon
       )}</a>`;
       const anchor = htmlQuery(span, "a");
       anchor.dataset.tooltipDirection = "UP";
@@ -941,7 +939,7 @@ export class MHLSettingsManager {
         const span = document.createElement("span");
         span.classList.add("mhl-reset-button");
         span.innerHTML = `<a data-reset-type="group" data-reset="${group}">${getIconHTMLString(
-          iconSettings.groupGlyph
+          iconSettings.groupResetIcon
         )}</a>`;
         const anchor = htmlQuery(span, "a");
         anchor.dataset.tooltipDirection = "UP";
@@ -969,7 +967,7 @@ export class MHLSettingsManager {
         const anchor = document.createElement("a");
         anchor.dataset.reset = key;
         anchor.dataset.resetType = "setting";
-        anchor.innerHTML = getIconHTMLString(iconSettings.settingGlyph);
+        anchor.innerHTML = getIconHTMLString(iconSettings.settingResetIcon);
         anchor.dataset.tooltipDirection = "UP";
         const listener = this.#onResetClick.bind(this);
         this.#resetListeners.get("settings").set(key, listener);

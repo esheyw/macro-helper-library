@@ -1,33 +1,37 @@
 import { fu } from "../constants.mjs";
-import { elementFromString } from "./DOMHelpers.mjs";
+import { mhlocalize } from "./stringHelpers.mjs";
+import { elementFromString, escapeHTML } from "./HTMLHelpers.mjs";
 import { isEmpty, mhlog } from "./errorHelpers.mjs";
 import { getFunctionOptions, getStringArgs, isPlainObject } from "./otherHelpers.mjs";
 
 export function getIconHTMLString(...args) {
   const func = `getIconString`;
-  const originalOptions = getFunctionOptions(args) ?? {};
-  const options = fu.mergeObject({ strict: false, infer: true, element: "i" }, originalOptions);
+  const options = getFunctionOptions(args) ?? {};
+  const element = options.element ?? "i";
   const stringed = getStringArgs(args);
   const failValidation = () => {
-    mhlog(
-      { args: isEmpty(originalOptions) ? args : [...args, originalOptions] },
-      { type: "warn", localize: true, prefix: `MHL.Error.Validation.IconGeneric`, func }
-    );
+    mhlog({ args, options }, { type: "warn", localize: true, prefix: `MHL.Error.Validation.IconGeneric`, func });
     return "";
   };
   if (stringed.length === 0) return failValidation();
   const containsHTML = stringed.find((s) => /<[^>]+>/.test(s));
   if (containsHTML) {
-    const element = elementFromString(containsHTML);
-    if (!element || !element.className) return failValidation();
-    const validated = getIconClasses(element.className, options);
+    const node = elementFromString(containsHTML);
+    if (!node || !node.className) return failValidation();
+    const validated = getIconClasses(node.className, options);
     if (!validated) return "";
-    element.className = validated;
-    return element.outerHTML;
+    node.className = validated;
+    return node.outerHTML;
   } else {
-    const validated = getIconClasses(stringed, options) ?? null;
-    if (!validated) return failValidation();
-    return `<${options.element} class="${validated}"></${options.element}>`;
+    const validated = getIconClasses(stringed, { options });
+    if (isEmpty(validated)) return failValidation();
+    return `<${element} class="${validated}"${
+      validated === (options.fallback ?? CONFIG.MHL.fallbackIcon)
+        ? `data-tooltip-class="mhl-pre-tooltip" data-tooltip="${mhlocalize(`MHL.Warning.Fallback.FallbackIconTooltip`, {
+            args: escapeHTML(JSON.stringify(args)),
+          })}"`
+        : ``
+    }></${element}>`;
   }
 }
 
@@ -36,14 +40,30 @@ export function getIconClasses(...args) {
   if (args.length === 0 || isPlainObject(args[0])) return "";
   const options = getFunctionOptions(args) ?? {};
   const stringed = getStringArgs(args, { map: (s) => s.toLowerCase() });
-  const infer = options?.infer ?? true;
-  const strict = options?.strict ?? false;
+  const infer = options.infer ?? true;
+  const strict = options.strict ?? false;
+  const fallback =
+    options.fallback ?? true
+      ? typeof options.fallback === "string"
+        ? options.fallback
+        : CONFIG.MHL.fallbackIcon
+      : null;
+  const fail = () => {
+    if (fallback) {
+      mhlog(
+        { args, options },
+        { func, localize: true, prefix: `MHL.Warning.Fallback.FallbackIcon`, context: { fallback } }
+      );
+      return fallback;
+    }
+    return "";
+  };
   let font;
   if (isPlainObject(options?.font)) {
     font = options.font;
   } else if (!("font" in options) || isEmpty(options.font) || typeof options.font === "string") {
     font = getIconFontEntry(stringed, typeof options?.font === "string" ? options.font : null);
-    if (!font) return ""; //todo: logging
+    if (!font) return fail();
   }
   if (!Array.isArray(getStringArgs(font?.prefixes))) return ""; //todo: more logging
   const glyphDefault = {
@@ -64,10 +84,6 @@ export function getIconClasses(...args) {
     for (const [slug, data] of Object.entries(schema)) {
       let matches, exact;
       if ("value" in data) {
-        if (slug === "glyph") {
-          mhlog(`MHL.Error.Validation.IconSchemaGlyphExact`, { type: error, localize: true, func });
-          return "";
-        }
         if (part !== data.value.toLowerCase()) continue;
         exact = true;
       } else {
@@ -109,7 +125,7 @@ export function getIconClasses(...args) {
   for (const [slug, data] of Object.entries(schema)) {
     if (data.required && partsSeen[slug].length === 0) {
       if ("default" in data) partsSeen[slug].push(data.default);
-      else return ""; //todo: add logging
+      else return fail();
     }
   }
   return Object.values(partsSeen)

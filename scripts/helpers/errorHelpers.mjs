@@ -187,3 +187,31 @@ export function getLogPrefix(text, { prefix, mod, func } = {}) {
   if (prefix) out += prefix;
   return out;
 }
+
+export function logCast(variable, type, name, func) {
+  type = typeof type === "function" ? type : globalThis[String(type)] ?? null;
+  if (!type) return variable; //todo: logging lol
+  const targetType = type.name.toLowerCase();
+  if (typeof variable !== targetType) {
+    mhlog(
+      { [name]: variable },
+      {
+        localize: true,
+        prefix: `MHL.Warning.Fallback.Type`,
+        func,
+        context: { arg: name, type: typeof variable, expected: targetType },
+      }
+    );
+    return type(variable);
+  }
+  return variable;
+}
+
+export function chatLog(loggable, options) {
+  //todo: improve
+  getDocumentClass("ChatMessage").create({
+    content: `<pre>${JSON.stringify(loggable, null, 2)}</pre>`,
+  });
+}
+
+

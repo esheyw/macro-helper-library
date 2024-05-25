@@ -1,18 +1,50 @@
 {{log this}}
 <form>
-    {{#each model.schema.fields as |field|}}
+  {{!-- {{#each model.schema.fields as |data field|}}
     <div class="form-group">
-      <label for="{{concat @root.module "-" @root.key "-" field.name}}">{{mhlocalize field.label}}</label>
+      <label for="{{concat @root.module '-' @root.key '-' data.name}}">{{mhlocalize data.label}}</label>
+
       <div class="form-fields">
-        <input id="{{concat @root.module "-" @root.key "-" field.name}}" name="{{field.name}}" value="{{lookup @root.model field.name}}" type="text">
+        <input
+          id="{{concat @root.module '-' @root.key '-' data.name}}"
+          name="{{data.name}}"
+          value="{{lookup @root.model data.name}}"
+          type="text"
+        />
+        {{#if (contains field "glyph" "Glyph")}}
+          <span class="display-glyph">{{mhlIcon (lookup @root.model data.name)}}</span>
+        {{/if}}
       </div>
-      {{#if field.hint}}
-      <p class="notes">{{mhlocalize field.hint}}</p>
+      {{#if data.hint}}
+        <p class="notes">{{mhlocalize data.hint}}</p>
       {{/if}}
     </div>
-    {{/each}}
-
-  <button type="submit" name="submit">
-    {{mhlIcon "check" "fa-regular"}} {{mhlocalize "EFFECT.Submit"}}
-  </button>
+  {{/each}} --}}
+  <div class="form-grid">
+    {{~#each model.schema.fields as |field|~}}
+      <label for="{{concat @root.module '-' @root.key '-' field.name}}">{{mhlocalize field.label}}</label>
+      <div class="display-glyph"
+        {{~#if (contains field.name "Icon")~}}
+           data-icon-for="{{concat @root.module '-' @root.key '-' field.name}}">{{mhlIcon (lookup @root.model field.name)}}
+        {{~else~}}
+          >
+        {{~/if~}}
+      </div>
+      <input
+        id="{{concat @root.module '-' @root.key '-' field.name}}"
+        name="{{field.name}}"
+        value="{{lookup @root.model field.name}}"
+        type="text"
+        {{#if (contains field.name "Icon")}}data-icon{{/if}}
+      />
+      {{#if field.hint}}
+        <p class="notes">{{mhlocalize field.hint}}</p>
+      {{/if}}
+    {{/each}}    
+    <button type="submit" name="submit">
+      {{mhlIcon "check"}}
+      {{mhlocalize "EFFECT.Submit"}}
+    </button>
+  </div>
+  
 </form>

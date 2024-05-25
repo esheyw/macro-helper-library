@@ -1,4 +1,4 @@
-import { isPlainObject } from "./helpers/index.mjs";
+import { getFunctionOptions, isEmpty, isPlainObject } from "./helpers/index.mjs";
 import { mhlocalize, signedInteger, sluggify } from "./helpers/stringHelpers.mjs";
 import { getIconHTMLString } from "./helpers/iconHelpers.mjs";
 //the following are provided by pf2e at least, maybe other systems; only register if necessary
@@ -53,9 +53,16 @@ const mhlOriginals = {
     const type = !!value ? "check" : "xmark";
     return new Handlebars.SafeString(`<i class="fa-solid fa-square-${type}"></i>`);
   },
-  mhlIcon: (...inputs) => {
-    return new Handlebars.SafeString(getIconHTMLString(...inputs));
+  mhlIcon: (...args) => {
+    return new Handlebars.SafeString(getIconHTMLString(...args));
   },
+  contains: (...args) => {
+    const options = getFunctionOptions(args);
+    const [haystack,...needles] = args;
+    if (isEmpty(haystack) || (!Array.isArray(haystack) && typeof haystack !== 'string')|| isEmpty(needles)) return false;
+    const fn = options.all ? 'every' : 'some'
+    return needles[fn](n=>haystack.includes(n));
+  }
   // ginfIcon:,
 };
 export function registerHandlebarsHelpers() {

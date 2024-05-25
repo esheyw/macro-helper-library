@@ -1,7 +1,7 @@
 import { LABELABLE_TAGS, fu } from "../constants.mjs";
 import { MHLError, localizedBanner, mhlog, log, isEmpty } from "../helpers/errorHelpers.mjs";
 import { mhlocalize } from "../helpers/stringHelpers.mjs";
-import { htmlQuery, htmlQueryAll } from "../helpers/DOMHelpers.mjs";
+import { htmlQuery, htmlQueryAll } from "../helpers/HTMLHelpers.mjs";
 const funcPrefix = `MHLDialog`;
 
 export class MHLDialog extends Dialog {

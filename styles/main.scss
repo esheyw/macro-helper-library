@@ -17,7 +17,7 @@
   --mhl-text-error-decoration: underline wavy var(--mhl-color-failure);
 }
 
-i.fallback-glyph {
+.mhl-fallback-icon {
   color: var(--mhl-color-failure)
 }
 div.section-separator {
@@ -45,4 +45,10 @@ div.section-separator {
     height: auto !important;
   }
 }
-@import "pickAThing", "updateInitiativeStatistics", "MHLSettingsManager";
+.mhl-pre-tooltip {
+  code {
+    white-space: nowrap;
+  }
+  line-height: 200%;
+}
+@import "pickAThing", "updateInitiativeStatistics", "MHLSettingsManager", "MHLIconSettingsMenu";

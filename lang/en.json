@@ -183,11 +183,6 @@
       "FilterUnmatched": "Provided filter produced no valid items.",
       "NoMatchingHeld": "Selected actor is not holding any matching items."
     },
-    "User": {
-      "Error": {
-        "NotAUser": "Provided user was not a foundry User."
-      }
-    },
     "Error": {
       "UnsupportedDocument": "Document type {type} not supported by this function.",
       "Target": {
@@ -210,9 +205,7 @@
       "InvalidType": "Invalid type \"{type}\" provided.",
       "Validation": {
         "IconSchemaGlyphExact": "The glyph field of an icon font schema cannot define an exact `value`; use `choices` or `pattern`",
-        "IconGeneric": "The provided arguments did not produce a valid icon string from any registered Icon font.",
-        "FontAwesomeClasses": "The provided input(s) failed to validate as a set of FontAwesome icon classes.",
-        "FontAwesomeIcon": "The provided input(s) failed to validate as a FontAwesome icon element or set of FA classes."
+        "IconGeneric": "The provided arguments did not produce a valid icon string from any registered Icon font."
       },
       "RequireSameInheritanceChain": "Both objects' classes must be from the same inheritance chain.",
       "BothMustBeClassesOrClassedObjects": "Both parameters must be classes or objects with a constructor.",
@@ -233,6 +226,8 @@
     },
     "Warning": {
       "Fallback": {
+        "FallbackIcon": "Provided arguments did not produce a valid set of icon classes, using fallback value {fallback}",
+        "FallbackIconTooltip": "Using fallback icon. Parsed args: <p><code>{args}</code></p>",
         "BannerType": "Provided notification banner type \"{type}\" is not valid, defaulting to \"{defaultType}\".",
         "FirstTarget": "This operation requires a single target, using first target \"{name}\".",
         "FirstToken": "This operation requires a single selected token, using first token \"{name}\".",
@@ -251,6 +246,18 @@
         "DisabledClass": {
           "Label": "Disabled Icon CSS Class",
           "Hint": "The CSS class applied to reset-to-default buttons when their associated setting(s) is/are default."
+        },
+        "ModuleResetIcon": {
+          "Label": "Module Reset Icon",
+          "Hint": "The css class(es) used to get the 'reset entire module's settings to default' button's icon Usually just the glyph-identifying class is sufficient, defaults will be filled in automatically. "
+        },
+        "GroupResetIcon": {
+          "Label":"Group Reset Icon",
+          "Hint":"Same as the Module Reset Icon, but for groups."
+        },
+        "SettingResetIcon": {
+          "Label":"Setting Reset Icon",
+          "Hint":"Same as above, but for the per-setting reset buttons."
         }
       },
       "IconSettingsMenu": {
@@ -286,6 +293,9 @@
       "Testing": "Testing",
       "Access": "API Access",
       "ErrorHandling": "Error Handling"
-    }
+    },
+    "Fancy": "This is a {fancy} string!",
+    "FancyInner": "{superlative} fancy",
+    "Very": "Very"
   }
 }

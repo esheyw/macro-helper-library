@@ -4,7 +4,7 @@ import * as classes from "./classes/index.mjs";
 import { SETTINGS, setting } from "./settings.mjs";
 import { MODULE_ID, VERIFIED_SYSTEM_VERSIONS, fu } from "./constants.mjs";
 import { registerHandlebarsHelpers } from "./handlebars.mjs";
-import { DEFAULT_CONFIG } from "./config/config.mjs";
+import { generateDefaultConfig, iconFontsDefaults } from "./config/config.mjs";
 export const MODULE = () => game.modules.get(MODULE_ID);
 Hooks.on("init", () => {
   // CONFIG.debug.hooks = true;
@@ -41,121 +41,15 @@ Hooks.on("init", () => {
   //todo: remove before release
   mod.api.sm = mod.settingsManager;
 
-  CONFIG.MHL = DEFAULT_CONFIG;
+  CONFIG.MHL = generateDefaultConfig();
   mod.init = true;
   mod.i18nInit = false;
   mod.setup = false;
 });
 Hooks.once("i18nInit", () => {
   //do as much here as possible so errors can be localized
-  const mod = MODULE();
-  CONFIG.MHL.iconFonts.push(
-    {
-      name: "fontawesome",
-      prefixes: ["fa-"],
-      aliases: {
-        fas: "fa-solid",
-        far: "fa-regular",
-        fal: "fa-light",
-        fat: "fa-thin",
-        fad: "fa-duotone",
-        fass: "fa-sharp fa-solid",
-        fasr: "fa-sharp fa-regular",
-        fasl: "fa-sharp fa-light",
-        fast: "fa-sharp fa-thin",
-        fasd: "fa-sharp fa-duotone",
-        fab: "fa-brands",
-      },
-      schema: {
-        fw: {
-          pattern: "fw",
-        },
-        brands: {
-          pattern: "brands",
-        },
-        sharp: {
-          pattern: "sharp",
-        },
-        style: {
-          choices: ["solid", "regular", "duotone", "light", "thin"],
-          required: true,
-          default: "fa-solid",
-        },
-      },
-    },
-    {
-      name: "materialdesign",
-      prefixes: ["mdi-"],
-      schema: {
-        domain: {
-          required: true,
-          value: "mdi",
-          default: "mdi",
-        },
-        rotate: {
-          choices: ["rotate-45", "rotate-90", "rotate-135", "rotate-180", "rotate-225", "rotate-270", "rotate-315"],
-          precludes: "flip",
-        },
-        flip: {
-          choices: ["flip-h", "flip-v"],
-          precludes: "rotate",
-        },
-        spin: {
-          value: "spin",
-        },
-      },
-    },
-    {
-      name: "game-icons.net",
-      prefixes: ["ginf-"],
-    },
-    {
-      name: "boxicons",
-      prefixes: ["bx-", "bxs-", "bxl-"],
-      schema: {
-        domain: {
-          required: true,
-          value: "bx",
-          default: "bx",
-        },
-        fw: {
-          prefixes: ["bx-"],
-          pattern: "fw",
-        },
-        size: {
-          prefixes: ["bx-"],
-          choices: ["xs", "sm", "md", "lg"],
-        },
-        flip: {
-          prefixes: ["bx-"],
-          prefixes: ["bx-"],
-          precludes: "rotate",
-          choices: ["flip-horizontal", "flip-vertical"],
-        },
-        rotate: {
-          prefixes: ["bx-"],
-          precludes: "flip",
-          choices: ["rotate-90", "rotate-180", "rotate-270"],
-        },
-        border: {
-          prefixes: ["bx-"],
-          choices: ["border", "border-circle"],
-        },
-        animation: {
-          prefixes: ["bx-"],
-          choices: ["spin", "tada", "flashing", "burst", "fade-left", "fade-right", "fade-up", "fade-down"],
-        },
-        hover: {
-          prefixes: ["bx-"],
-          choices: ["spin", "tada", "flashing", "burst", "fade-left", "fade-right", "fade-up", "fade-down"],
-        },
-      },
-    },
-    {
-      name: "jamicons",
-      prefixes: ["jam-"],
-    }
-  );
+  const mod = MODULE();  
+  CONFIG.MHL.iconFonts.push(...iconFontsDefaults)
   mod.settingsManager.registerSettings(SETTINGS);
 });
 Hooks.once("setup", () => {

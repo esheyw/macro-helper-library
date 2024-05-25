@@ -41,3 +41,17 @@ export function elementFromString(string) {
   template.innerHTML = string;
   return template.content?.firstElementChild;
 }
+
+export function escapeHTML(text) {
+  return text.replace(
+    /[&<>"']/g,
+    (m) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;",
+      }[m])
+  );
+}
