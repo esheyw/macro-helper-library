@@ -1,5 +1,7 @@
 //This file lifted in its entirety from the foundry dnd5e system, under MIT license as seen at https://github.com/foundryvtt/dnd5e/blob/master/LICENSE.txt
 
+import { mhlog } from "../helpers/errorHelpers.mjs";
+
 /**
  * @typedef {object} AccordionConfiguration
  * @property {string} headingSelector    The CSS selector that identifies accordion headers in the given markup.
@@ -51,28 +53,32 @@ export class Accordion {
    * @param {HTMLElement} root  The root HTML node.
    */
   bind(root) {
+    const func = `Accordion#bind`;
     const firstBind = this.#sections.size < 1;
-    if ( firstBind ) this.#collapsed = [];
+    if (firstBind) this.#collapsed = [];
     this.#sections = new Map();
     this.#ongoing = new Map();
     const { headingSelector, contentSelector } = this.#config;
+    mhlog({ headingSelector, contentSelector }, { func, prefix: "before" });
     let collapsedIndex = 0;
-    for ( const heading of root.querySelectorAll(headingSelector) ) {
+    for (const heading of root.querySelectorAll(headingSelector)) {
       const content = heading.querySelector(contentSelector) ?? heading.parentElement.querySelector(contentSelector);
-      if ( !content ) continue;
+      mhlog({ heading, content }, { func, prefix: "in loop" });
+      if (!content) continue;
       const wrapper = document.createElement("div");
       wrapper.classList.add("accordion");
       heading.before(wrapper);
       wrapper.append(heading, content);
       this.#sections.set(heading, content);
       content._fullHeight = content.getBoundingClientRect().height;
-      if ( firstBind ) this.#collapsed.push(this.#collapsed.length > 0);
-      else if ( this.#collapsed[collapsedIndex] ) wrapper.classList.add("collapsed");
+      if (firstBind) this.#collapsed.push(this.#collapsed.length > 0);
+      else if (this.#collapsed[collapsedIndex]) wrapper.classList.add("collapsed");
       heading.classList.add("accordion-heading");
       content.classList.add("accordion-content");
       heading.addEventListener("click", this._onClickHeading.bind(this));
       collapsedIndex++;
     }
+    mhlog({ sections: this.#sections }, { func, prefix: "after loop" });
     requestAnimationFrame(() => this._restoreCollapsedState());
   }
 
@@ -84,13 +90,13 @@ export class Accordion {
    * @protected
    */
   _onClickHeading(event) {
-    if ( event.target.closest("a") ) return;
+    if (event.target.closest("a")) return;
     const heading = event.currentTarget;
     const content = this.#sections.get(heading);
-    if ( !content ) return;
+    if (!content) return;
     event.preventDefault();
     const collapsed = heading.parentElement.classList.contains("collapsed");
-    if ( collapsed ) this._onExpandSection(heading, content);
+    if (collapsed) this._onExpandSection(heading, content);
     else this._onCollapseSection(heading, content);
   }
 
@@ -104,19 +110,19 @@ export class Accordion {
    * @param {boolean} [options.animate=true]  Whether to animate the expand effect.
    * @protected
    */
-  _onExpandSection(heading, content, { animate=true }={}) {
+  _onExpandSection(heading, content, { animate = true } = {}) {
     this.#cancelOngoing(heading);
 
-    if ( this.#config.collapseOthers ) {
-      for ( const [otherHeading, otherContent] of this.#sections.entries() ) {
-        if ( (heading !== otherHeading) && !otherHeading.parentElement.classList.contains("collapsed") ) {
+    if (this.#config.collapseOthers) {
+      for (const [otherHeading, otherContent] of this.#sections.entries()) {
+        if (heading !== otherHeading && !otherHeading.parentElement.classList.contains("collapsed")) {
           this._onCollapseSection(otherHeading, otherContent, { animate });
         }
       }
     }
 
     heading.parentElement.classList.remove("collapsed");
-    if ( animate ) content.style.height = "0";
+    if (animate) content.style.height = "0";
     else {
       content.style.height = `${content._fullHeight}px`;
       return;
@@ -139,12 +145,12 @@ export class Accordion {
    * @param {boolean} [options.animate=true]  Whether to animate the collapse effect.
    * @protected
    */
-  _onCollapseSection(heading, content, { animate=true }={}) {
+  _onCollapseSection(heading, content, { animate = true } = {}) {
     this.#cancelOngoing(heading);
     const { height } = content.getBoundingClientRect();
     heading.parentElement.classList.add("collapsed");
     content._fullHeight = height || content._fullHeight;
-    if ( animate ) content.style.height = `${height}px`;
+    if (animate) content.style.height = `${height}px`;
     else {
       content.style.height = "0";
       return;
@@ -179,7 +185,7 @@ export class Accordion {
   #cancelOngoing(heading) {
     const ongoing = this.#ongoing.get(heading);
     const content = this.#sections.get(heading);
-    if ( ongoing && content ) content.removeEventListener("transitionend", ongoing);
+    if (ongoing && content) content.removeEventListener("transitionend", ongoing);
   }
 
   /* -------------------------------------------- */
@@ -190,7 +196,7 @@ export class Accordion {
    */
   _saveCollapsedState() {
     this.#collapsed = [];
-    for ( const heading of this.#sections.keys() ) {
+    for (const heading of this.#sections.keys()) {
       this.#collapsed.push(heading.parentElement.classList.contains("collapsed"));
     }
   }
@@ -203,10 +209,10 @@ export class Accordion {
    */
   _restoreCollapsedState() {
     const entries = Array.from(this.#sections.entries());
-    for ( let i = 0; i < entries.length; i++ ) {
+    for (let i = 0; i < entries.length; i++) {
       const collapsed = this.#collapsed[i];
       const [heading, content] = entries[i];
-      if ( collapsed ) this._onCollapseSection(heading, content, { animate: false });
+      if (collapsed) this._onCollapseSection(heading, content, { animate: false });
     }
   }
 }

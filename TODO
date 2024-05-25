@@ -21,4 +21,5 @@
 - test fields as setting types
 - finish appropriating pf2e handlebars helpers - DONE except for the system update to `json`
 - actually use new json helper
-- finish getIconClasses testing/bugfixing
+- figure out why accordion content isn't getting grabbed
+- add accordion indicator
