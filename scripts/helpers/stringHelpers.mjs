@@ -1,5 +1,5 @@
 import { MODULE_ID, fu } from "../constants.mjs";
-import { MHLError, isEmpty, isPlainObject, logCast, mhlog } from "./index.mjs";
+import { MHLError, isEmpty, isPlainObject, logCast, logCastString, mhlog } from "./index.mjs";
 
 export function prependIndefiniteArticle(text) {
   const vowels = "aeiou";
@@ -20,12 +20,14 @@ export function prependIndefiniteArticle(text) {
 
 export function mhlocalize(text, context = {}, { defaultEmpty = true } = {}) {
   const func = "mhlocalize";
-  text = logCast(text, String, 'text', func);
+  text = logCastString(text, "text", func);
   const processedContext =
     isEmpty(context) || !isPlainObject(context)
       ? {}
       : Object.entries(context).reduce((acc, [k, v]) => {
-          acc[k] = isPlainObject(v) ? mhlocalize(String(v.key ?? ""), v.context ?? {}, { defaultEmpty }) : mhlocalize(String(v));
+          acc[k] = isPlainObject(v)
+            ? mhlocalize(String(v.key ?? ""), v.context ?? {}, { defaultEmpty })
+            : mhlocalize(String(v));
           return acc;
         }, {});
   if (fu.isEmpty(game.i18n?.translations)) {

@@ -15,13 +15,16 @@
 .accordion-indicator {
   display: none;
   transition: transform 500ms ease;
+  align-self: center;
+  opacity: 0.5;
+  font-size: 0.75em;
 }
 .accordion .accordion-indicator {
-  display: inherit;
+  display: inline-block;
   transform: rotate(0deg);
 }
 .accordion.collapsed .accordion-indicator {
-  transform: rotate(-90deg);
+  transform: rotate(90deg);
 }
 
 .accordion-heading {

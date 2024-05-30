@@ -4,11 +4,10 @@ import { MHLError, isEmpty, modBanner, modLog } from "../helpers/errorHelpers.mj
 import { isRealGM } from "../helpers/foundryHelpers.mjs";
 import { mhlocalize, sluggify } from "../helpers/stringHelpers.mjs";
 import { getIconClasses, getIconHTMLString } from "../helpers/iconHelpers.mjs";
-import { MHLDialog } from "./MHLDialog.mjs";
+import { MHLDialog } from "../apps/MHLDialog.mjs";
 import { setting } from "../settings.mjs";
 import { MODULE } from "../init.mjs";
-import { DetailsAccordion } from "./DetailsAccordion.mjs";
-import { MHLSettingMenu } from "./MHLSettingMenu.mjs";
+import { MHLSettingMenu } from "../apps/MHLSettingMenu.mjs";
 import { Accordion } from "./Accordion.mjs";
 const funcPrefix = `MHLSettingsManager`;
 export class MHLSettingsManager {
@@ -198,20 +197,11 @@ export class MHLSettingsManager {
           if (settings.length === 0) continue; // no headers for empty groups
           const groupHeader = document.createElement("h3");
           groupHeader.innerText = mhlocalize(group);
-          groupHeader.dataset.settingGroup = group;          
+          groupHeader.dataset.settingGroup = group;
           sortOrder.push(groupHeader);
           if (this.options.collapsableGroups) {
-            // const details = document.createElement("details");
-            // details.dataset.settingGroup = group;
-            // details.open = true;
-            // details.innerHTML = `<summary><h3 data-setting-group="${group}">${mhlocalize(
-            //   group
-            // )} </h3></summary><div class="accordion-content"></div>`;
-            // groupContentDiv = htmlQuery(details, `div.accordion-content`);
-            // new DetailsAccordion(details);
-            // sortOrder.push(details);
-            groupHeader.classList.add('accordion-heading')
-            groupContentDiv = elementFromString(`<div class="accordion-content"></div>`);
+            groupHeader.appendChild(elementFromString(getIconHTMLString("fa-chevron-down", "accordion-indicator")));
+            groupContentDiv = elementFromString(`<div class="mhl-setting-group"></div>`);
             sortOrder.push(groupContentDiv);
           } else {
           }
@@ -233,17 +223,6 @@ export class MHLSettingsManager {
           }
         }
       }
-      // if (this.options.collapsableGroups) {
-      //   const [h2, ...targets] = sortOrder;
-      //   h2.addEventListener("click", () => {
-      //     const details = targets.filter((n) => n.nodeName === "DETAILS");
-      //     const [closed, open] = details.partition((d) => d.open);
-      //     for (const target of details) {
-      //       const h3 = htmlQuery(target, "h3");
-      //       if (open.length === 0 || closed.length === 0 || target.open) h3.dispatchEvent(new Event("click"));
-      //     }
-      //   });
-      // }
     } else if (this.options.sort) {
       const settings = this.#settings
         .filter((s) => s?.config && (s?.scope === "world" ? isGM : true))
@@ -270,7 +249,10 @@ export class MHLSettingsManager {
       section.appendChild(node);
     }
     if (this.options.collapsableGroups)
-      new Accordion({ headingSelector: `.accordion-heading`, contentSelector: `.accordion-content` }).bind(section);
+      new Accordion({
+        headingSelector: `h3[data-setting-group]`,
+        contentSelector: `.mhl-setting-group`,
+      }).bind(section);
   }
 
   get(key) {

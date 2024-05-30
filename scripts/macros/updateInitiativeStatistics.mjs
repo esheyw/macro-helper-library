@@ -1,5 +1,5 @@
 import { anyTokens } from "../helpers/tokenHelpers.mjs";
-import { MHLDialog } from "../classes/MHLDialog.mjs";
+import { MHLDialog } from "../apps/MHLDialog.mjs";
 import { MODULE_ID, fu } from "../constants.mjs";
 import { MHLError, requireSystem } from "../helpers/errorHelpers.mjs";
 import { mhlocalize } from "../helpers/stringHelpers.mjs";

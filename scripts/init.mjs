@@ -1,6 +1,7 @@
 import * as helpers from "./helpers/index.mjs";
 import * as macros from "./macros/index.mjs";
-import * as classes from "./classes/index.mjs";
+import * as apps from "./apps/index.mjs";
+import * as util from "./util/index.mjs";
 import { SETTINGS, setting } from "./settings.mjs";
 import { MODULE_ID, VERIFIED_SYSTEM_VERSIONS, fu } from "./constants.mjs";
 import { registerHandlebarsHelpers } from "./handlebars.mjs";
@@ -11,7 +12,8 @@ Hooks.on("init", () => {
   const mod = MODULE();
   mod.api = {
     macros,
-    classes,
+    apps,
+    util,
     settingsManagers: new Collection(),
   };
 
@@ -35,7 +37,7 @@ Hooks.on("init", () => {
     groups: true,
     // sort: "a"
   };
-  mod.settingsManager = new classes.MHLSettingsManager(MODULE_ID, settingManagerOptions);
+  mod.settingsManager = new util.MHLSettingsManager(MODULE_ID, settingManagerOptions);
   //special exposure
   mod.api.mhlSetting = setting;
   //todo: remove before release
@@ -48,8 +50,8 @@ Hooks.on("init", () => {
 });
 Hooks.once("i18nInit", () => {
   //do as much here as possible so errors can be localized
-  const mod = MODULE();  
-  CONFIG.MHL.iconFonts.push(...iconFontsDefaults)
+  const mod = MODULE();
+  CONFIG.MHL.iconFonts.push(...iconFontsDefaults);
   mod.settingsManager.registerSettings(SETTINGS);
 });
 Hooks.once("setup", () => {

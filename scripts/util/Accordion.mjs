@@ -1,7 +1,7 @@
-//This file lifted in its entirety from the foundry dnd5e system, under MIT license as seen at https://github.com/foundryvtt/dnd5e/blob/master/LICENSE.txt
+//This file originally copied in its entirety from the foundry dnd5e system, under MIT license as seen at https://github.com/foundryvtt/dnd5e/blob/master/LICENSE.txt
+//subsequent edits by Emmanuel Wineberg
 
-import { mhlog } from "../helpers/errorHelpers.mjs";
-
+import { logCastString, mhlog } from "../helpers/errorHelpers.mjs";
 /**
  * @typedef {object} AccordionConfiguration
  * @property {string} headingSelector    The CSS selector that identifies accordion headers in the given markup.
@@ -18,8 +18,13 @@ import { mhlog } from "../helpers/errorHelpers.mjs";
  */
 export class Accordion {
   constructor(config) {
-    config.contentSelector = `${config.contentSelector}:not(.accordion-content)`;
-    this.#config = config;
+    const func = `Accordion#constructor`;
+    this.#config = {
+      contentSelector:
+        logCastString(config.contentSelector, "config.contentSelector", func) + ":not(.accordion-content)",
+      headingSelector: logCastString(config.headingSelector, "config.headingSelector", func),
+      initialOpen: "initialOpen" in config ? logCastNumber(config.initialOpen, "config.initialOpen", func) : Infinity,
+    };
   }
 
   /**
@@ -59,11 +64,10 @@ export class Accordion {
     this.#sections = new Map();
     this.#ongoing = new Map();
     const { headingSelector, contentSelector } = this.#config;
-    mhlog({ headingSelector, contentSelector }, { func, prefix: "before" });
     let collapsedIndex = 0;
     for (const heading of root.querySelectorAll(headingSelector)) {
       const content = heading.querySelector(contentSelector) ?? heading.parentElement.querySelector(contentSelector);
-      mhlog({ heading, content }, { func, prefix: "in loop" });
+
       if (!content) continue;
       const wrapper = document.createElement("div");
       wrapper.classList.add("accordion");
@@ -71,14 +75,16 @@ export class Accordion {
       wrapper.append(heading, content);
       this.#sections.set(heading, content);
       content._fullHeight = content.getBoundingClientRect().height;
-      if (firstBind) this.#collapsed.push(this.#collapsed.length > 0);
-      else if (this.#collapsed[collapsedIndex]) wrapper.classList.add("collapsed");
+      if (firstBind) {
+        this.#collapsed.push(this.#collapsed.length >= this.#config.initialOpen);
+      } else if (this.#collapsed[collapsedIndex]) {
+        wrapper.classList.add("collapsed");
+      }
       heading.classList.add("accordion-heading");
       content.classList.add("accordion-content");
       heading.addEventListener("click", this._onClickHeading.bind(this));
       collapsedIndex++;
     }
-    mhlog({ sections: this.#sections }, { func, prefix: "after loop" });
     requestAnimationFrame(() => this._restoreCollapsedState());
   }
 

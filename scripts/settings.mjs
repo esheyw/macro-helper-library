@@ -1,5 +1,5 @@
-import { MHLIconSettingsMenu } from "./classes/MHLIconSettingsMenu.mjs";
-import { MHLSettingMenu } from "./classes/MHLSettingMenu.mjs";
+import { MHLIconSettingsMenu } from "./apps/MHLIconSettingsMenu.mjs";
+import { MHLSettingMenu } from "./apps/MHLSettingMenu.mjs";
 import { MODULE } from "./init.mjs";
 
 class IconSettingsModel extends foundry.abstract.TypeDataModel {

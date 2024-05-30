@@ -171,14 +171,7 @@ export function isEmpty(value) {
 
 export function getLogPrefix(text, { prefix, mod, func } = {}) {
   let out = "";
-  if (typeof text !== "string") {
-    mhlog(`MHL.Warning.Fallback.Type`, {
-      func: "getLogPrefix",
-      localize: true,
-      context: { arg: "text", type: typeof text, expected: "string" },
-    });
-    text = String(text);
-  }
+  text = logCast(text, "text", String, "getLogPrefix");
   mod = String(mod ?? "");
   func = String(func ?? "");
   prefix = String(prefix ?? "");
@@ -187,8 +180,16 @@ export function getLogPrefix(text, { prefix, mod, func } = {}) {
   if (prefix) out += prefix;
   return out;
 }
-
-export function logCast(variable, type, name, func) {
+export function logCastString(variable, name, func = null) {
+  return logCast(variable, String, name, func);
+}
+export function logCastNumber(variable, name, func = null) {
+  return logCast(variable, Number, name, func);
+}
+export function logCastBool(variable, name, func = null) {
+  return logCast(variable, Boolean, name, func);
+}
+export function logCast(variable, type = String, name, func = null) {
   type = typeof type === "function" ? type : globalThis[String(type)] ?? null;
   if (!type) return variable; //todo: logging lol
   const targetType = type.name.toLowerCase();
@@ -213,5 +214,3 @@ export function chatLog(loggable, options) {
     content: `<pre>${JSON.stringify(loggable, null, 2)}</pre>`,
   });
 }
-
-

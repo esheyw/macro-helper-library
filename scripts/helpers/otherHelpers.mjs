@@ -1,7 +1,7 @@
 import { fu } from "../constants.mjs";
 import { MHLError, isEmpty } from "./errorHelpers.mjs";
 import { prependIndefiniteArticle } from "./stringHelpers.mjs";
-import { MHLDialog } from "../classes/MHLDialog.mjs";
+import { MHLDialog } from "../apps/MHLDialog.mjs";
 
 export async function pickAThingDialog({ things = null, title = null, thingType = "Item", dialogOptions = {} } = {}) {
   if (!Array.isArray(things)) {
