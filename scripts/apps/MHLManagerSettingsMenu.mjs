@@ -2,13 +2,14 @@ import { MODULE_ID, fu } from "../constants.mjs";
 import { htmlClosest, htmlQuery, htmlQueryAll } from "../helpers/HTMLHelpers.mjs";
 import { mhlog } from "../helpers/errorHelpers.mjs";
 import { getIconClasses, getIconHTMLString } from "../helpers/iconHelpers.mjs";
-export class MHLIconSettingsMenu extends FormApplication {
-  settingName = "icon-settings";
+import { MODULE } from "../init.mjs";
+export class MHLManagerSettingsMenu extends FormApplication {
+  settingName = "manager-settings";
   static get defaultOptions() {
     return fu.mergeObject(super.defaultOptions, {
       title: "MHL Icon Glyph Settings",
-      template: `modules/${MODULE_ID}/templates/IconSettingsMenu.hbs`,
-      classes: ["mhl-icon-settings-menu"],
+      template: `modules/${MODULE_ID}/templates/ManagerSettingsMenu.hbs`,
+      classes: ["mhl-manager-settings-menu"],
       width: 450,
       resizable: true,
     });
@@ -28,12 +29,12 @@ export class MHLIconSettingsMenu extends FormApplication {
     const inputs = htmlQueryAll(el, "input").filter((n) => "icon" in n.dataset);
 
     for (const input of inputs) {
-      input.addEventListener("input", fu.debounce(MHLIconSettingsMenu.iconChangeListener, 300));
+      input.addEventListener("input", fu.debounce(MHLManagerSettingsMenu.iconChangeListener, 300));
     }
   }
   getData(options = {}) {
     const context = super.getData(options);
-    context.key = "icon-settings";
+    context.key = "manager-settings";
     context.module = MODULE_ID;
     context.model = game.settings.get(MODULE_ID, this.settingName).clone();
     context.v12 = fu.isNewerVersion(game.version, 12);
@@ -59,7 +60,8 @@ export class MHLIconSettingsMenu extends FormApplication {
     for (const [k, v] of Object.entries(expanded)) {
       if (k.includes("Icon") && !getIconClasses(v, { fallback: false })) delete expanded[k];
     }
-
-    game.settings.set(MODULE_ID, this.settingName, expanded);
+    const sm = MODULE().api.sm
+    sm.set(this.settingName, expanded);
+    if (sm.app) sm.app.render();
   }
 }

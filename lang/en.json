@@ -242,14 +242,18 @@
         "Name": "Debug Mode",
         "Hint": "Enable debug logging. Showstopper errors will fire without this, but fallback"
       },
-      "IconSettings": {
+      "ManagerSettings": {
         "DisabledClass": {
           "Label": "Disabled Icon CSS Class",
           "Hint": "The CSS class applied to reset-to-default buttons when their associated setting(s) is/are default."
         },
+        "AccordionIndicatorIcon":{
+          "Label":"Accordion Indicator Icon",
+          "Hint":"The css class(es) used to get the icon displayed next to a collapseable group header. Usually just the glyph-identifying class is sufficient, defaults will be filled in automatically."
+        },
         "ModuleResetIcon": {
           "Label": "Module Reset Icon",
-          "Hint": "The css class(es) used to get the 'reset entire module's settings to default' button's icon Usually just the glyph-identifying class is sufficient, defaults will be filled in automatically. "
+          "Hint": "Same as above, for the Reset Module Settings button's icon."
         },
         "GroupResetIcon": {
           "Label":"Group Reset Icon",
@@ -260,7 +264,7 @@
           "Hint":"Same as above, but for the per-setting reset buttons."
         }
       },
-      "IconSettingsMenu": {
+      "ManagerSettingsMenu": {
         "Name": "Icon Settings",
         "Hint": "Set the default FontAwesome glyphs for modules using the setting manager that haven't provided their own overrides.",
         "Label": "Icon Settings"
@@ -289,7 +293,7 @@
       }
     },
     "SettingGroup": {
-      "Defaults": "Library Defaults",
+      "SettingsManager": "Setting Manager Defaults",
       "Testing": "Testing",
       "Access": "API Access",
       "ErrorHandling": "Error Handling"

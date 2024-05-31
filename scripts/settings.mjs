@@ -1,8 +1,7 @@
-import { MHLIconSettingsMenu } from "./apps/MHLIconSettingsMenu.mjs";
-import { MHLSettingMenu } from "./apps/MHLSettingMenu.mjs";
+import { MHLManagerSettingsMenu } from "./apps/MHLManagerSettingsMenu.mjs";
 import { MODULE } from "./init.mjs";
 
-class IconSettingsModel extends foundry.abstract.TypeDataModel {
+class SettingManagerDefaultsModel extends foundry.abstract.TypeDataModel {
   static defineSchema() {
     const fields = foundry.data.fields;
     return {
@@ -10,60 +9,56 @@ class IconSettingsModel extends foundry.abstract.TypeDataModel {
         required: true,
         nullable: false,
         initial: "disabled-transparent",
-        label: `MHL.Setting.IconSettings.DisabledClass.Label`,
-        hint: `MHL.Setting.IconSettings.DisabledClass.Hint`,
-        choices: ["disabled-transparent", "disabled-hidden", "disabled-blurry"],
+        label: `MHL.Setting.ManagerSettings.DisabledClass.Label`,
+        hint: `MHL.Setting.ManagerSettings.DisabledClass.Hint`,
+        choices: () => CONFIG.MHL.diabledClasses,
         group: ".CSS",
+      }),
+      accordionIndicatorIcon: new fields.StringField({
+        required: true,
+        nullable: false,
+        initial: "fa-chevron-down",
+        label: "MHL.Setting.ManagerSettings.AccordionIndicatorIcon.Label",
+        hint: "MHL.Setting.ManagerSettings.AccordionIndicatorIcon.Hint",
       }),
       moduleResetIcon: new fields.StringField({
         required: true,
         nullable: false,
         initial: "mdi-reply-all",
-        label: "MHL.Setting.IconSettings.ModuleResetIcon.Label",
-        hint: "MHL.Setting.IconSettings.ModuleResetIcon.Hint",
-        // validate: (v) => isValidFA(v),
-        // validationError: "is not a valid FontAwesome glyph.",
+        label: "MHL.Setting.ManagerSettings.ModuleResetIcon.Label",
+        hint: "MHL.Setting.ManagerSettings.ModuleResetIcon.Hint",
       }),
       groupResetIcon: new fields.StringField({
         required: true,
         nullable: false,
         initial: "mdi-reply",
-        label: "MHL.Setting.IconSettings.GroupResetIcon.Label",
-        hint: "MHL.Setting.IconSettings.GroupResetIcon.Hint",
+        label: "MHL.Setting.ManagerSettings.GroupResetIcon.Label",
+        hint: "MHL.Setting.ManagerSettings.GroupResetIcon.Hint",
       }),
       settingResetIcon: new fields.StringField({
         required: true,
         nullable: false,
         initial: "mdi-restore",
-        label: "MHL.Setting.IconSettings.SettingResetIcon.Label",
-        hint: "MHL.Setting.IconSettings.SettingResetIcon.Hint",
+        label: "MHL.Setting.ManagerSettings.SettingResetIcon.Label",
+        hint: "MHL.Setting.ManagerSettings.SettingResetIcon.Hint",
       }),
     };
   }
 }
 export const SETTINGS = {
-  "disabled-class": {
-    config: true,
-    type: String,
-    name: null,
-    hint: null,
-    group: ".Defaults",
-    scope: "world",
-    default: "disabled-transparent",
-  },
-  "icon-settings-menu": {
-    type: MHLIconSettingsMenu,
+  "manager-settings-menu": {
+    type: MHLManagerSettingsMenu,
     name: null,
     hint: null,
     label: null,
     icon: "fa-icons",
-    group: ".Defaults",
-    for: "icon-settings",
+    group: ".SettingsManager",
+    for: "sm-settings",
   },
-  "icon-settings": {
-    type: IconSettingsModel,
+  "manager-settings": {
+    type: SettingManagerDefaultsModel,
     config: false,
-    group: ".Defaults",
+    group: ".SettingsManager",
     scope: "world",
     default: {
       disabledClass: "disabled-transparent",

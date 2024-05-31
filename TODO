@@ -13,7 +13,6 @@
 - finish generalizing ResetMultiple dialog
 - MCT: sort existing on updateRootFolder? leave button or retire?
 - consolidate all input change listeners
-- test details animation settings, try and figure out hiccup?
 - fix overflow on object settings reset display
 - constrain the submit button, general css improvements to the default model form
 - test validation of stringfields with regex
@@ -21,5 +20,7 @@
 - test fields as setting types
 - finish appropriating pf2e handlebars helpers - DONE except for the system update to `json`
 - actually use new json helper
-- figure out why accordion content isn't getting grabbed
-- add accordion indicator
+- reduce 'x' in y checks where possible
+- add column toggles to reset multiple window
+- try adopting dnd5e switch toggle
+- DOCS

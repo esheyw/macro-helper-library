@@ -107,12 +107,13 @@ export const iconFontsDefaults = [
   },
 ];
 export function generateDefaultConfig() {
-  const config = {}
+  const config = {};
   Object.defineProperty(config, "iconFonts", {
     writable: false,
     configurable: false,
     value: new Proxy(new Array(), new IconFontsHandler()),
-  });  
-  config.fallbackIcon = "fa-solid fa-question mhl-fallback-icon"
+  });
+  config.fallbackIcon = "fa-solid fa-question mhl-fallback-icon";
+  config.disabledClasses = ["disabled-transparent", "disabled-hidden", "disabled-blurry"];
   return config;
 }

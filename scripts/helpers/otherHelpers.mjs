@@ -50,7 +50,7 @@ export function getFunctionOptions(inputs, { handlebars = true } = {}) {
   return null;
 }
 
-export function getStringArgs(inputs, { join = false, split = /\s+/, map = null } = {}) {
+export function getStringArgs(inputs, { join = null, split = /\s+/, map = null } = {}) {
   if (!Array.isArray(inputs)) inputs = [inputs];
   inputs = inputs
     .flat(Infinity)

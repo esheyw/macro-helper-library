@@ -99,7 +99,7 @@ export function isOwnedBy(doc, user) {
   return false;
 }
 
-export function isRealGM(user) {
+export function isRealGM(user = game.user) {
   user = doc(user, User);
   if (!user) return false;
   return user.role === CONST.USER_ROLES.GAMEMASTER;

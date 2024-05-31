@@ -1,6 +1,6 @@
 import { MODULE_ID, fu } from "../constants.mjs";
 import { elementFromString, htmlClosest, htmlQuery, htmlQueryAll } from "../helpers/HTMLHelpers.mjs";
-import { MHLError, isEmpty, modBanner, modLog } from "../helpers/errorHelpers.mjs";
+import { MHLError, isEmpty, mhlog, modBanner, modLog } from "../helpers/errorHelpers.mjs";
 import { isRealGM } from "../helpers/foundryHelpers.mjs";
 import { mhlocalize, sluggify } from "../helpers/stringHelpers.mjs";
 import { getIconClasses, getIconHTMLString } from "../helpers/iconHelpers.mjs";
@@ -96,11 +96,12 @@ export class MHLSettingsManager {
   get initialized() {
     return this.#initialized;
   }
-
+  get app() {
+    return Object.values(ui.windows).find((w) => w.id === "client-settings");
+  }
   get element() {
-    const settingsWindow = Object.values(ui.windows).find((w) => w.id === "client-settings");
-    if (!settingsWindow) return;
-    return settingsWindow.element instanceof jQuery ? settingsWindow.element[0] : settingsWindow.element;
+    if (!this.app) return;
+    return this.app.element instanceof jQuery ? this.app.element[0] : this.app.element;
   }
 
   get defaultOptions() {
@@ -278,10 +279,13 @@ export class MHLSettingsManager {
       const data = this.#settings.get(key);
       if (!("default" in data)) continue;
       sets.push(this.set(key, data.default));
-      if (this.element && data?.config) {
-        const div = htmlQuery(this.element, `div[data-setting-id="${this.#module.id}.${key}"]`);
-        if (!div) return;
-        this.#setInputValues(div, data.default);
+      if (this.element) {
+        if (data.config) {
+          const div = htmlQuery(this.element, `div[data-setting-id="${this.#module.id}.${key}"]`);
+          if (!div) return;
+          this.#setInputValues(div, data.default);
+        }
+        this.#updateResetButtons(key);
       }
     }
     return Promise.all(sets);
@@ -899,13 +903,13 @@ export class MHLSettingsManager {
     const func = `${funcPrefix}#addResetButtons`;
     const opt = this.options.resetButtons;
     const isGM = isRealGM(game.user);
-    const iconSettings = setting("icon-settings");
+    const managerDefaults = setting("manager-settings");
     if (opt.includes("module")) {
       const h2 = htmlQuery(section, "h2");
       const span = document.createElement("span");
       span.classList.add("mhl-reset-button");
       span.innerHTML = `<a data-reset-type="module" data-reset="${this.#module.id}">${getIconHTMLString(
-        iconSettings.moduleResetIcon
+        managerDefaults.moduleResetIcon
       )}</a>`;
       const anchor = htmlQuery(span, "a");
       anchor.dataset.tooltipDirection = "UP";
@@ -927,7 +931,7 @@ export class MHLSettingsManager {
         const span = document.createElement("span");
         span.classList.add("mhl-reset-button");
         span.innerHTML = `<a data-reset-type="group" data-reset="${group}">${getIconHTMLString(
-          iconSettings.groupResetIcon
+          managerDefaults.groupResetIcon
         )}</a>`;
         const anchor = htmlQuery(span, "a");
         anchor.dataset.tooltipDirection = "UP";
@@ -955,7 +959,7 @@ export class MHLSettingsManager {
         const anchor = document.createElement("a");
         anchor.dataset.reset = key;
         anchor.dataset.resetType = "setting";
-        anchor.innerHTML = getIconHTMLString(iconSettings.settingResetIcon);
+        anchor.innerHTML = getIconHTMLString(managerDefaults.settingResetIcon);
         anchor.dataset.tooltipDirection = "UP";
         const listener = this.#onResetClick.bind(this);
         this.#resetListeners.get("settings").set(key, listener);
@@ -1102,7 +1106,7 @@ export class MHLSettingsManager {
     this.#updateSettingStats();
     const formResettables = allowedSettings.filter((s) => s.formEqualsSaved === false);
     const savedResettables = allowedSettings.filter((s) => s.isDefault === false);
-    const disabledClass = this.options.disabledClass ?? setting("disabled-class");
+    const disabledClass = this.options.disabledClass ?? setting("manager-settings")?.disabledClass ?? "";
     if (opt.includes("module")) {
       const anchor = htmlQuery(section, `a[data-reset-type="module"][data-reset="${this.#module.id}"]`);
       const listener = this.#resetListeners.get("all");
