@@ -2,7 +2,7 @@ import * as helpers from "./helpers/index.mjs";
 import * as macros from "./macros/index.mjs";
 import * as apps from "./apps/index.mjs";
 import * as util from "./util/index.mjs";
-import { SETTINGS, setting } from "./settings.mjs";
+import { SETTINGS, setting } from "./settings/settings.mjs";
 import { MODULE_ID, VERIFIED_SYSTEM_VERSIONS, fu } from "./constants.mjs";
 import { registerHandlebarsHelpers } from "./handlebars.mjs";
 import { generateDefaultConfig, iconFontsDefaults } from "./config/config.mjs";

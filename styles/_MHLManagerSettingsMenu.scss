@@ -1,20 +1,20 @@
-.mhl-manager-settings-menu {  
+.mhl-manager-defaults-menu {
   .display-glyph {
     text-align: right;
     padding-right: 0.2em;
     font-size: 1.2em;
   }
   .form-grid {
-    display: grid;    
+    display: grid;
     grid-template-columns: 45% 10% 45%;
     grid-gap: 0.3em;
     padding: 0 0.3em 0.3em 0.3em;
     justify-items: center;
     align-items: center;
   }
-  button {
-    // max-width: 200px;
-    grid-column: span 3;
+  .button-zone {
+    height: min-content;
+    display: flex;
   }
   label {
     width: 100%;

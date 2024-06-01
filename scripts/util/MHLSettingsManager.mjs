@@ -5,7 +5,7 @@ import { isRealGM } from "../helpers/foundryHelpers.mjs";
 import { mhlocalize, sluggify } from "../helpers/stringHelpers.mjs";
 import { getIconClasses, getIconHTMLString } from "../helpers/iconHelpers.mjs";
 import { MHLDialog } from "../apps/MHLDialog.mjs";
-import { setting } from "../settings.mjs";
+import { setting } from "../settings/settings.mjs";
 import { MODULE } from "../init.mjs";
 import { MHLSettingMenu } from "../apps/MHLSettingMenu.mjs";
 import { Accordion } from "./Accordion.mjs";
@@ -288,7 +288,11 @@ export class MHLSettingsManager {
         this.#updateResetButtons(key);
       }
     }
-    return Promise.all(sets);
+    try {
+      return await Promise.all(sets);
+    } finally {
+      this.app.render();
+    }
   }
 
   async resetAll() {
@@ -903,7 +907,7 @@ export class MHLSettingsManager {
     const func = `${funcPrefix}#addResetButtons`;
     const opt = this.options.resetButtons;
     const isGM = isRealGM(game.user);
-    const managerDefaults = setting("manager-settings");
+    const managerDefaults = setting("manager-defaults");
     if (opt.includes("module")) {
       const h2 = htmlQuery(section, "h2");
       const span = document.createElement("span");
@@ -1075,14 +1079,12 @@ export class MHLSettingsManager {
     };
 
     const doReset = await MHLDialog.wait(dialogData, dialogOptions);
-    for (const [setting, checked] of Object.entries(doReset)) {
-      if (!checked) continue;
-      this.reset(setting);
-      const resettable = dialogData.contentData.settings.find((s) => s.key === setting);
-      if (!resettable || !resettable?.config) continue;
-      const icon = htmlQuery(section, `a[data-reset-type="setting"][data-reset="${setting}"] i`);
-      this.#updateResetButtons({ target: icon });
-    }
+    this.reset(
+      Object.entries(doReset).reduce((acc, [setting, checked]) => {
+        if (checked) acc.push(setting);
+        return acc;
+      }, [])
+    );
   }
 
   #updateResetButtons(event = null) {
@@ -1106,7 +1108,7 @@ export class MHLSettingsManager {
     this.#updateSettingStats();
     const formResettables = allowedSettings.filter((s) => s.formEqualsSaved === false);
     const savedResettables = allowedSettings.filter((s) => s.isDefault === false);
-    const disabledClass = this.options.disabledClass ?? setting("manager-settings")?.disabledClass ?? "";
+    const disabledClass = this.options.disabledClass ?? setting("manager-defaults")?.disabledClass ?? "";
     if (opt.includes("module")) {
       const anchor = htmlQuery(section, `a[data-reset-type="module"][data-reset="${this.#module.id}"]`);
       const listener = this.#resetListeners.get("all");

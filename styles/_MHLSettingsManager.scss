@@ -59,6 +59,9 @@ section.mhl-settings-manager {
       text-decoration: var(--mhl-text-error-decoration);
     }
   }
+  .accordion-indicator {
+    padding-left: 0.2em;
+  }
 }
 
 .mhl-dialog.mhl-reset {
@@ -107,7 +110,7 @@ section.mhl-settings-manager {
     &.object-setting {
       user-select: auto;
       max-height: 200px;
-      overflow: hidden;
+      overflow: auto;
       // overflow-wrap: normal;
       text-align: left;
     }

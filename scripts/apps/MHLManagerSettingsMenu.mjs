@@ -3,13 +3,13 @@ import { htmlClosest, htmlQuery, htmlQueryAll } from "../helpers/HTMLHelpers.mjs
 import { mhlog } from "../helpers/errorHelpers.mjs";
 import { getIconClasses, getIconHTMLString } from "../helpers/iconHelpers.mjs";
 import { MODULE } from "../init.mjs";
-export class MHLManagerSettingsMenu extends FormApplication {
-  settingName = "manager-settings";
+export class MHLManagerDefaultsMenu extends FormApplication {
+  settingName = "manager-defaults";
   static get defaultOptions() {
     return fu.mergeObject(super.defaultOptions, {
       title: "MHL Icon Glyph Settings",
       template: `modules/${MODULE_ID}/templates/ManagerSettingsMenu.hbs`,
-      classes: ["mhl-manager-settings-menu"],
+      classes: ["mhl-manager-defaults-menu"],
       width: 450,
       resizable: true,
     });
@@ -29,39 +29,26 @@ export class MHLManagerSettingsMenu extends FormApplication {
     const inputs = htmlQueryAll(el, "input").filter((n) => "icon" in n.dataset);
 
     for (const input of inputs) {
-      input.addEventListener("input", fu.debounce(MHLManagerSettingsMenu.iconChangeListener, 300));
+      input.addEventListener("input", fu.debounce(MHLManagerDefaultsMenu.iconChangeListener, 300));
     }
   }
   getData(options = {}) {
     const context = super.getData(options);
-    context.key = "manager-settings";
+    context.key = "manager-defaults";
     context.module = MODULE_ID;
     context.model = game.settings.get(MODULE_ID, this.settingName).clone();
     context.v12 = fu.isNewerVersion(game.version, 12);
     return context;
   }
-  _updateObject(event, formData) {
-    const expanded = fu.expandObject(formData);
-    // .reduce((acc, [k, v]) => {
-    //   if (String(k).includes("Icon") && !getIconHTMLString(v)) return acc;
-    //   acc[k] = v;
-    //   return acc;
-    // }, {});
-    //todo: remove logging
-    mhlog(
-      { event, formData, expanded },
-      {
-        prefix: "before",
-        func: `_updateObject`,
-        dupe: true,
-      }
-    );
-
+  async _updateObject(event, formData) {
+    const expanded = fu.expandObject(formData);   
+    //only save valid icons
     for (const [k, v] of Object.entries(expanded)) {
       if (k.includes("Icon") && !getIconClasses(v, { fallback: false })) delete expanded[k];
     }
-    const sm = MODULE().api.sm
-    sm.set(this.settingName, expanded);
-    if (sm.app) sm.app.render();
+    const sm = MODULE().api.sm;
+    await sm.set(this.settingName, expanded);
+    mhlog({ app: sm.app });
+    sm.app.render();
   }
 }

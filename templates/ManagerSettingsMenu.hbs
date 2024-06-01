@@ -40,11 +40,17 @@
       {{#if field.hint}}
         <p class="notes">{{mhlocalize field.hint}}</p>
       {{/if}}
-    {{/each}}    
+    {{/each}}
+    
+  </div>
+  <div class="button-zone">
     <button type="submit" name="submit">
       {{mhlIcon "check"}}
       {{mhlocalize "EFFECT.Submit"}}
     </button>
-  </div>
-  
+    <button type="button" name="cancel">
+      {{mhlIcon "xmark"}}
+      {{mhlocalize "Cancel"}}
+    </button>
+  </div> 
 </form>

@@ -1,6 +1,6 @@
 import { BANNER_TYPES, CONSOLE_TYPES, fu } from "../constants.mjs";
 import { MODULE } from "../init.mjs";
-import { setting } from "../settings.mjs";
+import { setting } from "../settings/settings.mjs";
 import { mhlocalize } from "./stringHelpers.mjs";
 
 export function log(loggable, { type, prefix } = {}) {

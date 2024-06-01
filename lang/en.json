@@ -242,7 +242,7 @@
         "Name": "Debug Mode",
         "Hint": "Enable debug logging. Showstopper errors will fire without this, but fallback"
       },
-      "ManagerSettings": {
+      "ManagerDefaults": {
         "DisabledClass": {
           "Label": "Disabled Icon CSS Class",
           "Hint": "The CSS class applied to reset-to-default buttons when their associated setting(s) is/are default."
@@ -257,14 +257,14 @@
         },
         "GroupResetIcon": {
           "Label":"Group Reset Icon",
-          "Hint":"Same as the Module Reset Icon, but for groups."
+          "Hint":"Same as above, but for the Reset Group Settings button."
         },
         "SettingResetIcon": {
           "Label":"Setting Reset Icon",
           "Hint":"Same as above, but for the per-setting reset buttons."
         }
       },
-      "ManagerSettingsMenu": {
+      "ManagerDefaultsMenu": {
         "Name": "Icon Settings",
         "Hint": "Set the default FontAwesome glyphs for modules using the setting manager that haven't provided their own overrides.",
         "Label": "Icon Settings"
