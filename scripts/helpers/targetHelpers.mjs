@@ -6,7 +6,7 @@ export function oneTargetOnly(options = {}) {
   const firstTarget = targets.first();
   if (targets.size > 1) {
     if (useFirst) {
-      mhlog(`MHL.Warning.Fallback.FirstTarget`, { localize: true, context: { name: firstTarget.name }, func });
+      mhlog(`MHL.Warning.Fallback.FirstTarget`, { context: { name: firstTarget.name }, func });
     } else {
       throw MHLError(`MHL.Error.Target.NotOneTargetted`, { func });
     }

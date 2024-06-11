@@ -86,15 +86,23 @@
         "ValidHexCode": "Must be a # followed by a valid 6-character hex color code"
       },
       "Error": {
-        "ManagerAlreadyExists": "A settings manager has already been registered for this module.",
+        "BadModuleID": "moduleFor must be a string module ID or a Module object reference.",
+        "ManagerAlreadyExists": "A settings manager has already been registered for {module}.",
+        "InvalidGroup": "Group names must be strings, not whatever was logged. Skipping.",
+        "DuplicateGroup": "Group \"{group}\" already declared. Skipping.",
+        "InvalidEnrichHints": "The enrichHints option, if provided, must be a boolean (true meaning use only the default erichers), or in the form of either a Map or an Object with pattern keys and replacement values (for use with `String.replace()`), or an Array of such pairs. ",
+        "InvalidGroupsOption": "The groups option passed was invalid, if provided it must be true, false, the string \"a\", or an array of group name strings. Defaulting to false.",
+        "InvalidSortOption": "The sort option passed was invalid, if provided it must be the string \"a\", a boolean (true equating to \"a\") or a string comparison function. Defaulting to registration order",
+        "InvalidResetButtons": "The resetButtons option, if provided, must be true,false, one of the strings \"all\", \"settings\", \"groups\", or \"module\", or an array of such strings. Defaulting to false.",
+        "InvalidSettingKey": "{module} setting data contains key \"{key}\" which is not valid to register a setting with, skipping.",
+        "DuplicateSettingKey": "Setting key \"{key}\" already seen for {module}, skipping duplicate",
+        "InvalidSettingData": "Setting `{key}` for module {module} failed to validate and was not registered.",
+        "NoValidSettings": "No valid settings could be retrieved from passed data for module {module}.",
         "Hooks": {
           "BadHook": "Hook data for setting {key} of {module} is malformed; Must be an object containing a string `hook` key.",
           "RequiresAction": "Hook {hook} for setting {key} of {module} requires an `action` key containing a function.",
           "TestFunction": "Hook data for setting {key} of {module} is malformed; `test`, if provided, must be a function."
         },
-        "InvalidSettingData": "Setting `{key}` for module {module} failed to validate and was not registered.",
-        "NoValidSettings": "No valid settings could be retrieved from passed data for module {module}.",
-        "BadModuleID": "moduleID must be a string module ID or a Module object reference.",
         "Visibility": {
           "UnknownDependency": "Setting {dependsOn} not found, so it cannot be predicated on for visibility for setting {key} of {module}.",
           "RequireDependsOn": "Visibility data for setting {key} of {module} is malformed: If provided as an object, must contain a `dependsOn` key containing a string setting ID or an array of such.",
@@ -109,15 +117,11 @@
         },
         "NoDefault": "Setting {setting} of {module} does not have a default value recorded and cannot be reset.",
         "NotRegistered": "Setting {setting} is not registered for {module}.",
-        "InvalidSettingsMap": "Settings data Map must be entirely string keys and object values.",
-        "InvalidSettingsObject": "Settings data object must be entirely string keys and object values.",
-        "InvalidSettingsArray": "Settings data Array must be entirely objects with string `id` keys.",
-        "InvalidSettingsUnknown": "Settings data of unknown format cannot be processed.",
-        "InvalidGroup": "Group names must be strings.",
-        "InvalidSort": "The `sort` option, if provided, must be the string \"a\" or a string comparison function. Reverting to registration order",
-        "InvalidResetButtons": "The `resetButtons` option, if provided, must be either true or false, or one of the strings \"all\", \"settings\", \"groups\", or \"module\", or an array of such. Defaulting to false.",
+
+        
+        
         "InvalidColorPicker": "A setting with `colorPicker: true` in its data must have a default value that is a valid 7-character hex code (e.g. #FFFFFF).",
-        "InvalidEnrichers": "Hint enrichers, if provided, must be in the form of either a Map or an Object with pattern keys and replacement values (for use with `String.replace()`), or an Array of such pairs.",
+        
         "NotAnElement": "The provided variable \"{variable}\" was not an HTMLElement."
       },
       "Warning": {}
@@ -207,6 +211,9 @@
         "IconSchemaGlyphExact": "The glyph field of an icon font schema cannot define an exact `value`; use `choices` or `pattern`",
         "IconGeneric": "The provided arguments did not produce a valid icon string from any registered Icon font."
       },
+      "DataModel": {
+        "InitialFunctionFailure": "This model's `{field}` field's `initial` function threw an error, probably from being run too early."
+      },
       "RequireSameInheritanceChain": "Both objects' classes must be from the same inheritance chain.",
       "BothMustBeClassesOrClassedObjects": "Both parameters must be classes or objects with a constructor.",
       "BothMustBeMaps": "At least one of original or other are not Maps or subclasses of Map.",
@@ -221,7 +228,8 @@
         "Function": "`{arg}` must be a Function.",
         "Number": "`{arg}` must be a Number.",
         "String": "`{arg}` must be a String.",
-        "Boolean": "`{arg}` must be Boolean."
+        "Boolean": "`{arg}` must be Boolean.",
+        "DataModel": "`{arg}` must be a class inheriting from DataModel."
       }
     },
     "Warning": {
@@ -247,21 +255,21 @@
           "Label": "Disabled Icon CSS Class",
           "Hint": "The CSS class applied to reset-to-default buttons when their associated setting(s) is/are default."
         },
-        "AccordionIndicatorIcon":{
-          "Label":"Accordion Indicator Icon",
-          "Hint":"The css class(es) used to get the icon displayed next to a collapseable group header. Usually just the glyph-identifying class is sufficient, defaults will be filled in automatically."
+        "AccordionIndicatorIcon": {
+          "Label": "Accordion Indicator Icon",
+          "Hint": "The css class(es) used to get the icon displayed next to a collapseable group header. Usually just the glyph-identifying class is sufficient, defaults will be filled in automatically."
         },
         "ModuleResetIcon": {
           "Label": "Module Reset Icon",
           "Hint": "Same as above, for the Reset Module Settings button's icon."
         },
         "GroupResetIcon": {
-          "Label":"Group Reset Icon",
-          "Hint":"Same as above, but for the Reset Group Settings button."
+          "Label": "Group Reset Icon",
+          "Hint": "Same as above, but for the Reset Group Settings button."
         },
         "SettingResetIcon": {
-          "Label":"Setting Reset Icon",
-          "Hint":"Same as above, but for the per-setting reset buttons."
+          "Label": "Setting Reset Icon",
+          "Hint": "Same as above, but for the per-setting reset buttons."
         }
       },
       "ManagerDefaultsMenu": {

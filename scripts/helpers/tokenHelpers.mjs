@@ -9,7 +9,7 @@ export function oneTokenOnly(options = {}) {
   //if it was 0 it got caught by anyTokens
   if (tokens.length > 1) {
     if (useFirst) {
-      mhlog(`MHL.Warning.Fallback.FirstToken`, { localize: true, context: { name: tokens[0].name }, func });
+      mhlog(`MHL.Warning.Fallback.FirstToken`, { context: { name: tokens[0].name }, func });
     } else {
       throw MHLError(`MHL.Error.Token.NotOneSelected`, { func });
     }

@@ -11,7 +11,6 @@ export function log(loggable, { type, prefix } = {}) {
   if (!CONSOLE_TYPES.includes(type)) {
     mhlog(`MHL.Warning.Fallback.LogType`, {
       func,
-      localize: true,
       context: { type, defaultType },
     });
     type = defaultType;
@@ -28,7 +27,7 @@ export function debug(loggable, prefix = "") {
 export function error(loggable, prefix = "") {
   return log(loggable, { type: "error", prefix });
 }
-export function modLog(loggable, { type, prefix, context, func, mod, localize = false, dupe = false } = {}) {
+export function modLog(loggable, { type, prefix, context, func, mod, localize = true, dupe = false } = {}) {
   if (isEmpty(type) || typeof type !== "string") {
     // if type is not provided or bad, and we're not in debug mode, bail.
     if (!setting("debug-mode")) return;
@@ -60,13 +59,12 @@ export function localizedBanner(text, options = {}) {
   console ??= false;
   permanent ??= false;
   if (!BANNER_TYPES.includes(type)) {
-    mhlog(`MHL.Warning.Fallback.BannerType`, { type: "warn", func, localize: true, context: { type, defaultType } });
+    mhlog(`MHL.Warning.Fallback.BannerType`, { type: "warn", func, context: { type, defaultType } });
     type = defaultType;
   }
   if (typeof text !== "string") {
     mhlog(`MHL.Warning.Fallback.Type`, {
       func,
-      localize: true,
       context: { arg: "text", type: typeof text, expected: "string" },
     });
     text = String(text);
@@ -111,7 +109,6 @@ export function localizedError(text, options = {}) {
   if (typeof text !== "string") {
     mhlog(`MHL.Warning.Fallback.Type`, {
       func,
-      localize: true,
       context: { arg: "text", type: typeof text, expected: "string" },
     });
     text = String(text);
@@ -154,12 +151,14 @@ export function requireSystem(system, prefix = null) {
  */
 export function isEmpty(value) {
   const isEmptyObject = (a) => {
-    if (!Array.isArray(a)) {
-      // it's an Object, not an Array
-      const hasNonempty = Object.keys(a).some((e) => !isEmpty(a[e]));
-      return hasNonempty ? false : isEmptyObject(Object.keys(a));
+    a = a?.constructor?.name === "Map" ? new Collection(a) : a;
+    // all have a .some() in foundry at least
+    if (Array.isArray(a) || a instanceof Collection || a instanceof Set) {
+      return !a.some((e) => !isEmpty(e));
     }
-    return !a.some((e) => !isEmpty(e));
+    // it's an Object, not an Array, Set, Map, or Collection
+    const hasNonempty = Object.keys(a).some((e) => !isEmpty(a[e]));
+    return hasNonempty ? false : isEmptyObject(Object.keys(a));
   };
   return (
     value == false ||
@@ -197,7 +196,6 @@ export function logCast(variable, type = String, name, func = null) {
     mhlog(
       { [name]: variable },
       {
-        localize: true,
         prefix: `MHL.Warning.Fallback.Type`,
         func,
         context: { arg: name, type: typeof variable, expected: targetType },

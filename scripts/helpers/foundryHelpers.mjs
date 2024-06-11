@@ -11,7 +11,6 @@ export function doc(input, type = null, { parent = null, returnIndex = false, as
       mhlog(
         { input, type, parent },
         {
-          localize: true,
           func,
           prefix: `MHL.Error.NotADocumentType`,
           context: { type: typeof type === "function" ? type.prototype.constructor.name : String(type) },
@@ -26,7 +25,6 @@ export function doc(input, type = null, { parent = null, returnIndex = false, as
       mhlog(
         { input, type, parent },
         {
-          localize: true,
           func,
           prefix: `MHL.Error.WrongDocumentTypeRetrieved`,
           context: { type: typeof type === "function" ? type.name : String(type) },
@@ -109,4 +107,27 @@ export function activeRealGM() {
   const activeRealGMs = game.users.filter((u) => u.active && isRealGM(u));
   activeRealGMs.sort((a, b) => (a.id > b.id ? 1 : -1));
   return activeRealGMs[0] || null;
+}
+
+export function getModelDefaults(model) {
+  const func = `getModelDefaults`;
+  if (!(model.prototype instanceof foundry.abstract.DataModel)) {
+    mhlog({ model }, { func, prefix: "MHL.Error.Type.DataModel", context: { arg: "model" } });
+    return {};
+  }
+  return Object.entries(model.defineSchema()).reduce((acc, [key, field]) => {
+    let initialValue;
+    if (typeof field.initial === "function") {
+      try {
+        initialValue = field.initial();
+      } catch (e) {
+        mhlog({ e }, { func, prefix: "MHL.Error.DataModel.InitialFunctionFailure", context: { field: key } });
+        initialValue = undefined;
+      }
+    } else {
+      initialValue = field.initial;
+    }
+    acc[key] = initialValue;
+    return acc;
+  }, {});
 }

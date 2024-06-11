@@ -8,7 +8,7 @@ export class MHLManagerDefaultsMenu extends FormApplication {
   static get defaultOptions() {
     return fu.mergeObject(super.defaultOptions, {
       title: "MHL Icon Glyph Settings",
-      template: `modules/${MODULE_ID}/templates/ManagerSettingsMenu.hbs`,
+      template: `modules/${MODULE_ID}/templates/ManagerDefaultsMenu.hbs`,
       classes: ["mhl-manager-defaults-menu"],
       width: 450,
       resizable: true,
@@ -31,6 +31,8 @@ export class MHLManagerDefaultsMenu extends FormApplication {
     for (const input of inputs) {
       input.addEventListener("input", fu.debounce(MHLManagerDefaultsMenu.iconChangeListener, 300));
     }
+    const cancelButton = htmlQuery(el, 'button[name=cancel]')
+    cancelButton.addEventListener('click', this.close.bind(this));
   }
   getData(options = {}) {
     const context = super.getData(options);

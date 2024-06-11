@@ -26,7 +26,6 @@ export function elementFromString(string) {
   if (string instanceof HTMLElement) return string;
   if (typeof string !== "string") {
     mhlog(`MHL.Warning.Fallback.Type`, {
-      localize: true,
       context: {
         arg: "string",
         expected: "string or HTMLElement",

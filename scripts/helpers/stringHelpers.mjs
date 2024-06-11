@@ -6,7 +6,6 @@ export function prependIndefiniteArticle(text) {
   if (typeof text !== "string") {
     mhlog(`MHL.Warning.Fallback.Type`, {
       func: "prependIndefiniteArticle",
-      localize: true,
       context: { arg: "text", type: typeof text, expected: "string" },
     });
     text = String(text);
@@ -60,7 +59,6 @@ export function sluggify(text, { camel = null } = {}) {
   if (typeof text !== "string") {
     mhlog(`MHL.Warning.Fallback.Type`, {
       func: "sluggify",
-      localize: true,
       context: { arg: "text", type: typeof text, expected: "string" },
     });
     text = String(text);

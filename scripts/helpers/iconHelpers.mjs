@@ -10,7 +10,7 @@ export function getIconHTMLString(...args) {
   const element = options.element ?? "i";
   const stringed = getStringArgs(args);
   const failValidation = () => {
-    mhlog({ args, options }, { type: "warn", localize: true, prefix: `MHL.Error.Validation.IconGeneric`, func });
+    mhlog({ args, options }, { type: "warn", prefix: `MHL.Error.Validation.IconGeneric`, func });
     return "";
   };
   if (stringed.length === 0) return failValidation();
@@ -50,10 +50,7 @@ export function getIconClasses(...args) {
       : null;
   const fail = () => {
     if (fallback) {
-      mhlog(
-        { args, options },
-        { func, localize: true, prefix: `MHL.Warning.Fallback.FallbackIcon`, context: { fallback } }
-      );
+      mhlog({ args, options }, { func, prefix: `MHL.Warning.Fallback.FallbackIcon`, context: { fallback } });
       return fallback;
     }
     return "";

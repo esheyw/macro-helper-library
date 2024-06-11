@@ -6,7 +6,7 @@ export class IconFontsHandler {
   #validateList(entry, target) {
     let errorstr = "";
     const fail = (errorstr) => {
-      mhlog({ entry }, { type: "error", localize: true, prefix: errorstr, func: `IconFontsHandler#validateList` });
+      mhlog({ entry }, { type: "error", prefix: errorstr, func: `IconFontsHandler#validateList` });
       return false;
     };
 
@@ -18,7 +18,8 @@ export class IconFontsHandler {
     entry.list ??= getIconListFromCSS(entry.name, entry.prefixes);
     if (!Array.isArray(entry.list) || !entry.list.every((e) => !!e && typeof e === "string"))
       return fail("MHL.IconFontsHandler.Error.NonEmptyListRequired");
-    if (isPlainObject(entry.schema) && "glyph" in entry.schema && "value" in entry.schema.glyph) return fail(`MHL.Error.Validation.IconSchemaGlyphExact`);
+    if (isPlainObject(entry.schema) && "glyph" in entry.schema && "value" in entry.schema.glyph)
+      return fail(`MHL.Error.Validation.IconSchemaGlyphExact`);
     if ("sort" in entry && !Number.isInteger(entry.sort)) return fail("MHL.IconFontsHandler.Error.SortInteger");
     if (!("sort" in entry) || target.find((e) => e.sort === sort)) {
       mhlog(`MHL.IconFontsHandler.Fallback.Sort`, { type: "debug" });

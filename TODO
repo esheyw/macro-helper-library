@@ -8,9 +8,6 @@
 - update MCT readme for player folders
 - better error handling/fallback generally
 - set up physical types per system
-- replace MHL setting defaults to non-testing values before release
-- known bug: Reset All button doesn't go dormant if an object setting was reset
-- finish generalizing ResetMultiple dialog
 - MCT: sort existing on updateRootFolder? leave button or retire?
 - consolidate all input change listeners
 - fix overflow on object settings reset display
@@ -24,3 +21,4 @@
 - add column toggles to reset multiple window
 - try adopting dnd5e switch toggle
 - DOCS
+- repopulate settings form on render

@@ -7,14 +7,13 @@ import { MODULE_ID, VERIFIED_SYSTEM_VERSIONS, fu } from "./constants.mjs";
 import { registerHandlebarsHelpers } from "./handlebars.mjs";
 import { generateDefaultConfig, iconFontsDefaults } from "./config/config.mjs";
 export const MODULE = () => game.modules.get(MODULE_ID);
-Hooks.on("init", () => {
+Hooks.once("init", () => {
   // CONFIG.debug.hooks = true;
   const mod = MODULE();
   mod.api = {
     macros,
     apps,
     util,
-    settingsManagers: new Collection(),
   };
 
   //helpers go in the root of the api object

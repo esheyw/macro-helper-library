@@ -1,4 +1,5 @@
-import { MHLManagerDefaultsMenu } from "../apps/MHLManagerSettingsMenu.mjs";
+import { MHLManagerDefaultsMenu } from "../apps/MHLManagerDefaultsMenu.mjs";
+import { getModelDefaults } from "../helpers/foundryHelpers.mjs";
 import { MODULE } from "../init.mjs";
 import { SettingManagerDefaults } from "./models/SettingsManagerDefaults.mjs";
 
@@ -17,7 +18,7 @@ export const SETTINGS = {
     config: false,
     group: ".SettingsManager",
     scope: "world",
-    default: Object.fromEntries(Object.entries(SettingManagerDefaults.defineSchema()).map(([key, field])=>[key,field.initial]))
+    default: getModelDefaults(SettingManagerDefaults),
   },
   "debug-mode": {
     config: true,

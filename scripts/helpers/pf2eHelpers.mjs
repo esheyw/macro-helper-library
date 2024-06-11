@@ -13,7 +13,7 @@ export function levelBasedDC(level) {
   ];
   let DC = 0;
   if (level >= DCByLevel.length || level < -1) {
-    mhlog({ level }, { localize: true, prefix: `MHL.Warning.Fallback.LevelOutOfBounds`, func });
+    mhlog({ level }, { prefix: `MHL.Warning.Fallback.LevelOutOfBounds`, func });
     level = 26;
   }
   if (level === -1) {
