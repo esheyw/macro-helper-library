@@ -4,9 +4,10 @@ import { getIconListFromCSS } from "../helpers/iconHelpers.mjs";
 
 export class IconFontsHandler {
   #validateList(entry, target) {
+    const func = `IconFontsHandler##validateList`;
     let errorstr = "";
     const fail = (errorstr) => {
-      mhlog({ entry }, { type: "error", prefix: errorstr, func: `IconFontsHandler#validateList` });
+      mhlog({ entry }, { type: "error", prefix: errorstr, func });
       return false;
     };
 
@@ -22,7 +23,7 @@ export class IconFontsHandler {
       return fail(`MHL.Error.Validation.IconSchemaGlyphExact`);
     if ("sort" in entry && !Number.isInteger(entry.sort)) return fail("MHL.IconFontsHandler.Error.SortInteger");
     if (!("sort" in entry) || target.find((e) => e.sort === sort)) {
-      mhlog(`MHL.IconFontsHandler.Fallback.Sort`, { type: "debug" });
+      mhlog(`MHL.IconFontsHandler.Fallback.Sort`, { type: "debug", context: { name: entry.name } });
       let sort = target.length * 5;
       while (target.find((e) => e.sort === sort)) sort += 5;
       entry.sort = sort;

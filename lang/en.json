@@ -21,7 +21,7 @@
     },
     "IconFontsHandler": {
       "Fallback": {
-        "Sort": "Sort value not supplied or already exists, falling back to highest sort + 5."
+        "Sort": "Sort value not supplied or already exists for font {name}, falling back to highest sort + 5."
       },
       "Error": {
         "PlainObject": "Icon font entries must be plain objects with name, prefix, and list keys",

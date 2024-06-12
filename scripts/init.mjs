@@ -27,32 +27,26 @@ Hooks.once("init", () => {
       }
     }
     mod.api[key] = helper;
-  }
+  }  
+  //special exposure for ease of grabbing MHL settings
+  mod.api.mhlSetting = setting;
 
+  CONFIG.MHL = generateDefaultConfig();
+});
+Hooks.once("i18nInit", () => {
+  //do as much as possible here or later so errors can be localized
   const settingManagerOptions = {
     settingPrefix: "MHL.Setting",
     disabledResetClass: "disabled-transparent",
     resetButtons: ["settings", "module"],
     groups: true,
     // sort: "a"
+    settings: SETTINGS
   };
-  mod.settingsManager = new util.MHLSettingsManager(MODULE_ID, settingManagerOptions);
-  //special exposure
-  mod.api.mhlSetting = setting;
-  //todo: remove before release
-  mod.api.sm = mod.settingsManager;
-
-  CONFIG.MHL = generateDefaultConfig();
-  mod.init = true;
-  mod.i18nInit = false;
-  mod.setup = false;
-});
-Hooks.once("i18nInit", () => {
-  //do as much here as possible so errors can be localized
-  const mod = MODULE();
+  new util.MHLSettingsManager(MODULE_ID, settingManagerOptions);
   CONFIG.MHL.iconFonts.push(...iconFontsDefaults);
-  mod.settingsManager.registerSettings(SETTINGS);
 });
+
 Hooks.once("setup", () => {
   const mod = MODULE();
   if (setting("legacy-access")) game.pf2emhl = mod.api;

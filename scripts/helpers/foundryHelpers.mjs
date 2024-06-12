@@ -89,10 +89,10 @@ export function getIDsFromFolder(root) {
   return root.contents.concat(root.getSubfolders(true).flatMap((f) => f.contents)).map((c) => c.id);
 }
 
-export function isOwnedBy(doc, user) {
+export function isOwnedBy(document, user) {
   //partially lifted from warpgate
-  const corrected = doc instanceof TokenDocument ? doc.actor : doc instanceof Token ? doc.document.actor : doc;
-  const userID = user.id ?? user;
+  const corrected = document instanceof TokenDocument ? document.actor : document instanceof Token ? document.document.actor : document;
+  const userID = doc(user, "User")?.id;
   if (corrected.ownership[userID] === 3) return true;
   return false;
 }
@@ -121,7 +121,7 @@ export function getModelDefaults(model) {
       try {
         initialValue = field.initial();
       } catch (e) {
-        mhlog({ e }, { func, prefix: "MHL.Error.DataModel.InitialFunctionFailure", context: { field: key } });
+        mhlog({ e }, { type: 'error', func, prefix: "MHL.Error.DataModel.InitialFunctionFailure", context: { field: key } });
         initialValue = undefined;
       }
     } else {

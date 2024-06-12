@@ -62,8 +62,12 @@ const mhlOriginals = {
     if (isEmpty(haystack) || (!Array.isArray(haystack) && typeof haystack !== 'string')|| isEmpty(needles)) return false;
     const fn = options.all ? 'every' : 'some'
     return needles[fn](n=>haystack.includes(n));
-  }
-  // ginfIcon:,
+  },
+  // selectOptionsGrouped: (...args) => {
+  //   const options = getFunctionOptions(args);
+  //   const opts = args[0];
+  //todo: finish
+  // }
 };
 export function registerHandlebarsHelpers() {
   //register originals

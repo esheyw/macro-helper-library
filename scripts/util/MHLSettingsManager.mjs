@@ -27,10 +27,13 @@ export class MHLSettingsManager {
   ]);
   #settings = new Collection();
   #visibilityListeners = new Map();
+
+  static #readyHookID;
   static #managers = new Collection();
   static get managers() {
     return MHLSettingsManager.#managers;
   }
+
   constructor(moduleFor, options = {}) {
     const func = `${funcPrefix}#constructor`;
     this.#module = moduleFor instanceof Module ? moduleFor : game.modules.get(moduleFor);
@@ -54,6 +57,10 @@ export class MHLSettingsManager {
     if (!this.#validateEnrichHintsOption()) this.options.enrichHints = true;
 
     if (options.settings) this.registerSettings(options.settings);
+    //defer button icon checks to ready
+    if (!MHLSettingsManager.#readyHookID) {
+      MHLSettingsManager.#readyHookID = Hooks.once("ready", MHLSettingsManager.validateButtonIcons)
+    }
     Hooks.on("renderSettingsConfig", this.#onRenderSettings.bind(this));
     this.#initialized = true;
   }
@@ -127,10 +134,10 @@ export class MHLSettingsManager {
       this.#addResetButtons(section);
     }
     const settingDivs = htmlQueryAll(section, `[data-setting-id]`);
-    //todo: migrate to per-section functions?
-    for (const div of settingDivs) {
-      const settingData = game.settings.settings.get(div.dataset.settingId);
 
+    for (const div of settingDivs) {
+      const key = div.dataset.settingId.split(/\.(.*)/)[1];
+      const settingData = this.#settings.get(key);      
       if (this.options.actionButtons && "button" in settingData) {
         this.#replaceWithButton(div, settingData.button);
       }
@@ -333,7 +340,21 @@ export class MHLSettingsManager {
     this.#potentialSettings.delete(key);
     return true;
   }
-
+  static validateButtonIcons() {
+    for (const manager of MHLSettingsManager.managers) {
+      manager.validateButtonIcons();
+    }
+  }
+  validateButtonIcons() {
+    for (const setting of this.#settings) {
+      if (setting.menu && 'icon' in setting) {
+        setting.icon = getIconClasses(setting.icon)
+      }
+      if ('button' in setting && 'icon' in setting.button) {
+        setting.button.icon = getIconClasses(setting.button.icon)
+      }
+    }
+  }
   #processSettingData(key, data) {
     const func = `${funcPrefix}##processSettingData`;
     //add the key to the data because Collection's helpers only operate on vaalues
@@ -449,6 +470,8 @@ export class MHLSettingsManager {
   }
 
   #generateSettingMenu(data) {
+    //todo: do this in v12
+    if (!fu.isNewerVersion(game.version, 12)) return;
     const func = `${funcPrefix}##generateSettingMenu`;
 
     if (!("for" in data) || !this.#requireSetting(data.for, { func, potential: true })) {
@@ -507,11 +530,7 @@ export class MHLSettingsManager {
       buttonData.label = [this.options.settingPrefix, sluggify(key, { camel: "bactrian" }), "Label"].join(".");
     }
     buttonData.label = String(buttonData.label);
-    // defer validation to runtime, glyph fallback is responsibiliity of the caller
-    //todo: revisit
-    // if ("icon" in buttonData) {
-    //   buttonData.icon = getFontAwesomeString(buttonData.icon);
-    // }
+    // defer icon validation to runtime, glyph fallback is responsibiliity of the renderer
     return buttonData;
   }
 
@@ -706,12 +725,12 @@ export class MHLSettingsManager {
     const func = `${funcPrefix}##addColorPickers`;
     const colorSettings = this.#settings.filter((s) => s?.colorPicker).map((s) => s.key);
     const divs = htmlQueryAll(section, "div[data-setting-id]").filter((div) =>
-      colorSettings.includes(div.dataset.settingId.split(".")[1])
+      colorSettings.includes(div.dataset.settingId.split(/\.(.*)/)[1])
     );
     if (!divs.length) return;
     const regex = new RegExp(this.#colorPattern);
     for (const div of divs) {
-      const settingName = div.dataset.settingId.split(".")[1];
+      const settingName = div.dataset.settingId.split(/\.(.*)/)[1];
       const textInput = htmlQuery(div, 'input[type="text"]');
       if (!textInput) continue;
       const colorPicker = document.createElement("input");
@@ -803,7 +822,7 @@ export class MHLSettingsManager {
   #addVisibilityListeners(div, data) {
     const func = `${funcPrefix}##addVisibilityListeners`;
     const section = htmlClosest(div, "section.mhl-settings-manager");
-    const key = div.dataset.settingId.split(".")[1];
+    const key = div.dataset.settingId.split(/\.(.*)/)[1];
     const dependencies = Object.keys(data.dependsOn);
     const existingListeners = this.#visibilityListeners.get(key) ?? {};
     for (const dependency of dependencies) {
@@ -865,7 +884,7 @@ export class MHLSettingsManager {
 
     const divs = htmlQueryAll(section, "div[data-setting-id]");
     for (const div of divs) {
-      const key = div.dataset.settingId.split(".")[1];
+      const key = div.dataset.settingId.split(/\.(.*)/)[1];
       const settingData = this.#settings.get(key);
 
       const firstInput = htmlQuery(div, "input, select");
@@ -1010,13 +1029,13 @@ export class MHLSettingsManager {
     if (event instanceof Event) {
       section = htmlClosest(event.target, "section.mhl-settings-manager");
       div = htmlClosest(event.target, "div[data-setting-id]");
-      key = div.dataset.settingId.split(".")[1];
+      key = div.dataset.settingId.split(/\.(.*)/)[1];
       group = div?.dataset?.settingGroup ?? null;
     } else if (typeof event === "string" && this.#requireSetting(event, { func })) {
       if (!this.element) return;
       key = event;
       section = htmlQuery(this.element, `section[data-category="${this.#module.id}"]`);
-      div = htmlQuery(section, `div[data-setting-id$=${key}]`);
+      div = htmlQuery(section, `div[data-setting-id$="${key}"]`);
       group = this.#settings.get(key).group;
     }
     const allowedSettings = this.#settings.filter((s) => (s?.scope === "world" ? isGM : true));
@@ -1185,7 +1204,7 @@ export class MHLSettingsManager {
     return divs.reduce((acc, curr) => {
       const firstInput = htmlQuery(curr, "input, select");
       if (!firstInput) return acc;
-      const key = curr.dataset.settingId.split(".")[1];
+      const key = curr.dataset.settingId.split(/\.(.*)/)[1];
       const data = this.#settings.get(key);
       const inputValue = this.#_value(firstInput);
       acc[key] = "type" in data ? data.type(inputValue) : inputValue;
@@ -1324,12 +1343,13 @@ export class MHLSettingsManager {
   }
 
   #validateSettingKey(key) {
-    return typeof key === "string" && !!key.match(/^[\p{L}\p{N}-]+$/u);
+    return typeof key === "string" && !!key.match(/^[\p{L}\p{N}\.-]+$/u);
   }
 
   #validateRegistrationData(data) {
     const func = `${funcPrefix}##validateRegistrationData`;
     let out = false;
+    if (typeof data === 'function') data = data();
     if (data instanceof Map) {
       out = new Collection(data);
     } else if (isPlainObject(data)) {

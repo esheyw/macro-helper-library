@@ -1,15 +1,17 @@
 import { MHLManagerDefaultsMenu } from "../apps/MHLManagerDefaultsMenu.mjs";
+import { MODULE_ID } from "../constants.mjs";
 import { getModelDefaults } from "../helpers/foundryHelpers.mjs";
 import { MODULE } from "../init.mjs";
+import { MHLSettingsManager } from "../util/MHLSettingsManager.mjs";
 import { SettingManagerDefaults } from "./models/SettingsManagerDefaults.mjs";
 
-export const SETTINGS = {
+export const SETTINGS = () => ({
   "manager-defaults-menu": {
     type: MHLManagerDefaultsMenu,
     name: null,
     hint: null,
     label: null,
-    icon: "fa-icons",
+    icon: "icons",
     group: ".SettingsManager",
     for: "sm-settings",
   },
@@ -70,11 +72,11 @@ export const SETTINGS = {
     },
     group: ".Access",
   },
-};
+});
 
 export function setting(key) {
-  const SM = MODULE()?.settingsManager;
-  if (SM.initialized) {
+  const SM = MHLSettingsManager.managers.get(MODULE_ID)
+  if (SM?.initialized) {
     return SM.get(key);
   }
   return undefined;
