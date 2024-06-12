@@ -22,3 +22,5 @@
 - try adopting dnd5e switch toggle
 - DOCS
 - repopulate settings form on render
+- selectOptionsGrouped
+- reset button on menu settings with `for`

@@ -58,10 +58,11 @@ const mhlOriginals = {
   },
   contains: (...args) => {
     const options = getFunctionOptions(args);
-    const [haystack,...needles] = args;
-    if (isEmpty(haystack) || (!Array.isArray(haystack) && typeof haystack !== 'string')|| isEmpty(needles)) return false;
-    const fn = options.all ? 'every' : 'some'
-    return needles[fn](n=>haystack.includes(n));
+    const [haystack, ...needles] = args;
+    if (isEmpty(haystack) || (!Array.isArray(haystack) && typeof haystack !== "string") || isEmpty(needles))
+      return false;
+    const fn = options.all ? "every" : "some";
+    return needles[fn]((n) => haystack.includes(n));
   },
   // selectOptionsGrouped: (...args) => {
   //   const options = getFunctionOptions(args);

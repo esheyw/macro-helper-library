@@ -59,7 +59,7 @@ export class MHLSettingsManager {
     if (options.settings) this.registerSettings(options.settings);
     //defer button icon checks to ready
     if (!MHLSettingsManager.#readyHookID) {
-      MHLSettingsManager.#readyHookID = Hooks.once("ready", MHLSettingsManager.validateButtonIcons)
+      MHLSettingsManager.#readyHookID = Hooks.once("ready", MHLSettingsManager.validateButtonIcons);
     }
     Hooks.on("renderSettingsConfig", this.#onRenderSettings.bind(this));
     this.#initialized = true;
@@ -137,7 +137,7 @@ export class MHLSettingsManager {
 
     for (const div of settingDivs) {
       const key = div.dataset.settingId.split(/\.(.*)/)[1];
-      const settingData = this.#settings.get(key);      
+      const settingData = this.#settings.get(key);
       if (this.options.actionButtons && "button" in settingData) {
         this.#replaceWithButton(div, settingData.button);
       }
@@ -340,30 +340,13 @@ export class MHLSettingsManager {
     this.#potentialSettings.delete(key);
     return true;
   }
-  static validateButtonIcons() {
-    for (const manager of MHLSettingsManager.managers) {
-      manager.validateButtonIcons();
-    }
-  }
-  validateButtonIcons() {
-    for (const setting of this.#settings) {
-      if (setting.menu && 'icon' in setting) {
-        setting.icon = getIconClasses(setting.icon)
-      }
-      if ('button' in setting && 'icon' in setting.button) {
-        setting.button.icon = getIconClasses(setting.button.icon)
-      }
-    }
-  }
+  
   #processSettingData(key, data) {
     const func = `${funcPrefix}##processSettingData`;
     //add the key to the data because Collection's helpers only operate on vaalues
     data.key = key;
     //handle registering settings menus
     if (data.menu || data.type?.prototype instanceof FormApplication) {
-      if ("icon" in data) {
-        data.icon = getIconClasses(data.icon);
-      }
       //TODO: implement generation in v12, add app v2 to check
       // if (!data?.type || !(data.type?.prototype instanceof FormApplication)) return false;
       data.menu = true;
@@ -1232,6 +1215,24 @@ export class MHLSettingsManager {
     return true;
   }
 
+  static validateButtonIcons() {
+    for (const manager of MHLSettingsManager.managers) {
+      manager.#validateButtonIcons();
+    }
+  }
+
+  #validateButtonIcons() {
+    for (const setting of this.#settings) {
+      if (setting.menu && "icon" in setting) {
+        setting.icon = getIconClasses(setting.icon);
+      }
+      if ("button" in setting && "icon" in setting.button) {
+        setting.button.icon = getIconHTMLString(setting.button.icon);
+        modLog({setting}, {dupe: true, prefix: 'is a menu'})
+      }
+    }
+  }
+
   #validateEnrichHintsOption() {
     const func = `${funcPrefix}##validateEnrichHintsOption`;
     let enrichers = this.options.enrichHints;
@@ -1349,7 +1350,7 @@ export class MHLSettingsManager {
   #validateRegistrationData(data) {
     const func = `${funcPrefix}##validateRegistrationData`;
     let out = false;
-    if (typeof data === 'function') data = data();
+    if (typeof data === "function") data = data();
     if (data instanceof Map) {
       out = new Collection(data);
     } else if (isPlainObject(data)) {
