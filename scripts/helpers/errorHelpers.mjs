@@ -36,7 +36,7 @@ export function modLog(loggable, { type, prefix, context, func, mod, localize = 
   if (typeof loggable === "string") {
     loggable = localize ? mhlocalize(loggable, context) : loggable;
     prefix = getLogPrefix(loggable, { mod, func, prefix });
-  } else if (localize) {
+  } else if (localize && prefix) {
     let localized = mhlocalize(prefix, context);
     prefix = getLogPrefix(localized, { mod, func }) + localized;
   } else {

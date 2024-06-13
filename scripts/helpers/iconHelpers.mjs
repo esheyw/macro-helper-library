@@ -5,23 +5,27 @@ import { isEmpty, mhlog } from "./errorHelpers.mjs";
 import { getFunctionOptions, getStringArgs, isPlainObject } from "./otherHelpers.mjs";
 
 export function getIconHTMLString(...args) {
-  const func = `getIconString`;
-  const options = getFunctionOptions(args) ?? {};
-  const element = options.element ?? "i";
-  const stringed = getStringArgs(args);
+  const func = `getIconHTMLString`;
   const failValidation = () => {
     mhlog({ args, options }, { type: "warn", prefix: `MHL.Error.Validation.IconGeneric`, func });
     return "";
   };
-  if (stringed.length === 0) return failValidation();
-  const containsHTML = stringed.find((s) => /<[^>]+>/.test(s));
-  if (containsHTML) {
-    const node = elementFromString(containsHTML);
+  const validateHTML = (html) => {
+    const node = elementFromString(html);
     if (!node || !node.className) return failValidation();
     const validated = getIconClasses(node.className, options);
     if (!validated) return "";
     node.className = validated;
     return node.outerHTML;
+  };
+  const options = getFunctionOptions(args) ?? {};
+  const element = options.element ?? "i";
+  if (/<[^>]+>/.test(args[0])) return validateHTML(args[0]);
+  const stringed = getStringArgs(args);
+  if (stringed.length === 0) return failValidation();
+  const containsHTML = stringed.find((s) => /<[^>]+>/.test(s));
+  if (containsHTML) {
+    return validateHTML(containsHTML);
   } else {
     const validated = getIconClasses(stringed, { options });
     if (isEmpty(validated)) return failValidation();

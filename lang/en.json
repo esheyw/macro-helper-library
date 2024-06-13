@@ -111,7 +111,7 @@
         },
         "DuplicateSetting": "Setting ID \"{key}\" already exists for {module}.",
         "Button": {
-          "BadFormat": "Button data must be an object with at least an `action` property containing a function.",
+          "BadFormat": "Malformed button data for key {key} of {module}. Button data must be an object with at least an `action` property containing a function.",
           "Label": "A setting's `button` data must contain a `label` property, either string or null (for localization key inference).",
           "Action": "A button replacement action must be a function."
         },

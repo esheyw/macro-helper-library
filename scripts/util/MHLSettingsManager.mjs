@@ -1,6 +1,6 @@
 import { MODULE_ID, fu } from "../constants.mjs";
 import { elementFromString, htmlClosest, htmlQuery, htmlQueryAll } from "../helpers/HTMLHelpers.mjs";
-import { MHLError, isEmpty, modBanner, modError, modLog } from "../helpers/errorHelpers.mjs";
+import { MHLError, isEmpty, logCastString, modBanner, modError, modLog } from "../helpers/errorHelpers.mjs";
 import { isRealGM } from "../helpers/foundryHelpers.mjs";
 import { mhlocalize, sluggify } from "../helpers/stringHelpers.mjs";
 import { getIconClasses, getIconHTMLString } from "../helpers/iconHelpers.mjs";
@@ -136,7 +136,7 @@ export class MHLSettingsManager {
     const settingDivs = htmlQueryAll(section, `[data-setting-id]`);
 
     for (const div of settingDivs) {
-      const key = div.dataset.settingId.split(/\.(.*)/)[1];
+      const key = this.#getKeyFromDiv(div);
       const settingData = this.#settings.get(key);
       if (this.options.actionButtons && "button" in settingData) {
         this.#replaceWithButton(div, settingData.button);
@@ -297,13 +297,12 @@ export class MHLSettingsManager {
     for (const [setting, data] of settings.entries()) {
       const success = this.registerSetting(setting, data, { initial: true });
       if (!success) {
-        modLog(
+        this.#log(
           { setting, data, module: this.#module.id },
           {
-            mod: this.options.modPrefix,
             prefix: `MHL.SettingsManager.Error.InvalidSettingData`,
             func,
-            context: { setting, module: this.#module.id },
+            context: { setting },
           }
         );
       }
@@ -321,10 +320,9 @@ export class MHLSettingsManager {
     const func = `${funcPrefix}#registerSetting`;
     if (!this.#potentialSettings.has(key)) this.#potentialSettings.set(key, data);
     if (game.settings.settings.get(`${this.#module.id}.${key}`)) {
-      modLog(`MHL.SettingsManager.Error.DuplicateSetting`, {
+      this.#log(`MHL.SettingsManager.Error.DuplicateSetting`, {
         type: "error",
-        mod: this.options.modPrefix,
-        context: { key, module: this.#module.title },
+        context: { key },
         func,
       });
       return false;
@@ -340,7 +338,7 @@ export class MHLSettingsManager {
     this.#potentialSettings.delete(key);
     return true;
   }
-  
+
   #processSettingData(key, data) {
     const func = `${funcPrefix}##processSettingData`;
     //add the key to the data because Collection's helpers only operate on vaalues
@@ -366,10 +364,7 @@ export class MHLSettingsManager {
     if ("colorPicker" in data) {
       const regex = new RegExp(this.#colorPattern);
       if (!regex.test(data?.default ?? "")) {
-        modLog(
-          { key, data },
-          { prefix: `MHL.SettingsManager.Error.InvalidColorPicker`, func, mod: this.options.modPrefix }
-        );
+        this.#log({ key, data }, { prefix: `MHL.SettingsManager.Error.InvalidColorPicker`, func });
         data.colorPicker = false;
       }
     }
@@ -401,11 +396,10 @@ export class MHLSettingsManager {
           data.group = `${this.options.settingPrefix}${this.options.groupInfix}${data.group}`;
         this.#groupOrder.add(data.group);
       } else {
-        modLog(
+        this.#log(
           { group: data.group, key },
           {
             type: "error",
-            mod: this.options.modPrefix,
             func,
             prefix: `MHL.SettingsManager.Error.InvalidGroup`,
           }
@@ -502,10 +496,7 @@ export class MHLSettingsManager {
   #processButtonData(key, buttonData) {
     const func = `${funcPrefix}##processButtonData`;
     if (typeof buttonData !== "object" || !("action" in buttonData) || typeof buttonData.action !== "function") {
-      modLog(
-        { key, buttonData, module: this.#module.id },
-        { mod: this.options.modPrefix, prefix: `MHL.SettingsManager.Error.Button.BadFormat`, func }
-      );
+      this.#log({ buttonData }, { prefix: `MHL.SettingsManager.Error.Button.BadFormat`, func, context: { key } });
       return false;
     }
 
@@ -519,16 +510,13 @@ export class MHLSettingsManager {
 
   #processVisibilityString(key, dependsOn) {
     const func = `${funcPrefix}##processVisibilityString`;
-    const data = { key, dependsOn, module: this.#module.title };
     const invert = dependsOn.at(0) === "!";
     dependsOn = invert ? dependsOn.slice(1) : dependsOn;
     if (!this.#settings.has(dependsOn) && !this.#potentialSettings.has(dependsOn)) {
-      modLog(data, {
+      this.#log(`MHL.SettingsManager.Error.Visibility.UnknownDependency`, {
         type: "error",
         func,
-        mod: this.options.modPrefix,
-        prefix: `MHL.SettingsManager.Error.Visibility.UnknownDependency`,
-        context: data,
+        context: { key, dependsOn },
       });
       return false;
     }
@@ -537,7 +525,7 @@ export class MHLSettingsManager {
 
   #processVisibilityData(key, visibilityData) {
     const func = `${funcPrefix}##processVisibilityData`;
-    const data = { key, visibilityData, module: this.#module.title };
+    const data = { key, visibilityData };
     let test;
     const dependsOn = {};
     if (typeof visibilityData === "string") {
@@ -553,18 +541,16 @@ export class MHLSettingsManager {
       if (isEmpty(dependsOn)) return false;
     } else if (typeof visibilityData === "object") {
       const dependsOnError = () =>
-        modLog(data, {
+        this.#log(data, {
           type: "error",
-          mod: this.options.modPrefix,
           func,
           context: data,
           prefix: `MHL.SettingsManager.Error.Visibility.RequireDependsOn`,
         });
 
       if (!("test" in visibilityData) || typeof visibilityData.test !== "function") {
-        modLog(data, {
+        this.#log(data, {
           type: "error",
-          mod: this.options.modPrefix,
           func,
           context: data,
           prefix: `MHL.SettingsManager.Error.Visibility.RequireTest`,
@@ -611,13 +597,12 @@ export class MHLSettingsManager {
         invalid = true;
       }
       if (invalid) {
-        modLog(
-          { key, hookData, module: this.#module },
+        this.#log(
+          { key, hookData },
           {
             type: "error",
-            mod: this.options.modPrefix,
             prefix: errorstr,
-            context: { key, hook: hookData?.hook, module: this.#module.title },
+            context: { key, hook: hookData?.hook },
             func,
           }
         );
@@ -708,18 +693,18 @@ export class MHLSettingsManager {
     const func = `${funcPrefix}##addColorPickers`;
     const colorSettings = this.#settings.filter((s) => s?.colorPicker).map((s) => s.key);
     const divs = htmlQueryAll(section, "div[data-setting-id]").filter((div) =>
-      colorSettings.includes(div.dataset.settingId.split(/\.(.*)/)[1])
+      colorSettings.includes(this.#getKeyFromDiv(div))
     );
     if (!divs.length) return;
     const regex = new RegExp(this.#colorPattern);
     for (const div of divs) {
-      const settingName = div.dataset.settingId.split(/\.(.*)/)[1];
+      const key = this.#getKeyFromDiv(div);
       const textInput = htmlQuery(div, 'input[type="text"]');
       if (!textInput) continue;
       const colorPicker = document.createElement("input");
       colorPicker.type = "color";
       colorPicker.dataset.edit = div.dataset.settingId;
-      colorPicker.value = this.get(settingName);
+      colorPicker.value = this.get(key);
       colorPicker.addEventListener(
         "input",
         function (event) {
@@ -805,7 +790,7 @@ export class MHLSettingsManager {
   #addVisibilityListeners(div, data) {
     const func = `${funcPrefix}##addVisibilityListeners`;
     const section = htmlClosest(div, "section.mhl-settings-manager");
-    const key = div.dataset.settingId.split(/\.(.*)/)[1];
+    const key = this.#getKeyFromDiv(div);
     const dependencies = Object.keys(data.dependsOn);
     const existingListeners = this.#visibilityListeners.get(key) ?? {};
     for (const dependency of dependencies) {
@@ -865,9 +850,17 @@ export class MHLSettingsManager {
       }
     }
 
-    const divs = htmlQueryAll(section, "div[data-setting-id]");
+    const divs = htmlQueryAll(section, "div[data-setting-id], div.submenu");
     for (const div of divs) {
-      const key = div.dataset.settingId.split(/\.(.*)/)[1];
+      if (div.classList.contains("submenu")) {
+        const button = htmlQuery(div, `button[data-key]`);
+        const key = this.#getKeyFromString(button.dataset.key);
+        const settingData = this.#settings.get(key);
+        const forSettingData = this.#settings.has(settingData?.for) ? this.#settings.get(settingData.for) : null;
+        this.#log({ key, settingData, forSettingData }, { func });
+        continue;
+      }
+      const key = this.#getKeyFromDiv(div);
       const settingData = this.#settings.get(key);
 
       const firstInput = htmlQuery(div, "input, select");
@@ -1012,7 +1005,7 @@ export class MHLSettingsManager {
     if (event instanceof Event) {
       section = htmlClosest(event.target, "section.mhl-settings-manager");
       div = htmlClosest(event.target, "div[data-setting-id]");
-      key = div.dataset.settingId.split(/\.(.*)/)[1];
+      key = this.#getKeyFromDiv(div);
       group = div?.dataset?.settingGroup ?? null;
     } else if (typeof event === "string" && this.#requireSetting(event, { func })) {
       if (!this.element) return;
@@ -1187,7 +1180,7 @@ export class MHLSettingsManager {
     return divs.reduce((acc, curr) => {
       const firstInput = htmlQuery(curr, "input, select");
       if (!firstInput) return acc;
-      const key = curr.dataset.settingId.split(/\.(.*)/)[1];
+      const key = this.#getKeyFromDiv(curr);
       const data = this.#settings.get(key);
       const inputValue = this.#_value(firstInput);
       acc[key] = "type" in data ? data.type(inputValue) : inputValue;
@@ -1197,6 +1190,33 @@ export class MHLSettingsManager {
 
   #prettifyValue(value) {
     return typeof value === "object" ? JSON.stringify(value, null, 2) : value;
+  }
+
+  #getKeyFromString(string) {
+    string = logCastString(string, "string", `${funcPrefix}##getKeyFromString`);
+    return string.split(/\.(.*)/)[1];
+  }
+
+  #getKeyFromDiv(div) {
+    const func = `${funcPrefix}##getKeyFromDiv`;
+    //todo: localize
+    if (!(div instanceof HTMLElement))
+      throw new modError("expected an element", { log: { div }, func, mod: this.options.modPrefix });
+    return this.#getKeyFromString(div.dataset.settingId);
+  }
+
+  #log(loggable, options) {
+    const opts = fu.mergeObject(
+      options,
+      {
+        mod: this.options.modPrefix,
+        context: {
+          module: this.#module.title,
+        },
+      },
+      { inplace: false }
+    );
+    return modLog(loggable, opts);
   }
 
   #requireSetting(
@@ -1228,7 +1248,6 @@ export class MHLSettingsManager {
       }
       if ("button" in setting && "icon" in setting.button) {
         setting.button.icon = getIconHTMLString(setting.button.icon);
-        modLog({setting}, {dupe: true, prefix: 'is a menu'})
       }
     }
   }

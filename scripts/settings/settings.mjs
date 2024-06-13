@@ -13,7 +13,7 @@ export const SETTINGS = () => ({
     label: null,
     icon: "icons",
     group: ".SettingsManager",
-    for: "sm-settings",
+    for: "manager-defaults",
   },
   "manager-defaults": {
     type: SettingManagerDefaults,
