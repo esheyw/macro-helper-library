@@ -90,10 +90,11 @@
         "ManagerAlreadyExists": "A settings manager has already been registered for {module}.",
         "InvalidGroup": "Group names must be strings, not whatever was logged. Skipping.",
         "DuplicateGroup": "Group \"{group}\" already declared. Skipping.",
-        "InvalidEnrichHints": "The enrichHints option, if provided, must be a boolean (true meaning use only the default erichers), or in the form of either a Map or an Object with pattern keys and replacement values (for use with `String.replace()`), or an Array of such pairs. ",
-        "InvalidGroupsOption": "The groups option passed was invalid, if provided it must be true, false, the string \"a\", or an array of group name strings. Defaulting to false.",
-        "InvalidSortOption": "The sort option passed was invalid, if provided it must be the string \"a\", a boolean (true equating to \"a\") or a string comparison function. Defaulting to registration order",
-        "InvalidResetButtons": "The resetButtons option, if provided, must be true,false, one of the strings \"all\", \"settings\", \"groups\", or \"module\", or an array of such strings. Defaulting to false.",
+        "InvalidEnrichHintsOption": "Invalid enrichHints option for {module}. If provided, must be one of:\n- A boolean (true meaning use only the default erichers)\n- A Map or an Object with pattern keys and replacement values (for use with `String.replace()`)\n- An Array of such pairs.\nDefaulting to true.",
+        "InvalidCollapsibleGroupsOption":"Invalid collapsibleGroups option for {module}. If provided, it must be one of:\n- A boolean (true meaning use the default accordion indicator)\n- A string specifying icon font css class(es) for the accordion indicator\nDefaulting to true.",
+        "InvalidGroupsOption": "Invalid groups option for {module}. If provided it must be one of:\n- A boolean (true meaning groups display in the order their first settings are found)\n- The string \"a\" for alphabetical sort\n- An array of group name strings specifying group order\nDefaulting to true.",
+        "InvalidSortOption": "Invalid sort option for {module}. If provided it must be one of:\n- A boolean (true meaning alphabetical sort)\n- A string-comparison function\n- An object of the form \\{ menusFirst: boolean, fn: function }\nDefaulting to false (registration order)",
+        "InvalidResetButtonsOption": "Invalid resetButtons option for {module}. If provided, it must be one of: \n- A boolean\n- One of the strings \"all\", \"settings\", \"groups\", or \"module\"\n- An array of some combination of such strings\n An object with some combination of such keys and values that are either boolean or an icon font css class(es).\nDefaulting to \"all\" (use global default icons).",
         "InvalidSettingKey": "{module} setting data contains key \"{key}\" which is not valid to register a setting with, skipping.",
         "DuplicateSettingKey": "Setting key \"{key}\" already seen for {module}, skipping duplicate",
         "InvalidSettingData": "Setting `{key}` for module {module} failed to validate and was not registered.",
@@ -118,13 +119,13 @@
         "NoDefault": "Setting {setting} of {module} does not have a default value recorded and cannot be reset.",
         "NotRegistered": "Setting {setting} is not registered for {module}.",
 
-        
-        
         "InvalidColorPicker": "A setting with `colorPicker: true` in its data must have a default value that is a valid 7-character hex code (e.g. #FFFFFF).",
-        
+
         "NotAnElement": "The provided variable \"{variable}\" was not an HTMLElement."
       },
-      "Warning": {}
+      "Warning": {
+        "InvalidResetButtonType": "{module} passed {type} as a resetButton type, which is invalid. Ignoring."
+      }
     },
     "Dialog": {
       "Warning": {
@@ -273,13 +274,9 @@
         }
       },
       "ManagerDefaultsMenu": {
-        "Name": "Icon Settings",
+        "Name": "AAA Icon Settings",
         "Hint": "Set the default FontAwesome glyphs for modules using the setting manager that haven't provided their own overrides.",
         "Label": "Icon Settings"
-      },
-      "DisabledClass": {
-        "Name": "Disabled Reset Button Class",
-        "Hint": "The CSS class applied to reset-to-default buttons that are currently disabled, if not overridden by a given module's MHLSettingsManager options. MHL ships with `disabled-transparent`, `disabled-blurry`, and `disabled-hidden`."
       },
       "LogLevel": {
         "Name": "Log Level for Debug Mode",

@@ -6,15 +6,6 @@ import { MHLSettingsManager } from "../util/MHLSettingsManager.mjs";
 import { SettingManagerDefaults } from "./models/SettingsManagerDefaults.mjs";
 
 export const SETTINGS = () => ({
-  "manager-defaults-menu": {
-    type: MHLManagerDefaultsMenu,
-    name: null,
-    hint: null,
-    label: null,
-    icon: "icons",
-    group: ".SettingsManager",
-    for: "manager-defaults",
-  },
   "manager-defaults": {
     type: SettingManagerDefaults,
     config: false,
@@ -22,14 +13,15 @@ export const SETTINGS = () => ({
     scope: "world",
     default: getModelDefaults(SettingManagerDefaults),
   },
-  "debug-mode": {
-    config: true,
-    type: Boolean,
+
+  "manager-defaults-menu": {
+    type: MHLManagerDefaultsMenu,
     name: null,
     hint: null,
-    scope: "client",
+    label: null,
+    icon: "icons",
     group: ".ErrorHandling",
-    default: false,
+    for: "manager-defaults",
   },
   "log-level": {
     config: true,
@@ -45,6 +37,24 @@ export const SETTINGS = () => ({
     default: "warn",
     scope: "client",
     group: ".ErrorHandling",
+  },
+  "debug-mode": {
+    config: true,
+    type: Boolean,
+    name: null,
+    hint: null,
+    scope: "client",
+    group: ".ErrorHandling",
+    default: false,
+  },
+  "manager-defaults-menu-2": {
+    type: MHLManagerDefaultsMenu,
+    name: null,
+    hint: null,
+    label: null,
+    icon: "icons",
+    group: ".ErrorHandling",
+    for: "manager-defaults",
   },
   "global-access": {
     config: true,
@@ -75,7 +85,7 @@ export const SETTINGS = () => ({
 });
 
 export function setting(key) {
-  const SM = MHLSettingsManager.managers.get(MODULE_ID)
+  const SM = MHLSettingsManager.managers.get(MODULE_ID);
   if (SM?.initialized) {
     return SM.get(key);
   }

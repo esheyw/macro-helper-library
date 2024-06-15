@@ -27,7 +27,7 @@ Hooks.once("init", () => {
       }
     }
     mod.api[key] = helper;
-  }  
+  }
   //special exposure for ease of grabbing MHL settings
   mod.api.mhlSetting = setting;
 
@@ -39,12 +39,13 @@ Hooks.once("i18nInit", () => {
     settingPrefix: "MHL.Setting",
     disabledResetClass: "disabled-transparent",
     resetButtons: ["settings", "module"],
-    groups: true,
-    // sort: "a"
-    settings: SETTINGS
+    groups: false,
+    sort: null,
+    settings: SETTINGS,
   };
   new util.MHLSettingsManager(MODULE_ID, settingManagerOptions);
   CONFIG.MHL.iconFonts.push(...iconFontsDefaults);
+  MODULE().api.managers = util.MHLSettingsManager.managers;
 });
 
 Hooks.once("setup", () => {

@@ -39,29 +39,31 @@ export class MHLSettingsManager {
     this.#module = moduleFor instanceof Module ? moduleFor : game.modules.get(moduleFor);
     if (!this.#module) throw MHLError(`MHL.SettingsManager.Error.BadModuleID`, { log: { moduleFor }, func });
 
+    this.options = fu.mergeObject(this.defaultOptions, options);
+
     if (MHLSettingsManager.#managers.has(this.#module.id)) {
       throw modError(`MHL.SettingsManager.Error.ManagerAlreadyExists`, { context: { module: this.#module.title } });
     } else {
       MHLSettingsManager.#managers.set(this.#module.id, this);
+      MHLSettingsManager.#managers[this.options.modPrefix.toLowerCase()] ??= this;
     }
-
-    this.options = fu.mergeObject(this.defaultOptions, options);
 
     //validate groups
     if (!this.#validateGroupsOption()) this.options.groups = false;
     //validate sort
-    if (!this.#validateSortOption()) this.options.sort = null;
+    if (!this.#validateSortOption()) this.options.sort = false;
     //validate & normalize resetButtons
     if (!this.#validateResetButtonsOption()) this.options.resetButtons = false;
     //validate & set enrichers if provided
     if (!this.#validateEnrichHintsOption()) this.options.enrichHints = true;
 
+    if (!this.#validateCollapsibleGroupsOption()) this.options.collapsibleGroups = true;
     if (options.settings) this.registerSettings(options.settings);
-    //defer button icon checks to ready
+    //defer button icon checks to ready to account for lazily loaded icon fonts
     if (!MHLSettingsManager.#readyHookID) {
       MHLSettingsManager.#readyHookID = Hooks.once("ready", MHLSettingsManager.validateButtonIcons);
     }
-    Hooks.on("renderSettingsConfig", this.#onRenderSettings.bind(this));
+    Hooks.on("renderSettingsConfig", this.#onRenderSettings2.bind(this));
     this.#initialized = true;
   }
 
@@ -85,8 +87,9 @@ export class MHLSettingsManager {
       actionButtons: true,
       // localization key section placed between setting name and choice value when inferring choice localization
       choiceInfix: "Choice",
-      // whether groups should be just a header between sections (false) or allow collapsing groups on header click by modifying the html more deeply (true, default)
-      collapsableGroups: true,
+      // whether groups should be just a header between sections (false) or allow collapsing groups on header click by modifying the html more deeply (true)
+      // optionally specifies accordion indicator icon override
+      collapsibleGroups: true,
       // add color picker elements to settings whose default value is a hex color code
       colorPickers: true,
       // css class toggled on reset buttons when the setting in question is already its default value, if null uses module setting
@@ -99,15 +102,77 @@ export class MHLSettingsManager {
       groups: true,
       // prefix for logged errors/warnings
       modPrefix: prefix.replace(/[a-z]/g, ""),
-      // add  reset-to-default buttons on each setting and for the whole module in its header
+      // add reset-to-default buttons on each setting and for the whole module in its header
       resetButtons: true,
       //String to start inferred localization keys with
       settingPrefix: prefix + ".Setting",
-      // handle sorting of settings. true or "a" for alphabetical on name, or a custom compare function.
+      // handle sorting of settings. true for alphabetical on name, or a custom compare function.
       sort: false,
       // process settings with visibility data, only showing them in the settings window conditionally on the value of another setting
       visibility: true,
     };
+  }
+
+  get moduleResetIcon() {
+    const opt = this.options.resetButtons?.module;
+    return typeof opt === "string" ? opt : setting("manager-defaults").moduleResetIcon;
+  }
+  get groupResetIcon() {
+    const opt = this.options.resetButtons?.groups;
+    return typeof opt === "string" ? opt : setting("manager-defaults").groupResetIcon;
+  }
+  get settingResetIcon() {
+    const opt = this.options.resetButtons?.settings;
+    return typeof opt === "string" ? opt : setting("manager-defaults").settingResetIcon;
+  }
+  get disabledClass() {
+    return this.options.disabledClass ?? setting("manager-defaults")?.disabledClass;
+  }
+  get accordionIndicator() {
+    return typeof this.options.collapsibleGroups === "string"
+      ? this.options.collapsibleGroups
+      : setting("manager-defaults")?.accordionIndicatorIcon;
+  }
+
+  #onRenderSettings2(app, html, data) {
+    const func = `${funcPrefix}##onRenderSettings2`;
+    html = html instanceof jQuery ? html[0] : html;
+    //bail if this module has no configurable settings (either available to this user, or at all)
+    const configurable = this.#settings.filter((setting) => setting?.config);
+    if (configurable.length === 0) return;
+    const clientSettings = configurable.filter((setting) => setting?.scope !== "world");
+    if (!clientSettings.length && !isRealGM(game.user)) return;
+
+    const section = htmlQuery(html, `section[data-category="${this.#module.id}"]`);
+    section.classList.add("mhl-settings-manager");
+
+    this.#applyGroupsAndSort(section);
+
+    if (this.options.colorPickers) {
+      this.#addColorPickers(section);
+    }
+    if (this.options.enrichHints) {
+      this.#enrichHints(section);
+    }
+    const divs = htmlQueryAll(section, "div.form-group");
+
+    //initial visibility checks & reset button updates
+    const firstInputs = divs.reduce((acc, div) => {
+      const input = htmlQuery(div, "input, select, multi-select, color-picker");
+      if (input) acc.push(input);
+      return acc;
+    }, []);
+    for (const el of firstInputs) {
+      const parent = el.parentElement.parentElement;
+      // this.#log({ data: parent.dataset, el }, { func });
+      el.addEventListener("change", this.#onChangeInput.bind(this));
+      // el.dispatchEvent(new Event("change"));
+    }
+  }
+
+  #onChangeInput(event) {
+    const { srcElement, target, currentTarget } = event;
+    this.#log({ srcElement, target, currentTarget });
   }
 
   #onRenderSettings(app, html, data) {
@@ -158,10 +223,26 @@ export class MHLSettingsManager {
     }
   }
 
+  #sortSettings(settings) {
+    const func = `${funcPrefix}##sortSettings`;
+    if (isEmpty(this.options.sort)) return settings;
+    return settings.sort((a, b) => {
+      if (this.options.sort.menusFirst) {
+        if (a.menu) {
+          return b.menu ? this.options.sort.fn(a.name, b.name) : -1;
+        }
+        return b.menu ? 1 : this.options.sort.fn(a.name, b.name);
+      } else {
+        return this.options.sort.fn(a.name, b.name);
+      }
+    });
+  }
+
   #applyGroupsAndSort(section) {
     const func = `${funcPrefix}##applyGroupsAndSort`;
     const isGM = isRealGM(game.user);
     const existingNodes = Array.from(section.children);
+    this.#log({ existingNodes }, { func, dupe: true });
     const sortOrder = [existingNodes.shift()]; // add the module title h2 in first
     if (this.options.groups) {
       if (this.options.groups === "a") {
@@ -172,14 +253,15 @@ export class MHLSettingsManager {
       const groupOrder = [null, ...this.#groupOrder];
       for (const group of groupOrder) {
         let groupContentDiv;
+        // limit to only configurable settings & menus in this group
         const settings = this.#settings
           .filter((s) => s.group === group && (s?.config || s?.menu) && (s?.scope === "world" ? isGM : true))
           .map((s) => ({
             node: existingNodes.find(
               (n) => n.dataset?.settingId?.includes(s.key) || htmlQuery(n, `button[data-key$="${s.key}"]`)
             ),
+            ...s,
             name: mhlocalize(s.name),
-            id: s.key,
           }));
         if (group !== null) {
           if (settings.length === 0) continue; // no headers for empty groups
@@ -187,21 +269,18 @@ export class MHLSettingsManager {
           groupHeader.innerText = mhlocalize(group);
           groupHeader.dataset.settingGroup = group;
           sortOrder.push(groupHeader);
-          if (this.options.collapsableGroups) {
-            groupHeader.appendChild(elementFromString(getIconHTMLString("fa-chevron-down", "accordion-indicator")));
+          if (this.options.collapsibleGroups) {
+            groupHeader.appendChild(
+              elementFromString(getIconHTMLString(this.accordionIndicator, "accordion-indicator"))
+            );
             groupContentDiv = elementFromString(`<div class="mhl-setting-group"></div>`);
             sortOrder.push(groupContentDiv);
           } else {
           }
         }
 
-        if (this.options.sort) {
-          if (this.options.sort === "a") {
-            settings.sort((a, b) => a.name.localeCompare(b.name));
-          } else {
-            settings.sort(this.options.sort);
-          }
-        }
+        this.#sortSettings(settings);
+
         for (const setting of settings) {
           if (group !== null) setting.node.dataset.settingGroup = group;
           if (groupContentDiv) {
@@ -211,20 +290,17 @@ export class MHLSettingsManager {
           }
         }
       }
-    } else if (this.options.sort) {
+    } else if (this.options.sort !== false) {
       const settings = this.#settings
-        .filter((s) => s?.config && (s?.scope === "world" ? isGM : true))
+        .filter((s) => (s?.config || s?.menu) && (s?.scope === "world" ? isGM : true))
         .map((s) => ({
-          node: existingNodes.find((n) => n.dataset?.settingId?.includes(s.key)),
+          node: existingNodes.find(
+            (n) => n.dataset?.settingId?.includes(s.key) || htmlQuery(n, `button[data-key$="${s.key}"]`)
+          ),
+          ...s,
           name: mhlocalize(s.name),
-          id: s.key,
         }));
-
-      if (this.options.sort === "a") {
-        settings.sort((a, b) => a.name.localeCompare(b.name));
-      } else {
-        settings.sort(this.options.sort);
-      }
+      this.#sortSettings(settings);
       for (const setting of settings) {
         sortOrder.push(setting.node);
       }
@@ -233,10 +309,11 @@ export class MHLSettingsManager {
       return;
     }
     //do the reorg
+    this.#log({ sortOrder }, { func, dupe: true });
     for (const node of sortOrder) {
       section.appendChild(node);
     }
-    if (this.options.collapsableGroups)
+    if (this.options.collapsibleGroups)
       new Accordion({
         headingSelector: `h3[data-setting-group]`,
         contentSelector: `.mhl-setting-group`,
@@ -349,6 +426,9 @@ export class MHLSettingsManager {
       // if (!data?.type || !(data.type?.prototype instanceof FormApplication)) return false;
       data.menu = true;
     }
+
+    //ensure configurable settings have a visible name, even if it's a broken localization key
+    if (data.config && !("name" in data)) data.name = null;
 
     // if name, hint, or a choice or menu label is passed as null, infer the desired translation key
     data = this.#processNullLabels(key, data);
@@ -696,6 +776,7 @@ export class MHLSettingsManager {
       colorSettings.includes(this.#getKeyFromDiv(div))
     );
     if (!divs.length) return;
+    //stored in private prop so it can be easily changed if type="color" inputs take the stick out their ass
     const regex = new RegExp(this.#colorPattern);
     for (const div of divs) {
       const key = this.#getKeyFromDiv(div);
@@ -711,7 +792,8 @@ export class MHLSettingsManager {
           //force a reset anchor refresh; foundry's code for updating the text field runs too slowly?
           textInput.value = event.target.value;
           textInput.dispatchEvent(new Event("change"));
-          if (this.options.resetButtons) this.#updateResetButtons(event);
+          //todo: delete following if new pattern works (change handler should cover it)
+          // if (this.options.resetButtons) this.#updateResetButtons(event);
         }.bind(this)
       );
       textInput.parentElement.append(colorPicker);
@@ -1193,6 +1275,7 @@ export class MHLSettingsManager {
   }
 
   #getKeyFromString(string) {
+    if (isEmpty(string)) return null;
     string = logCastString(string, "string", `${funcPrefix}##getKeyFromString`);
     return string.split(/\.(.*)/)[1];
   }
@@ -1201,11 +1284,25 @@ export class MHLSettingsManager {
     const func = `${funcPrefix}##getKeyFromDiv`;
     //todo: localize
     if (!(div instanceof HTMLElement))
-      throw new modError("expected an element", { log: { div }, func, mod: this.options.modPrefix });
-    return this.#getKeyFromString(div.dataset.settingId);
+      throw this.#error("expected an element", { log: { div }, func, mod: this.options.modPrefix });
+    return this.#getKeyFromString(div.dataset?.settingId);
   }
 
-  #log(loggable, options) {
+  #error(errorstr, options = {}) {
+    const opts = fu.mergeObject(
+      options,
+      {
+        mod: this.options.modPrefix,
+        context: {
+          module: this.#module.title,
+        },
+      },
+      { inplace: false }
+    );
+    return modError(errorstr, opts);
+  }
+
+  #log(loggable, options = {}) {
     const opts = fu.mergeObject(
       options,
       {
@@ -1244,7 +1341,7 @@ export class MHLSettingsManager {
   #validateButtonIcons() {
     for (const setting of this.#settings) {
       if (setting.menu && "icon" in setting) {
-        setting.icon = getIconClasses(setting.icon);
+        setting.icon = getIconClasses(setting.icon) ?? CONFIG.MHL.fallbackIcon;
       }
       if ("button" in setting && "icon" in setting.button) {
         setting.button.icon = getIconHTMLString(setting.button.icon);
@@ -1259,7 +1356,7 @@ export class MHLSettingsManager {
     const badEnrichers = () => {
       modLog(
         { enrichHints: this.options.enrichHints },
-        { func, mod: this.options.modPrefix, prefix: `MHL.SettingsManager.Error.InvalidEnrichHints` }
+        { func, mod: this.options.modPrefix, prefix: `MHL.SettingsManager.Error.InvalidEnrichHintsOption` }
       );
       return false;
     };
@@ -1288,6 +1385,16 @@ export class MHLSettingsManager {
     return true;
   }
 
+  #validateCollapsibleGroupsOption() {
+    const func = `${funcPrefix}##validateCollapsibleGroupsOption`;
+    if (["boolean", "string"].includes(typeof this.options.collapsibleGroups)) return true;
+    this.#log(
+      { collapsibleGroups: this.options.collapsibleGroups },
+      { func, prefix: `MHL.SettingsManager.Error.InvalidCollapsibleGroups` }
+    );
+    return false;
+  }
+
   #validateGroupsOption() {
     const func = `${funcPrefix}##validateGroupsOption`;
     const groups = this.options.groups;
@@ -1296,74 +1403,70 @@ export class MHLSettingsManager {
     if (Array.isArray(groups)) {
       for (const group of groups) {
         if (typeof group !== "string") {
-          modLog({ group }, { mod, type: "error", func, prefix: `MHL.SettingsManager.Error.InvalidGroup` });
+          this.#log({ group }, { func, prefix: `MHL.SettingsManager.Error.InvalidGroup` });
           continue;
         }
         if (this.#groupOrder.has(group)) {
-          modLog(`MHL.SettingsManager.Error.DuplicateGroup`, { mod, type: "error", func, context: { group } });
+          this.#log(`MHL.SettingsManager.Error.DuplicateGroup`, { func, context: { group } });
           continue;
         }
       }
       if (this.#groupOrder.size > 0) return true;
     }
-    modLog(
+    this.#log(
       { groups },
       {
         prefix: "MHL.SettingsManager.Error.InvalidGroupsOption",
-        mod: this.options.modPrefix,
         func,
       }
     );
     return false;
   }
 
-  #validateSortOption() {
-    const func = `${funcPrefix}##validateSortOption`;
-    let sort = this.options.sort;
-    if (isEmpty(sort)) sort = this.options.sort = false;
-    if (typeof sort === "boolean") {
-      // true = alphabetical, false = false
-      if (sort) this.options.sort = "a";
-      return true;
-    }
-    if (typeof sort === "function") return true;
-    if (sort === "a") return true;
-    modLog(
-      { sort },
-      { mod: this.options.modPrefix, type: "error", func, prefix: `MHL.SettingsManager.Error.InvalidSortOption` }
-    );
-    return false;
-  }
-
   #validateResetButtonsOption() {
     const func = `${funcPrefix}##validateResetButtonsOption`;
-    const validOptions = ["settings", "groups", "module"];
+    const defaultOptions = {
+      module: true,
+      groups: true,
+      settings: true,
+    };
+    const valid = Object.keys(defaultOptions);
+    const logInvalidType = (type) =>
+      this.#log({ type }, { prefix: `MHL.SettingsManager.Warning.InvalidResetButtonType`, context: { type }, func });
     let rb = this.options.resetButtons;
     if (rb === false) return true;
     if (rb === true || rb === "all") {
-      this.options.resetButtons = validOptions;
+      this.options.resetButtons = defaultOptions;
       return true;
     }
-    if (typeof rb === "string") rb = [rb];
+    if (typeof rb === "string" && valid.includes(rb)) {
+      this.options.resetButtons = { [rb]: true };
+    }
     if (Array.isArray(rb)) {
       if (rb.includes("all")) {
-        this.options.resetButtons = validOptions;
+        this.options.resetButtons = defaultOptions;
         return true;
       }
-      if (rb.every((e) => validOptions.includes(e))) {
-        this.options.resetButtons = rb;
-        return true;
+      this.options.resetButtons = {};
+      for (const type of rb) {
+        if (valid.includes(type)) this.options.resetButtons[type] = true;
+        else logInvalidType(type);
       }
+      if (Object.keys(this.options.resetButtons).length > 0) return true;
     }
-    modLog(
+    if (isPlainObject(rb)) {
+      this.options.resetButtons = {};
+      for (const type in rb) {
+        if (valid.includes(type)) this.options.resetButtons[type] = rb[type];
+        else logInvalidType(type);
+      }
+      if (Object.keys(this.options.resetButtons).length > 0) return true;
+    }
+    this.#log(
       { resetButtons: this.options.resetButtons },
-      { mod: this.options.modPrefix, type: "error", func, prefix: `MHL.SettingsManager.Error.InvalidResetButttons` }
+      { type: "error", func, prefix: `MHL.SettingsManager.Error.InvalidResetButttonsOption` }
     );
     return false;
-  }
-
-  #validateSettingKey(key) {
-    return typeof key === "string" && !!key.match(/^[\p{L}\p{N}\.-]+$/u);
   }
 
   #validateRegistrationData(data) {
@@ -1406,5 +1509,51 @@ export class MHLSettingsManager {
       return false;
     }
     return out;
+  }
+
+  #validateSettingKey(key) {
+    return typeof key === "string" && !!key.match(/^[\p{L}\p{N}\.-]+$/u);
+  }
+
+  #validateSortOption() {
+    const func = `${funcPrefix}##validateSortOption`;
+    const defaultCompare = (a, b) => a.localeCompare(b);
+    const sort = fu.deepClone(this.options.sort);
+    // no modification of core ordering
+    if (sort === false) return true;
+    // no sorting at all, not even rendering menus first like core
+    if (sort === null) {
+      this.options.sort = {
+        menusFirst: false,
+        fn: () => 0,
+      };
+      return true;
+    }
+    // alphasort, menus first like core
+    if (sort === true) {
+      this.options.sort = {
+        menusFirst: true,
+        fn: defaultCompare,
+      };
+      return true;
+    }
+    // custom sort, but menus first like core
+    if (typeof sort === "function") {
+      this.options.sort = {
+        menusFirst: true,
+        fn: sort,
+      };
+      return true;
+    }
+    if (isPlainObject(sort)) {
+      this.options.sort = {
+        menusFirst: !!(sort.menusFirst ?? true),
+        //if === false, no sorting, otherwise assume alphabetical
+        fn: sort.fn === false ? () => 0 : sort.fn ?? defaultCompare,
+      };
+      return true;
+    }
+    this.#log({ sort: this.options.sort }, { func, prefix: `MHL.SettingsManager.Error.InvalidSortOption` });
+    return false;
   }
 }

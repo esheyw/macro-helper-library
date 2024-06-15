@@ -1,6 +1,7 @@
 import { BANNER_TYPES, CONSOLE_TYPES, fu } from "../constants.mjs";
 import { MODULE } from "../init.mjs";
 import { setting } from "../settings/settings.mjs";
+import { deeperClone } from "./otherHelpers.mjs";
 import { mhlocalize } from "./stringHelpers.mjs";
 
 export function log(loggable, { type, prefix } = {}) {
@@ -42,7 +43,8 @@ export function modLog(loggable, { type, prefix, context, func, mod, localize = 
   } else {
     prefix = getLogPrefix("", { mod, func, prefix });
   }
-  return log(dupe ? fu.duplicate(loggable) : loggable, { type, prefix });
+  
+  return log(dupe ? deeperClone(loggable) : loggable, { type, prefix });
 }
 
 export function mhlog(loggable, options = {}) {
