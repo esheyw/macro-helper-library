@@ -3,36 +3,37 @@
 /*  Taken from https://github.com/foundryvtt/dnd5e/blob/master/less/v1/apps.less
 /* ----------------------------------------- */
 
-.accordion {
-  transition: margin-bottom 500ms ease;
+.mhl-accordion {
+  transition: margin-bottom var(--mhl-accordion-speed) ease;
 }
-.accordion.collapsed {
-  > .accordion-content {
+.mhl-accordion.collapsed {
+  > .mhl-accordion-content {
     height: 0;
   }
 }
 
-.accordion-indicator {
+.mhl-accordion-indicator {
   display: none;
-  transition: transform 500ms ease;
+  transition: transform var(--mhl-accordion-speed) ease;
   align-self: center;
   opacity: 0.5;
   font-size: 0.75em;
+  padding-left: 0.2em;
 }
-.accordion .accordion-indicator {
+.mhl-accordion .mhl-accordion-indicator {
   display: inline-block;
   transform: rotate(0deg);
 }
-.accordion.collapsed .accordion-indicator {
+.mhl-accordion.collapsed .mhl-accordion-indicator {
   transform: rotate(90deg);
 }
 
-.accordion-heading {
+.mhl-accordion-heading {
   cursor: pointer;
   position: relative;
 }
 
-.accordion-content {
+.mhl-accordion-content {
   overflow: hidden;
-  transition: height 500ms ease;
+  transition: height var(--mhl-accordion-speed) ease;
 }

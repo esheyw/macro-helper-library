@@ -1,8 +1,30 @@
 /*
-htmlQuery, htmlQueryAll, and htmlClosest are taken from the PF2e codebase (https://github.com/foundryvtt/pf2e), used under the Apache 2.0 License
+createHTMLElement, htmlQuery, htmlQueryAll, and htmlClosest are taken from the PF2e codebase (https://github.com/foundryvtt/pf2e), used under the Apache 2.0 License
 */
 
 import { mhlog } from "./errorHelpers.mjs";
+import { isEmpty } from "./otherHelpers.mjs";
+
+export function createHTMLElement(nodeName, { classes = [], dataset = {}, children = [], innerHTML, attributes={} }={}) {
+  const element = document.createElement(nodeName);
+  if (classes.length > 0) element.classList.add(...classes);
+
+  for (const [key, value] of Object.entries(dataset).filter(([, v]) => !isEmpty(v))) {
+    element.dataset[key] = value === true ? "" : String(value);
+  }
+  for (const [key, value] of Object.entries(attributes).filter(([, v]) => !isEmpty(v))) {
+    element[key] = value === true || String(value);
+  }
+  if (innerHTML) {
+    element.innerHTML = innerHTML;
+  } else {
+    for (const child of children) {
+      const childElement = child instanceof HTMLElement ? child : new Text(child);
+      element.appendChild(childElement);
+    }
+  }
+  return element;
+}
 
 export function htmlQuery(parent, selectors) {
   parent = parent instanceof jQuery ? parent[0] : parent;
@@ -39,18 +61,4 @@ export function elementFromString(string) {
   const template = document.createElement("template");
   template.innerHTML = string;
   return template.content?.firstElementChild;
-}
-
-export function escapeHTML(text) {
-  return text.replace(
-    /[&<>"']/g,
-    (m) =>
-      ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#039;",
-      }[m])
-  );
 }

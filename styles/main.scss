@@ -15,6 +15,7 @@
     --mhl-reset-text-shadow: none;
   }
   --mhl-text-error-decoration: underline wavy var(--mhl-color-failure);
+  --mhl-accordion-speed: 500ms;  
 }
 
 .mhl-fallback-icon {
@@ -52,3 +53,10 @@ div.section-separator {
   line-height: 200%;
 }
 @import "pickAThing", "updateInitiativeStatistics", "MHLSettingsManager", "MHLManagerSettingsMenu", "Accordion";
+
+.mhl-hljs-light {
+  @import "../node_modules/highlight.js/scss/atom-one-light.scss";
+}
+.mhl-hljs-dark {
+  @import "../node_modules/highlight.js/scss/atom-one-dark.scss";
+}

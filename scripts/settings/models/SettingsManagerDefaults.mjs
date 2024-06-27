@@ -1,6 +1,6 @@
-import { MODULE } from "../../init.mjs";
+import { AIF } from "../../init.mjs";
 const PREFIX = `MHL.Setting.ManagerDefaults`;
-const AIF = () => game.modules.get("additional-icon-fonts")?.active;
+
 export class SettingManagerDefaults extends foundry.abstract.TypeDataModel {
   static defineSchema() {
     const fields = foundry.data.fields;

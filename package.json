@@ -6,7 +6,10 @@
   "scripts": {
     "sass": "sass styles/main.scss styles/main.css",
     "unpack": "node build/unpack.mjs",
-    "pack": "node build/pack.mjs"
+    "pack": "node build/pack.mjs",
+    "build": "npm run sass && npm run pack && npm run rollup",
+    "rollup": "rollup -c",
+    "dev": "rollup -c -w"
   },
   "repository": {
     "type": "git",
@@ -20,6 +23,10 @@
   "homepage": "https://github.com/esheyw/macro-helper-library#readme",
   "devDependencies": {
     "@foundryvtt/foundryvtt-cli": "^1.0.2",
+    "@rollup/plugin-commonjs": "^26.0.1",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "highlight.js": "^11.9.0",
+    "rollup": "^4.18.0",
     "sass": "^1.70.0"
   }
 }

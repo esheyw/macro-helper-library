@@ -1,35 +1,8 @@
 import { fu } from "../constants.mjs";
-import { MHLError, isEmpty } from "./errorHelpers.mjs";
-import { prependIndefiniteArticle } from "./stringHelpers.mjs";
-import { MHLDialog } from "../apps/MHLDialog.mjs";
+import { MHLError } from "./errorHelpers.mjs";
 
-export async function pickAThingDialog({ things = null, title = null, thingType = "Item", dialogOptions = {} } = {}) {
-  if (!Array.isArray(things)) {
-    throw MHLError(`MHL.PickAThing.Error.ThingsFormat`);
-  }
-  const buttons = things.reduce((acc, curr) => {
-    let buttonLabel = ``;
-    if (!("label" in curr && "value" in curr)) {
-      throw MHLError(`MHL.PickAThing.Error.MalformedThing`, { log: { badthing: curr } });
-    }
-    if (curr?.img) {
-      buttonLabel += `<img src="${curr.img}" alt="${curr.label}" data-tooltip="${curr?.indentifier ?? curr.label}" />`;
-    }
-    buttonLabel += `<span class="item-name">${curr.label}</span>`;
-    if (curr?.identifier) {
-      buttonLabel += `<span class="dupe-id">(${curr.identifier})</span>`;
-    }
-    acc[curr.value] = { label: buttonLabel };
-    return acc;
-  }, {});
-  dialogOptions.classes ??= [];
-  dialogOptions.classes.push("pick-a-thing");
-  const dialogData = {
-    title: title ?? `Pick ${prependIndefiniteArticle(thingType.capitalize() ?? "Thing")}`,
-    buttons,
-    close: () => false,
-  };
-  return await MHLDialog.wait(dialogData, dialogOptions);
+export async function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export function isPlainObject(obj) {
@@ -118,6 +91,97 @@ export function mostDerivedClass(c1, c2) {
     return c1;
   }
 }
+
+// taken from https://stackoverflow.com/a/32728075, slightly modernized to handle Maps, Collections, and Sets
+/**
+ * Checks if value is empty. Deep-checks arrays and objects
+ * Note: isEmpty([]) == true, isEmpty({}) == true, isEmpty([{0:false},"",0]) == true, isEmpty({0:1}) == false
+ * @param value
+ * @returns {boolean}
+ */
+
+export function isEmpty(value) {
+  const isEmptyObject = (a) => {
+    a = a?.constructor?.name === "Map" ? new Collection(a) : a;
+    // all have a .some() in foundry at least
+    if (Array.isArray(a) || a instanceof Collection || a instanceof Set) {
+      return !a.some((e) => !isEmpty(e));
+    }
+    // it's an Object, not an Array, Set, Map, or Collection
+    const hasNonempty = Object.keys(a).some((e) => !isEmpty(a[e]));
+    return hasNonempty ? false : isEmptyObject(Object.keys(a));
+  };
+  return (
+    value == false ||
+    typeof value === "undefined" ||
+    value == null ||
+    (typeof value === "object" && isEmptyObject(value))
+  );
+}
+
+export function getInvalidKeys(source, valid = []) {
+  const validKeys = new Set(Array.isArray(valid) ? valid : isPlainObject(valid) ? Object.keys(valid) : []);
+  if (isPlainObject(source)) {
+    return [...new Set(Object.keys(source)).difference(validKeys)];
+  }
+  return [];
+}
+
+export function generateSorterFromOrder(order) {
+  if (!Array.isArray(order)) order = [order];
+  order = [...new Set(...order)];
+  return (a, b) => {
+    const aIdx = order.indexOf(a);
+    const bIdx = order.indexOf(b);
+    if (aIdx === -1) {
+      // a not in order, b is, b goes first
+      if (bIdx > -1) return 1;
+      // neither in order, so existing order is fine
+      return 0;
+    } else {
+      // both in the order list
+      if (bIdx > -1) return aIdx - bIdx;
+      // a in order, b isn't, a goes first
+      return -1;
+    }
+  };
+}
+
+export function filterObject(source, template, {recursive= true, deletionKeys=false, templateValues=false}={}) {
+  // Validate input
+  const ts = fu.getType(source);
+  const tt = fu.getType(template);
+  //todo: localize error
+  if ( (ts !== "Object") || (tt !== "Object")) throw new Error("One of source or template are not Objects!");
+
+  // Define recursive filtering function
+  const _filter = function(s, t, filtered, recursive) {
+    for ( let [k, v] of Object.entries(s) ) {
+      let has = t.hasOwnProperty(k);
+      let x = t[k];
+
+      // Case 1 - inner object
+      if ( has && (fu.getType(v) === "Object") && (fu.getType(x) === "Object") ) {
+        filtered[k] = recursive ? _filter(v, x, {}) : v;
+      }
+
+      // Case 2 - inner key
+      else if ( has ) {
+        filtered[k] = templateValues ? x : v;
+      }
+
+      // Case 3 - special key
+      else if ( deletionKeys && k.startsWith("-=") ) {
+        filtered[k] = v;
+      }
+    }
+    return filtered;
+  };
+
+  // Begin filtering at the outer-most layer
+  return _filter(source, template, {}, recursive);
+}
+
 // export function mergeObjectExtended2(
 //   original,
 //   other = {},

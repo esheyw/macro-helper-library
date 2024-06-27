@@ -1,7 +1,9 @@
 import { fu } from "../constants.mjs";
 import { mhlocalize } from "./stringHelpers.mjs";
-import { elementFromString, escapeHTML } from "./HTMLHelpers.mjs";
-import { isEmpty, mhlog } from "./errorHelpers.mjs";
+import { elementFromString } from "./DOMHelpers.mjs";
+import { escapeHTML } from "./stringHelpers.mjs";
+import { mhlog } from "./errorHelpers.mjs";
+import { isEmpty } from "./otherHelpers.mjs";
 import { getFunctionOptions, getStringArgs, isPlainObject } from "./otherHelpers.mjs";
 
 export function getIconHTMLString(...args) {
@@ -74,7 +76,7 @@ export function getIconClasses(...args) {
   const glyphSchema = font?.schema?.glyph ?? {};
   const schema = fu.duplicate(font.schema ?? {});
   delete schema.glyph; // ensure glyph is last entry
-  schema.glyph = fu.mergeObject(glyphDefault, glyphSchema);
+  schema.glyph = fu.mergeObject(glyphDefault, glyphSchema, { inplace: false });
   const aliases = font.aliases ?? {};
   const parts = getStringArgs(stringed, { map: (s) => (s in aliases ? aliases[s] : s) });
   const partsSeen = Object.fromEntries(Object.keys(schema).map((slug) => [slug, []]));
@@ -97,7 +99,6 @@ export function getIconClasses(...args) {
         ).exec(part);
       }
       if (matches || exact) {
-        // mhlog({ matches, exact, infer, strict, part, slug }, { func, prefix: "match!" });
         // not exact, can't infer, and no prefix
         if (!exact && !infer && !matches[1]) continue;
         // matched = skip fallback add to others

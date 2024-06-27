@@ -1,5 +1,5 @@
 import { MODULE_ID, fu } from "../constants.mjs";
-import { htmlClosest, htmlQuery, htmlQueryAll } from "../helpers/HTMLHelpers.mjs";
+import { htmlClosest, htmlQuery, htmlQueryAll } from "../helpers/DOMHelpers.mjs";
 import { mhlog } from "../helpers/errorHelpers.mjs";
 import { getIconClasses, getIconHTMLString } from "../helpers/iconHelpers.mjs";
 import { MODULE } from "../init.mjs";
@@ -47,10 +47,8 @@ export class MHLManagerDefaultsMenu extends FormApplication {
     //only save valid icons
     for (const [k, v] of Object.entries(expanded)) {
       if (k.includes("Icon") && !getIconClasses(v, { fallback: false })) delete expanded[k];
-    }
-    const sm = MODULE().api.sm;
-    await sm.set(this.settingName, expanded);
-    mhlog({ app: sm.app });
-    sm.app.render();
+    }    
+    await SM().set(this.settingName, expanded);
+    SM().app?.render();
   }
 }

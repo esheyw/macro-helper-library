@@ -3,16 +3,20 @@ section.mhl-settings-manager {
   details[data-setting-group] {
     summary {
       list-style: none;
-      // list-style-position: inside;
-      // display: inline-block;
       width: 100%;
     }
     h3::after {
-      content: "▾";
+      transition: opacity 300ms ease-in-out;
+      opacity: 0.5;
+      padding-left: 0.2em;
+      content: "⯆";
+    }
+    h3:hover:after {
+      opacity: 0.75;
     }
     &:not([open]) {
       h3::after {
-        content: "◂";
+        content: "⯇";
       }
     }
   }
@@ -29,7 +33,9 @@ section.mhl-settings-manager {
     display: inline;
     padding-right: 0.2em;
     transition: 0.5s ease-out all;
-    font-size: 1.1em;
+    [class~="mdi"] {
+      font-size: 1.1em;
+    }
     opacity: 1;
     text-shadow: var(--mhl-reset-text-shadow);
     &.disabled-blurry {
@@ -59,16 +65,15 @@ section.mhl-settings-manager {
       text-decoration: var(--mhl-text-error-decoration);
     }
   }
-  .accordion-indicator {
-    padding-left: 0.2em;
+  .accordion-border {
+    .mhl-accordion {
+      transition: border-bottom var(--mhl-accordion-speed) ease-in;
+      border-bottom: 1px dashed var(--color-underline-header);
+      &.collapsed {
+        border-bottom: 1px dashed transparent;
+      }
+    }
   }
-  // .accordion:last-child {
-  //   transition: border-bottom 500ms ease-in;
-  //   border-bottom: 1px dashed var(--color-underline-header);
-  //   &.collapsed {
-  //     border-bottom: 1px solid transparent;
-  //   }
-  // }
 }
 
 .mhl-dialog.mhl-reset {
@@ -77,12 +82,16 @@ section.mhl-settings-manager {
   //   flex-basis: min-content;
   //   flex: 1;
   // }
+  &> * {
+    user-select: text;
+  }
   min-width: 400px;
   span.count-tooltip {
     font-weight: bold;
     text-decoration: underline;
   }
   table {
+    
     width: 100%;
   }
   h3 {
@@ -96,6 +105,7 @@ section.mhl-settings-manager {
     }
   }
   td {
+    user-select: text;
     // border: 1px solid gold;
     padding: 0.3em;
     text-align: center;

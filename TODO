@@ -9,7 +9,6 @@
 - better error handling/fallback generally
 - set up physical types per system
 - MCT: sort existing on updateRootFolder? leave button or retire?
-- consolidate all input change listeners
 - fix overflow on object settings reset display
 - constrain the submit button, general css improvements to the default model form
 - test validation of stringfields with regex
@@ -24,3 +23,8 @@
 - repopulate settings form on render
 - selectOptionsGrouped
 - reset button on menu settings with `for`
+- check setting data models for function fields and reject
+- handle icon settings default fallback if AIF not found
+- Hide groups if all their settings are hidden
+- make static/instance function pair for updating the default icons
+- rerender popup on changing manager-defaults

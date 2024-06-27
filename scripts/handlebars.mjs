@@ -19,7 +19,7 @@ const pf2eReplacements = {
   },
   isNullish: (value) => value === undefined || value === null,
   isNumber: (value) => typeof value === "number",
-  json: (data, indent) => JSON.stringify(data, null, Number(indent)),
+  
   lower: (str) => String(str).toLowerCase(),
   multiply: (a, b) => Number(a) * Number(b),
   nor: (...args) => !args.slice(0, -1).some((a) => !!a),
@@ -64,6 +64,9 @@ const mhlOriginals = {
     const fn = options.all ? "every" : "some";
     return needles[fn]((n) => haystack.includes(n));
   },
+  // will replace pf2e's json helper in pf2e worlds, but if the 2nd property is omitted no behaviour changes 
+  // so I'm doin it unless someone finds something it breaks
+  json: (data, indent) => JSON.stringify(data, null, Number(indent)),
   // selectOptionsGrouped: (...args) => {
   //   const options = getFunctionOptions(args);
   //   const opts = args[0];

@@ -1,148 +1,97 @@
 {
   "MHL": {
+    "Confirm": "Confirm",
     "Count": "Count",
     "Current": "Current",
-    "Confirm": "Confirm",
     "CurrentValue": "Current Value",
     "DefaultValue": "Default Value",
-    "Group": "Group",
-    "Module": "Module",
-    "HasDefault": "Has Default",
-    "IsDefault": "Is Default",
-    "NotApplicable": "N/A",
-    "SetTo": "Set To",
-    "Visible": "Visible",
-    "Grammar": {
-      "Articles": {
-        "An": "an",
-        "A": "a",
-        "The": "the"
-      }
-    },
-    "IconFontsHandler": {
-      "Fallback": {
-        "Sort": "Sort value not supplied or already exists for font {name}, falling back to highest sort + 5."
-      },
-      "Error": {
-        "PlainObject": "Icon font entries must be plain objects with name, prefix, and list keys",
-        "UniqueNameRequired": "Icon font entries must provide a name key that is not already in use.",
-        "UniquePrefixRequired": "Icon font entries must provide a prefix key, or array of keys, none of which are already in use.",
-        "NonEmptyListRequired": "Icon font entries must provide a list key that is a non-empty array of strings.",
-        "SortInteger": "The sort property, if provided in an icon font entry, must be an integer.",
-        "ValidatorFunction": "Icon font entries must provide a validator function that can accept a string, or an array of strings, or a series of strings, and validate that at least one argument is a valid icon of your list, returning a string containing all the css classes required to make that icon valid, or empty string on failure."
-      }
-    },
-    "PickAThing": {
-      "Title": "Pick A Thing",
-      "Error": {
-        "ThingsFormat": "`things` must be an array of \\{name: string, value: any, img?: string, identifier?: string} objects.",
-        "MalformedThing": "Provided thing lacked valid label or value."
-      }
-    },
-    "SettingsManager": {
-      "Reset": {
-        "Setting": {
-          "SavedTooltip": "This setting differs from its default value. Left click to reset it.",
-          "FormTooltipAppend": "<br>This setting's input currently differs from its saved value. Right click to reset it.",
-          "FormTooltipSolo": "This setting's input currently differs from its saved value. Left or right click to reset it.",
-          "IsDefaultTooltip": "This setting is currently default.",
-          "DialogHeader": "Reset {target}?"
-        },
-        "Group": {
-          "SavedTooltip": "This group has {count} setting(s) that aren't default. Left click to reset them.",
-          "FormTooltipAppend": "<br>{count} setting input(s) currently differ from their saved values. Right click to reset them.",
-          "FormTooltipSolo": "{count} of this group's setting input(s) currently differ from their saved values. Left or right click to reset them.",
-          "AllDefaultTooltip": "This group's settings' saved values are all currently default.",
-          "DialogHeader": "Reset all settings of group {target}?"
-        },
-        "Module": {
-          "SavedTooltip": "This module has {count} setting(s) that aren't default. Left click to reset them.",
-          "FormTooltipAppend": "<br>{count} setting input(s) currently differ from their saved values. Right click to reset them.",
-          "FormTooltipSolo": "{count} of this module's setting input(s) currently differ from their saved values. Left or right click to reset them.",
-          "AllDefaultTooltip": "This module's settings' saved values are all currently default.",
-          "DialogHeader": "Reset all settings of module {target}?"
-        },
-        "FormResetBanner": "Resetting {count} form value(s) to their saved value(s).",
-        "DialogTitle": "Reset to Default",
-        "NotConfigurableTooltip": "This setting is not configurable from the settings application."
-      },
-      "ResetSingle": {
-        "DialogHeader": "Reset {setting}?",
-        "DialogBody": "Default value: <code>{value}</code><br><em>Note: This will apply immediately to the actual setting, not just the input in the settings window.</em>",
-        "Tooltip": "Reset this setting to its default value",
-        "IsDefault": "Setting is currently equal to its default value"
-      },
-      "ResetMultiple": {
-        "AllModuleDefault": "This module's settings are all currently default",
-        "AllGroupDefault": "This group's settings are all currently default",
-        "ModuleTooltip": "Reset this module's settings to default",
-        "GroupTooltip": "Reset this group's settings to default",
-        "AllDefault": "All settings are currently equal to their default value",
-        "Body": "This {type} has <span class=\"count-tooltip\" data-tooltip-direction=\"UP\" data-tooltip=\"{defaultlessTooltip}\">{defaultlessCount}</span> setting(s) without defaults, and <span class=\"count-tooltip\" data-tooltip-direction=\"UP\" data-tooltip=\"{areDefaultTooltip}\">{areDefault}</span> setting(s) that are unchanged from their default. This action will reset:",
-        "Footer": "Note: This will apply immediately to the actual settings, not just the inputs in the settings window.",
-        "DialogHeader": "Reset All {divisionName} Settings?"
-      },
-      "ColorPicker": {
-        "ValidHexCode": "Must be a # followed by a valid 6-character hex color code"
-      },
-      "Error": {
-        "BadModuleID": "moduleFor must be a string module ID or a Module object reference.",
-        "ManagerAlreadyExists": "A settings manager has already been registered for {module}.",
-        "InvalidGroup": "Group names must be strings, not whatever was logged. Skipping.",
-        "DuplicateGroup": "Group \"{group}\" already declared. Skipping.",
-        "InvalidEnrichHintsOption": "Invalid enrichHints option for {module}. If provided, must be one of:\n- A boolean (true meaning use only the default erichers)\n- A Map or an Object with pattern keys and replacement values (for use with `String.replace()`)\n- An Array of such pairs.\nDefaulting to true.",
-        "InvalidCollapsibleGroupsOption":"Invalid collapsibleGroups option for {module}. If provided, it must be one of:\n- A boolean (true meaning use the default accordion indicator)\n- A string specifying icon font css class(es) for the accordion indicator\nDefaulting to true.",
-        "InvalidGroupsOption": "Invalid groups option for {module}. If provided it must be one of:\n- A boolean (true meaning groups display in the order their first settings are found)\n- The string \"a\" for alphabetical sort\n- An array of group name strings specifying group order\nDefaulting to true.",
-        "InvalidSortOption": "Invalid sort option for {module}. If provided it must be one of:\n- A boolean (true meaning alphabetical sort)\n- A string-comparison function\n- An object of the form \\{ menusFirst: boolean, fn: function }\nDefaulting to false (registration order)",
-        "InvalidResetButtonsOption": "Invalid resetButtons option for {module}. If provided, it must be one of: \n- A boolean\n- One of the strings \"all\", \"settings\", \"groups\", or \"module\"\n- An array of some combination of such strings\n An object with some combination of such keys and values that are either boolean or an icon font css class(es).\nDefaulting to \"all\" (use global default icons).",
-        "InvalidSettingKey": "{module} setting data contains key \"{key}\" which is not valid to register a setting with, skipping.",
-        "DuplicateSettingKey": "Setting key \"{key}\" already seen for {module}, skipping duplicate",
-        "InvalidSettingData": "Setting `{key}` for module {module} failed to validate and was not registered.",
-        "NoValidSettings": "No valid settings could be retrieved from passed data for module {module}.",
-        "Hooks": {
-          "BadHook": "Hook data for setting {key} of {module} is malformed; Must be an object containing a string `hook` key.",
-          "RequiresAction": "Hook {hook} for setting {key} of {module} requires an `action` key containing a function.",
-          "TestFunction": "Hook data for setting {key} of {module} is malformed; `test`, if provided, must be a function."
-        },
-        "Visibility": {
-          "UnknownDependency": "Setting {dependsOn} not found, so it cannot be predicated on for visibility for setting {key} of {module}.",
-          "RequireDependsOn": "Visibility data for setting {key} of {module} is malformed: If provided as an object, must contain a `dependsOn` key containing a string setting ID or an array of such.",
-          "RequireTest": "Visibility data for setting {key} of {module} is malformed: If provided as an object, must contain a function under the `test` key.",
-          "BadFormat": "Visibility data for setting {key} must be either a string setting ID (with optional ! prefix) or an object containing such under the `dependsOn` key, with an optional `test` function key."
-        },
-        "DuplicateSetting": "Setting ID \"{key}\" already exists for {module}.",
-        "Button": {
-          "BadFormat": "Malformed button data for key {key} of {module}. Button data must be an object with at least an `action` property containing a function.",
-          "Label": "A setting's `button` data must contain a `label` property, either string or null (for localization key inference).",
-          "Action": "A button replacement action must be a function."
-        },
-        "NoDefault": "Setting {setting} of {module} does not have a default value recorded and cannot be reset.",
-        "NotRegistered": "Setting {setting} is not registered for {module}.",
-
-        "InvalidColorPicker": "A setting with `colorPicker: true` in its data must have a default value that is a valid 7-character hex code (e.g. #FFFFFF).",
-
-        "NotAnElement": "The provided variable \"{variable}\" was not an HTMLElement."
-      },
-      "Warning": {
-        "InvalidResetButtonType": "{module} passed {type} as a resetButton type, which is invalid. Ignoring."
-      }
-    },
     "Dialog": {
+      "Error": {
+        "BadValidator": "The supplied validator must either be a function or an array of value names required to be non-empty.",
+        "FormRequiresName": "One or more of the forms provided lacks a `name` property.",
+        "ReservedKeys": "The contentData object must not contain any of the following reserved keys: {keys}",
+        "TemplateFailure": "The template filepath or literal passed to MHLDialog failed to compile properly."
+      },
       "Warning": {
         "FormLacksName": "Form with no `name` found, falling back on numeric key.",
         "RequiredFields": "This dialog requires one or more fields to be non-empty: {fields}"
-      },
-      "Error": {
-        "TemplateFailure": "The template filepath or literal passed to MHLDialog failed to compile properly.",
-        "FormRequiresName": "One or more of the forms provided lacks a `name` property.",
-        "ReservedKeys": "The contentData object must not contain any of the following reserved keys: {keys}",
-        "BadValidator": "The supplied validator must either be a function or an array of value names required to be non-empty."
       }
     },
-    "Prompt": {
-      "SetAllSelected": "Set All Selected",
-      "SetIndividually": "Set Individually"
+    "Error": {
+      "BannerType": "Banner type must be one of \"info\", \"warn\", or \"error\".",
+      "BothMustBeClassesOrClassedObjects": "Both parameters must be classes or objects with a constructor.",
+      "BothMustBeMaps": "At least one of original or other are not Maps or subclasses of Map.",
+      "DataModel": {
+        "InitialFunctionFailure": "This model's `{field}` field's `initial` function threw an error, probably from being run too early."
+      },
+      "Generic": "You broke something.",
+      "InvalidCamel": "I don't think {camel} is a real camel.",
+      "InvalidType": "Invalid type \"{type}\" provided.",
+      "LogType": "Log type must be one of \"debug\", \"info\", \"warn\", or \"error\".",
+      "NotADocumentType": "Type {type} is not a valid type of Document.",
+      "RequireSameInheritanceChain": "Both objects' classes must be from the same inheritance chain.",
+      "RequiresSystem": "This macro/helper/class is only compatible with the <code>{system}</code> system.",
+      "Target": {
+        "NotAnyTargetted": "Must have at least one token targetted.",
+        "NotOneTargetted": "Must have exactly one token targetted."
+      },
+      "Token": {
+        "Fallback": ", or a token of your assigned character on the current scene",
+        "NotAnySelected": "Must have at least one token selected{fallback}.",
+        "NotOneSelected": "Must not have more than one token selected."
+      },
+      "TooEarlyForBanner": "Banner creation aborted because game isn't Ready, attempted type \"{type}\", string: \"{bannerstr}\"",
+      "Type": {
+        "Array": "`{arg}` must be an Array{of}.",
+        "Boolean": "`{arg}` must be Boolean.",
+        "DataModel": "`{arg}` must be a class inheriting from DataModel.",
+        "Folder": "`{arg}` must be a Folder document or the ID of one.",
+        "Function": "`{arg}` must be a Function.",
+        "Number": "`{arg}` must be a Number.",
+        "Of": {
+          "ButtonLabelStrings": " of button label strings",
+          "TraitSlugs": " of trait slug strings"
+        },
+        "String": "`{arg}` must be a String.",
+        "User": "`{arg}` must be a User or the ID of one."
+      },
+      "UnsupportedDocument": "Document type {type} not supported by this function.",
+      "Validation": {
+        "IconGeneric": "The provided arguments did not produce a valid icon string from any registered Icon font.",
+        "IconSchemaGlyphExact": "The glyph field of an icon font schema cannot define an exact `value`; use `choices` or `pattern`"
+      },
+      "WrongDocumentTypeRetrieved": "Document retrieved was not of type {type}."
     },
+    "Fancy": "This is a {fancy} string!",
+    "FancyInner": "{superlative} fancy",
+    "GetAllFromAllowedPacks": {
+      "Error": {
+        "FieldsFormat": "`fields` must be an array of only strings."
+      }
+    },
+    "Grammar": {
+      "Articles": {
+        "A": "a",
+        "An": "an",
+        "The": "the"
+      }
+    },
+    "Group": "Group",
+    "HasDefault": "Has Default",
+    "IconFontsHandler": {
+      "Error": {
+        "NonEmptyListRequired": "Icon font entries must provide a list key that is a non-empty array of strings.",
+        "PlainObject": "Icon font entries must be plain objects with name, prefix, and list keys",
+        "SortInteger": "The sort property, if provided in an icon font entry, must be an integer.",
+        "UniqueNameRequired": "Icon font entries must provide a name key that is not already in use.",
+        "UniquePrefixRequired": "Icon font entries must provide a prefix key, or array of keys, none of which are already in use.",
+        "ValidatorFunction": "Icon font entries must provide a validator function that can accept a string, or an array of strings, or a series of strings, and validate that at least one argument is a valid icon of your list, returning a string containing all the css classes required to make that icon valid, or empty string on failure."
+      },
+      "Fallback": {
+        "Sort": "Sort value not supplied or already exists for font {name}, falling back to highest sort + 5."
+      }
+    },
+    "IsDefault": "Is Default",
     "Macro": {
       "DropHeldTorch": {
         "Error": {
@@ -151,10 +100,10 @@
       },
       "FascinatingPerformance": {
         "Error": {
-          "MustHaveFeat": "Selected actor must have the Fascinating Performance feat.",
-          "MinimumTrained": "Must be at least Trained in Performance to use, or even have taken, Fascinating Performance.",
-          "SingleTargetOnly": "You are only Trained in performance, so are limited to a single target.",
           "FourTargetsOnly": "You are only Expert in performance, so are limited to 4 targets.",
+          "MinimumTrained": "Must be at least Trained in Performance to use, or even have taken, Fascinating Performance.",
+          "MustHaveFeat": "Selected actor must have the Fascinating Performance feat.",
+          "SingleTargetOnly": "You are only Trained in performance, so are limited to a single target.",
           "TenTargetsOnly": "You are only Master in performance, so are limited to 10 targets."
         },
         "Warning": {
@@ -162,149 +111,197 @@
         }
       },
       "LashingCurrents": {
+        "Error": {
+          "NoExistingFound": "No old-style Lashing Currents weapon found on the actor of selected token \"{name}\".",
+          "NoneSelected": "No weapon selected."
+        },
         "Info": {
           "Removing": "Removing Lashing Currents rules from \"{name}\"."
-        },
-        "Error": {
-          "NoneSelected": "No weapon selected.",
-          "NoExistingFound": "No old-style Lashing Currents weapon found on the actor of selected token \"{name}\"."
         }
       },
       "UpdateInitiativeStatistics": {
+        "AllSharedSkills": "Skills shared by all selected actors: ",
+        "DisabledTooltip": "Being overridden by the all selector above.",
         "Error": {
           "NoValidTokens": "None of the selected tokens are PCs or NPCs that are neither minions nor eidolons."
-        },
-        "AllSharedSkills": "Skills shared by all selected actors: ",
-        "DisabledTooltip": "Being overridden by the all selector above."
+        }
       }
     },
-    "GetAllFromAllowedPacks": {
+    "Module": "Module",
+    "NotApplicable": "N/A",
+    "PickAThing": {
       "Error": {
-        "FieldsFormat": "`fields` must be an array of only strings."
-      }
+        "MalformedThing": "Provided thing lacked valid label or value.",
+        "ThingsFormat": "`things` must be an array of \\{name: string, value: any, img?: string, identifier?: string} objects."
+      },
+      "Title": "Pick A Thing"
     },
     "PickItemFromActor": {
-      "NoItemsOfType": "Selected actor lacks any items of type \"{itemType}\".",
       "FilterUnmatched": "Provided filter produced no valid items.",
+      "NoItemsOfType": "Selected actor lacks any items of type \"{itemType}\".",
       "NoMatchingHeld": "Selected actor is not holding any matching items."
     },
-    "Error": {
-      "UnsupportedDocument": "Document type {type} not supported by this function.",
-      "Target": {
-        "NotOneTargetted": "Must have exactly one token targetted.",
-        "NotAnyTargetted": "Must have at least one token targetted."
-      },
-      "Token": {
-        "Fallback": ", or a token of your assigned character on the current scene",
-        "NotAnySelected": "Must have at least one token selected{fallback}.",
-        "NotOneSelected": "Must not have more than one token selected."
-      },
-      "NotADocumentType": "Type {type} is not a valid type of Document.",
-      "WrongDocumentTypeRetrieved": "Document retrieved was not of type {type}.",
-      "TooEarlyForBanner": "Banner creation aborted because game isn't Ready, attempted type \"{type}\", string: \"{bannerstr}\"",
-      "InvalidCamel": "I don't think {camel} is a real camel.",
-      "RequiresSystem": "This macro/helper/class is only compatible with the <code>{system}</code> system.",
-      "Generic": "You broke something.",
-      "BannerType": "Banner type must be one of \"info\", \"warn\", or \"error\".",
-      "LogType": "Log type must be one of \"debug\", \"info\", \"warn\", or \"error\".",
-      "InvalidType": "Invalid type \"{type}\" provided.",
-      "Validation": {
-        "IconSchemaGlyphExact": "The glyph field of an icon font schema cannot define an exact `value`; use `choices` or `pattern`",
-        "IconGeneric": "The provided arguments did not produce a valid icon string from any registered Icon font."
-      },
-      "DataModel": {
-        "InitialFunctionFailure": "This model's `{field}` field's `initial` function threw an error, probably from being run too early."
-      },
-      "RequireSameInheritanceChain": "Both objects' classes must be from the same inheritance chain.",
-      "BothMustBeClassesOrClassedObjects": "Both parameters must be classes or objects with a constructor.",
-      "BothMustBeMaps": "At least one of original or other are not Maps or subclasses of Map.",
-      "Type": {
-        "Of": {
-          "TraitSlugs": " of trait slug strings",
-          "ButtonLabelStrings": " of button label strings"
-        },
-        "Array": "`{arg}` must be an Array{of}.",
-        "User": "`{arg}` must be a User or the ID of one.",
-        "Folder": "`{arg}` must be a Folder document or the ID of one.",
-        "Function": "`{arg}` must be a Function.",
-        "Number": "`{arg}` must be a Number.",
-        "String": "`{arg}` must be a String.",
-        "Boolean": "`{arg}` must be Boolean.",
-        "DataModel": "`{arg}` must be a class inheriting from DataModel."
-      }
-    },
-    "Warning": {
-      "Fallback": {
-        "FallbackIcon": "Provided arguments did not produce a valid set of icon classes, using fallback value {fallback}",
-        "FallbackIconTooltip": "Using fallback icon. Parsed args: <p><code>{args}</code></p>",
-        "BannerType": "Provided notification banner type \"{type}\" is not valid, defaulting to \"{defaultType}\".",
-        "FirstTarget": "This operation requires a single target, using first target \"{name}\".",
-        "FirstToken": "This operation requires a single selected token, using first token \"{name}\".",
-        "LogType": "Provided log type \"{type}\" is not valid, defaulting to \"{defaultType}\".",
-        "Type": "Expected parameter \"{arg}\" to be of type \"{expected}\", not \"{type}\". Casting.",
-        "LevelOutOfBounds": "Provided level ({level}) out of bounds! Defaulting to level 25."
-      },
-      "SystemBelowVerified": "Your system version ({version}) is older than what Macro & Helper Library is verified for ({verified}). This may cause things to break, or might not; No guarantees."
+    "Prompt": {
+      "SetAllSelected": "Set All Selected",
+      "SetIndividually": "Set Individually"
     },
     "Setting": {
       "DebugMode": {
-        "Name": "Debug Mode",
-        "Hint": "Enable debug logging. Showstopper errors will fire without this, but fallback"
+        "Hint": "Enable debug logging. Showstopper errors will fire without this, but fallback",
+        "Name": "Debug Mode"
+      },
+      "GlobalAccess": {
+        "Hint": "Makes the MHL API accessible via just `mhl` in the global scope. Available only after the Setup hook.",
+        "Name": "Global API Access"
+      },
+      "LegacyAccess": {
+        "Hint": "Populates `game.pf2emhl`, as is tradition. Available only after the Setup hook.",
+        "Name": "Legacy API Access"
+      },
+      "LogLevel": {
+        "Choice": {
+          "Debug": "Debug",
+          "Error": "Error",
+          "Info": "Info",
+          "Warn": "Warning"
+        },
+        "Hint": "The level at which `mhlog()`/`modLog()` calls will be made in debug mode if an explict type isn't passed.",
+        "Name": "Debug Log Level"
       },
       "ManagerDefaults": {
-        "DisabledClass": {
-          "Label": "Disabled Icon CSS Class",
-          "Hint": "The CSS class applied to reset-to-default buttons when their associated setting(s) is/are default."
-        },
         "AccordionIndicatorIcon": {
-          "Label": "Accordion Indicator Icon",
-          "Hint": "The css class(es) used to get the icon displayed next to a collapseable group header. Usually just the glyph-identifying class is sufficient, defaults will be filled in automatically."
+          "Hint": "The css class(es) used to get the icon displayed next to a collapseable group header. Usually just the glyph-identifying class is sufficient, defaults will be filled in automatically.",
+          "Label": "Accordion Indicator Icon"
         },
-        "ModuleResetIcon": {
-          "Label": "Module Reset Icon",
-          "Hint": "Same as above, for the Reset Module Settings button's icon."
+        "DisabledClass": {
+          "Hint": "The CSS class applied to reset-to-default buttons when their associated setting(s) is/are default.",
+          "Label": "Disabled Icon CSS Class"
         },
         "GroupResetIcon": {
-          "Label": "Group Reset Icon",
-          "Hint": "Same as above, but for the Reset Group Settings button."
+          "Hint": "Same as above, but for the Reset Group Settings button.",
+          "Label": "Group Reset Icon"
+        },
+        "ModuleResetIcon": {
+          "Hint": "Same as above, for the Reset Module Settings button's icon.",
+          "Label": "Module Reset Icon"
         },
         "SettingResetIcon": {
-          "Label": "Setting Reset Icon",
-          "Hint": "Same as above, but for the per-setting reset buttons."
+          "Hint": "Same as above, but for the per-setting reset buttons.",
+          "Label": "Setting Reset Icon"
         }
       },
       "ManagerDefaultsMenu": {
-        "Name": "AAA Icon Settings",
         "Hint": "Set the default FontAwesome glyphs for modules using the setting manager that haven't provided their own overrides.",
-        "Label": "Icon Settings"
-      },
-      "LogLevel": {
-        "Name": "Log Level for Debug Mode",
-        "Hint": "The level at which `mhlog()`/`modLog()` calls will be made in debug mode if an explict type isn't passed.",
-        "Choice": {
-          "Debug": "Debug",
-          "Info": "Info",
-          "Warn": "Warning",
-          "Error": "Error"
-        }
-      },
-      "LegacyAccess": {
-        "Name": "Legacy API Access",
-        "Hint": "Populates `game.pf2emhl`, as is tradition. Available only after the Setup hook."
-      },
-      "GlobalAccess": {
-        "Name": "Global API Access",
-        "Hint": "Makes the MHL API accessible via just `mhl` in the global scope. Available only after the Setup hook."
+        "Label": "Icon Settings",
+        "Name": "Icon Settings"
       }
     },
     "SettingGroup": {
-      "SettingsManager": "Setting Manager Defaults",
-      "Testing": "Testing",
       "Access": "API Access",
-      "ErrorHandling": "Error Handling"
+      "ErrorHandling": "Error Handling",
+      "SettingsManager": "Setting Manager Defaults",
+      "Testing": "Testing"
     },
-    "Fancy": "This is a {fancy} string!",
-    "FancyInner": "{superlative} fancy",
-    "Very": "Very"
+    "SettingsManager": {
+      "ColorPicker": {
+        "ValidHexCode": "Must be a # followed by a valid 6-character hex color code"
+      },
+      "Error": {
+        "BadModuleID": "First argument must be a string module ID or a Module object reference.",
+        "Button": {
+          "Action": "A button replacement action must be a function.",
+          "BadFormat": "Malformed button data for key {key} of {module}. Button data must be an object with at least an `action` property containing a function.",
+          "Label": "A setting's `button` data must contain a `label` property, either string or null (for localization key inference)."
+        },
+        "DuplicateSetting": "Setting ID \"{key}\" already exists for {module}.",
+        "DuplicateSettingKey": "Setting key \"{key}\" already seen for {module}, skipping duplicate.",
+        "Hooks": {
+          "BadHook": "Hook data for setting {key} of {module} is malformed; Must be an object containing a string `hook` key.",
+          "RequiresAction": "Hook {hook} for setting {key} of {module} requires an `action` key containing a function.",
+          "TestFunction": "Hook data for setting {key} of {module} is malformed; `test`, if provided, must be a function."
+        },
+        "InvalidColorPicker": "A setting with `colorPicker: true` in its data must have a default value that is a valid 7-character hex code (e.g. #FFFFFF).",
+        "InvalidEnrichHintsOption": "Invalid enrichHints option for {module}. If provided, must be one of:\n- A boolean (true meaning use only the default erichers)\n- A Map or an Object with pattern keys and replacement values (for use with `String.replace()`)\n- An Array of such pairs.\nDefaulting to true.",
+        "InvalidGroupData": "Invalid group data encountered for group \"{group}\" in {module} and logged. Group data  Skipping.",
+        "InvalidGroupName": "Invalid group name encountered in {module} and logged. Skipping.",
+        "InvalidGroupOverrideOptionValue": "The value of group.overrides[\"{group}\"].{key} for {module} is invalid. Ignoring, see the wiki for documentation.",
+        "InvalidOptionData": "Invalid \"{option}\" data for {module} found and logged. Falling back to default value(s), see the wiki for documentation.",
+        "InvalidOptionKeys": "The \"{option}\" option for {module} contained the keys [{keys}], which are not part of the schema. Ignoring.",
+        "InvalidOptionValue": "The value of \"{option}.{key}\" for {module} is invalid. Falling back to default value ({default}), see the wiki for documentation.",
+        "InvalidSettingArrayEntry": "Invalid entry in settings array for {module}, must be an object with `key` string property. Skipping.",
+        "InvalidSettingData": "Logged setting data with key \"{key}\" for {module} failed to validate and was not registered.",
+        "InvalidSettingKey": "{module} setting data contains key \"{key}\" which is not valid to register a setting with, skipping.",
+        "ManagerAlreadyExists": "A settings manager has already been registered for {module}.",
+        "NoDefault": "Setting {setting} of {module} does not have a default value recorded and cannot be reset.",
+        "NotRegistered": "Setting {key} is not registered for {module}.",
+        "NoValidSettings": "No valid settings could be retrieved from passed data for module {module}.",
+        "Visibility": {
+          "BadFormat": "Visibility data for setting {key} of {module} is invalid and has been logged and discarded. See the wiki for documentation.",
+          "Recursion": "Visibility for setting {key} cannot depend upon itself.",
+          "RequireDependsOn": "Visibility data for setting {key} of {module} is malformed: If provided as an object, must contain a `dependsOn` key containing a string setting ID or an array of such.",
+          "RequireTest": "Visibility data for setting {key} of {module} is malformed: If provided as an object, must contain a function under the `test` key.",
+          "UnknownDependency": "Setting {dependsOn} is not a registered or potential setting for {module}, so it cannot be predicated on for visibility for setting {key}."
+        }
+      },
+      "Reset": {
+        "DialogTitle": "Reset to Default",
+        "FormResetBanner": "Resetting {count} form value(s) to their saved value(s).",
+        "Group": {
+          "AllDefaultTooltip": "This group's settings' saved values are all currently default.",
+          "DialogHeader": "Reset all settings of group {target}?",
+          "FormTooltipAppend": "<br>{count} setting input(s) currently differ from their saved values. Right click to reset them.",
+          "FormTooltipSolo": "{count} of this group's setting input(s) currently differ from their saved values. Left or right click to reset them.",
+          "SavedTooltip": "This group has {count} setting(s) that aren't default. Left click to reset them."
+        },
+        "Module": {
+          "AllDefaultTooltip": "This module's settings' saved values are all currently default.",
+          "DialogHeader": "Reset all settings of module {target}?",
+          "FormTooltipAppend": "<br>{count} setting input(s) currently differ from their saved values. Right click to reset them.",
+          "FormTooltipSolo": "{count} of this module's setting input(s) currently differ from their saved values. Left or right click to reset them.",
+          "SavedTooltip": "This module has {count} setting(s) that aren't default. Left click to reset them."
+        },
+        "NotConfigurableTooltip": "This setting is not configurable from the settings application.",
+        "Setting": {
+          "DialogHeader": "Reset {target}?",
+          "FormTooltipAppend": "<br>This setting's input currently differs from its saved value. Right click to reset it.",
+          "FormTooltipSolo": "This setting's input currently differs from its saved value. Left or right click to reset it.",
+          "IsDefaultTooltip": "This setting is currently default.",
+          "SavedTooltip": "This setting differs from its default value. Left click to reset it."
+        }
+      },
+      "ResetMultiple": {
+        "AllDefault": "All settings are currently equal to their default value",
+        "AllGroupDefault": "This group's settings are all currently default",
+        "AllModuleDefault": "This module's settings are all currently default",
+        "Body": "This {type} has <span class=\"count-tooltip\" data-tooltip-direction=\"UP\" data-tooltip=\"{defaultlessTooltip}\">{defaultlessCount}</span> setting(s) without defaults, and <span class=\"count-tooltip\" data-tooltip-direction=\"UP\" data-tooltip=\"{areDefaultTooltip}\">{areDefault}</span> setting(s) that are unchanged from their default. This action will reset:",
+        "DialogHeader": "Reset All {divisionName} Settings?",
+        "Footer": "Note: This will apply immediately to the actual settings, not just the inputs in the settings window.",
+        "GroupTooltip": "Reset this group's settings to default",
+        "ModuleTooltip": "Reset this module's settings to default"
+      },
+      "ResetSingle": {
+        "DialogBody": "Default value: <code>{value}</code><br><em>Note: This will apply immediately to the actual setting, not just the input in the settings window.</em>",
+        "DialogHeader": "Reset {setting}?",
+        "IsDefault": "Setting is currently equal to its default value",
+        "Tooltip": "Reset this setting to its default value"
+      },
+      "Warning": {}
+    },
+    "SetTo": "Set To",
+    "Very": "Very",
+    "Visible": "Visible",
+    "Warning": {
+      "Fallback": {
+        "BannerType": "Provided notification banner type \"{type}\" is not valid, defaulting to \"{defaultType}\".",
+        "FallbackIcon": "Provided arguments did not produce a valid set of icon classes, using fallback value {fallback}",
+        "FallbackIconTooltip": "Using fallback icon. Parsed args: <p><code>{args}</code></p>",
+        "FirstTarget": "This operation requires a single target, using first target \"{name}\".",
+        "FirstToken": "This operation requires a single selected token, using first token \"{name}\".",
+        "LevelOutOfBounds": "Provided level ({level}) out of bounds! Defaulting to level 25.",
+        "LogType": "Provided log type \"{type}\" is not valid, defaulting to \"{defaultType}\".",
+        "Type": "Expected parameter \"{arg}\" to be of type \"{expected}\", not \"{type}\". Casting."
+      },
+      "SystemBelowVerified": "Your system version ({version}) is older than what Macro & Helper Library is verified for ({verified}). This may cause things to break, or might not; No guarantees."
+    }
   }
 }
