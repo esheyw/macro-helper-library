@@ -9,3 +9,4 @@ packs/**
 node_modules
 app
 client.mjs
+dist

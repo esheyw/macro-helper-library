@@ -26,6 +26,12 @@ export const iconFontsDefaults = [
       sharp: {
         pattern: "sharp",
       },
+      rotate: {
+        pattern: "rotate-(90|180|270|by)"
+      },
+      flip: {
+        pattern: "flip-(horizonal|vertical|both)"
+      },
       style: {
         choices: ["solid", "regular", "duotone", "light", "thin"],
         required: true,

@@ -6,15 +6,6 @@ import { MHLSettingsManager } from "../util/MHLSettingsManager.mjs";
 import { SettingManagerDefaults } from "./models/SettingsManagerDefaults.mjs";
 
 export const SETTINGS = () => ({
-  "manager-defaults-menu": {
-    type: MHLManagerDefaultsMenu,
-    name: null,
-    hint: null,
-    label: null,
-    icon: "icons",
-    group: ".SettingsManager",
-    for: "manager-defaults",
-  },
   "manager-defaults": {
     type: SettingManagerDefaults,
     config: false,
@@ -22,11 +13,20 @@ export const SETTINGS = () => ({
     scope: "world",
     default: getModelDefaults(SettingManagerDefaults),
   },
+  "manager-defaults-menu": {
+    type: MHLManagerDefaultsMenu,
+    name: true,
+    hint: true,
+    label: true,
+    icon: "icons",
+    group: ".SettingsManager",
+    for: "manager-defaults",
+  },
   "debug-mode": {
     config: true,
     type: Boolean,
-    name: null,
-    hint: null,
+    name: true,
+    hint: true,
     scope: "client",
     group: ".ErrorHandling",
     default: false,
@@ -34,13 +34,13 @@ export const SETTINGS = () => ({
   "log-level": {
     config: true,
     type: String,
-    name: null,
-    hint: null,
+    name: true,
+    hint: true,
     choices: {
-      debug: null,
-      info: null,
-      warn: null,
-      error: null,
+      debug: true,
+      info: true,
+      warn: true,
+      error: true,
     },
     default: "warn",
     scope: "client",
@@ -50,11 +50,11 @@ export const SETTINGS = () => ({
     config: true,
     default: true,
     type: Boolean,
-    hint: null,
-    name: null,
+    hint: true,
+    name: true,
     scope: "world",
     onChange: (value) => {
-      if (!!value) globalThis.mhl = MODULE().api;
+      if (!!value) globalThis.mhl = MHL();
       else delete globalThis.mhl;
     },
     group: ".Access",
@@ -63,19 +63,24 @@ export const SETTINGS = () => ({
     config: true,
     default: false,
     type: Boolean,
-    hint: null,
-    name: null,
+    hint: true,
+    name: true,
     scope: "world",
     onChange: (value) => {
-      if (value) game.pf2emhl = MODULE().api;
+      if (value) game.pf2emhl = MHL();
       else delete game.pf2emhl;
     },
     group: ".Access",
   },
+  "aif-enabled": {
+    config: false,
+    type: Boolean,
+    scope: "world",
+  },
 });
 
 export function setting(key) {
-  const SM = MHLSettingsManager.managers.get(MODULE_ID)
+  const SM = MHLSettingsManager.managers.get(MODULE_ID);
   if (SM?.initialized) {
     return SM.get(key);
   }

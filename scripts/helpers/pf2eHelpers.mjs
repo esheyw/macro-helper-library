@@ -1,6 +1,6 @@
 import { PHYSICAL_ITEM_TYPES } from "../constants.mjs";
 import { MHLError, MHLBanner } from "./errorHelpers.mjs";
-import { pickAThingDialog } from "./otherHelpers.mjs";
+import { pickAThingDialog } from "./foundryHelpers.mjs";
 import { prependIndefiniteArticle } from "./stringHelpers.mjs";
 
 export function levelBasedDC(level) {

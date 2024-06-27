@@ -1,5 +1,5 @@
 import { MODULE_ID, fu } from "../constants.mjs";
-import { MHLError, isEmpty, isPlainObject, logCast, logCastString, mhlog } from "./index.mjs";
+import { MHLError, isEmpty, isPlainObject, logCastString, mhlog } from "./index.mjs";
 
 export function prependIndefiniteArticle(text) {
   const vowels = "aeiou";
@@ -17,9 +17,9 @@ export function prependIndefiniteArticle(text) {
   return `${article} ${text}`;
 }
 
-export function mhlocalize(text, context = {}, { defaultEmpty = true } = {}) {
+export function mhlocalize(text, context = {}, { defaultEmpty = true, mod } = {}) {
   const func = "mhlocalize";
-  text = logCastString(text, "text", func);
+  text = logCastString(text, "text", { func, mod });
   const processedContext =
     isEmpty(context) || !isPlainObject(context)
       ? {}
@@ -29,7 +29,7 @@ export function mhlocalize(text, context = {}, { defaultEmpty = true } = {}) {
             : mhlocalize(String(v));
           return acc;
         }, {});
-  if (fu.isEmpty(game.i18n?.translations)) {
+  if (isEmpty(game.i18n?.translations)) {
     return `Localization attempted before i18n initialization, pasteable command: 
     game.modules.get('${MODULE_ID}').api.mhlocalize('${text}', ${JSON.stringify(context)})`;
   }
@@ -107,4 +107,28 @@ export function oxfordList(list) {
   const last = list.at(-1);
   const others = list.splice(0, list.length - 1);
   return `${others.join(", ")}, and ${last}`;
+}
+
+export function localeSort(a, b) {
+  const func = `localeSort`;
+  a = logCastString(a, "a", { func });
+  b = logCastString(b, "b", { func });
+  return a.localeCompare(b);
+}
+
+export function nullSort() {
+  return 0;
+}
+export function escapeHTML(text) {
+  return text.replace(
+    /[&<>"']/g,
+    (m) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;",
+      }[m])
+  );
 }

@@ -1,6 +1,8 @@
 import { BANNER_TYPES, CONSOLE_TYPES, fu } from "../constants.mjs";
 import { MODULE } from "../init.mjs";
 import { setting } from "../settings/settings.mjs";
+import { isEmpty } from "./otherHelpers.mjs";
+import { deeperClone } from "./otherHelpers.mjs";
 import { mhlocalize } from "./stringHelpers.mjs";
 
 export function log(loggable, { type, prefix } = {}) {
@@ -16,22 +18,21 @@ export function log(loggable, { type, prefix } = {}) {
     type = defaultType;
   }
   console[type](prefix.trim(), loggable);
-  return loggable;
 }
 export function warn(loggable, prefix = "") {
-  return log(loggable, { type: "warn", prefix });
+  log(loggable, { type: "warn", prefix });
 }
 export function debug(loggable, prefix = "") {
-  return log(loggable, { type: "debug", prefix });
+  log(loggable, { type: "debug", prefix });
 }
 export function error(loggable, prefix = "") {
-  return log(loggable, { type: "error", prefix });
+  log(loggable, { type: "error", prefix });
 }
-export function modLog(loggable, { type, prefix, context, func, mod, localize = true, dupe = false } = {}) {
+export function modLog(loggable, { type, prefix, context, func, mod, localize = true, dupe = false, softType } = {}) {
   if (isEmpty(type) || typeof type !== "string") {
     // if type is not provided or bad, and we're not in debug mode, bail.
-    if (!setting("debug-mode")) return;
-    type = setting("log-level");
+    if (!setting("debug-mode") && !softType) return;
+    type = setting("log-level") ?? softType;
   }
   if (typeof loggable === "string") {
     loggable = localize ? mhlocalize(loggable, context) : loggable;
@@ -42,12 +43,12 @@ export function modLog(loggable, { type, prefix, context, func, mod, localize = 
   } else {
     prefix = getLogPrefix("", { mod, func, prefix });
   }
-  return log(dupe ? fu.duplicate(loggable) : loggable, { type, prefix });
+  log(dupe ? deeperClone(loggable) : loggable, { type, prefix });
 }
 
 export function mhlog(loggable, options = {}) {
   options.mod = "MHL";
-  return modLog(loggable, options);
+  modLog(loggable, options);
 }
 
 export function localizedBanner(text, options = {}) {
@@ -76,28 +77,25 @@ export function localizedBanner(text, options = {}) {
     ui.notifications[type](bannerstr, { console: doConsole, permanent });
   }
   if (typeof log === "object" && Object.keys(log).length) log(loggable, { type, prefix });
-  return bannerstr;
 }
 
 export function modBanner(text, options = {}) {
-  let { context, prefix, type, console, permanent, log, func, mod } = options;
-  const setup = MODULE().setup;
+  let { context, prefix, type, console, permanent, log, func, mod, softType } = options;
   if (isEmpty(type) || typeof type !== "string") {
     // if type is not provided, and we're passed setup and not in debug mode, bail.
-    if (setup && !setting("debug-mode")) return;
-    // if we're logging before setup, assume error
-    type = setup ? setting("log-level") : "error";
+    if (!setting("debug-mode") && !softType) return;
+    // if we're logging before setup, assume error if no softType
+    type = setting("log-level") ?? softType ?? "error";
   }
   prefix = getLogPrefix(text, { mod, func, prefix });
   options.prefix = prefix;
-  const out = localizedBanner(text, { context, prefix, type, console, permanent });
   if (typeof log === "object" && Object.keys(log).length) modLog(log, options);
-  return out;
+  localizedBanner(text, { context, prefix, type, console, permanent });
 }
 
 export function MHLBanner(text, options = {}) {
   options.mod = "MHL";
-  return modBanner(text, options);
+  modBanner(text, options);
 }
 
 export function localizedError(text, options = {}) {
@@ -138,39 +136,14 @@ export function isPF2e() {
 }
 
 export function requireSystem(system, prefix = null) {
+  //todo: add min/max version options
   if (game.system.id !== system)
     throw localizedError(`MHL.Error.RequiresSystem`, { context: { system }, prefix, banner: true });
 }
 
-// taken from https://stackoverflow.com/a/32728075, slightly modernized
-/**
- * Checks if value is empty. Deep-checks arrays and objects
- * Note: isEmpty([]) == true, isEmpty({}) == true, isEmpty([{0:false},"",0]) == true, isEmpty({0:1}) == false
- * @param value
- * @returns {boolean}
- */
-export function isEmpty(value) {
-  const isEmptyObject = (a) => {
-    a = a?.constructor?.name === "Map" ? new Collection(a) : a;
-    // all have a .some() in foundry at least
-    if (Array.isArray(a) || a instanceof Collection || a instanceof Set) {
-      return !a.some((e) => !isEmpty(e));
-    }
-    // it's an Object, not an Array, Set, Map, or Collection
-    const hasNonempty = Object.keys(a).some((e) => !isEmpty(a[e]));
-    return hasNonempty ? false : isEmptyObject(Object.keys(a));
-  };
-  return (
-    value == false ||
-    typeof value === "undefined" ||
-    value == null ||
-    (typeof value === "object" && isEmptyObject(value))
-  );
-}
-
-export function getLogPrefix(text, { prefix, mod, func } = {}) {
+function getLogPrefix(text, { prefix, mod, func } = {}) {
   let out = "";
-  text = logCast(text, "text", String, "getLogPrefix");
+  text = logCastString(text, "text", { func: "getLogPrefix", mod });
   mod = String(mod ?? "");
   func = String(func ?? "");
   prefix = String(prefix ?? "");
@@ -179,23 +152,25 @@ export function getLogPrefix(text, { prefix, mod, func } = {}) {
   if (prefix) out += prefix;
   return out;
 }
-export function logCastString(variable, name, func = null) {
-  return logCast(variable, String, name, func);
+export function logCastString(variable, name, { func = null, mod = "MHL" } = {}) {
+  return logCast(variable, name, { type: String, func, mod });
 }
-export function logCastNumber(variable, name, func = null) {
-  return logCast(variable, Number, name, func);
+export function logCastNumber(variable, name, { func = null, mod = "MHL" } = {}) {
+  return logCast(variable, name, { type: Number, func, mod });
 }
-export function logCastBool(variable, name, func = null) {
-  return logCast(variable, Boolean, name, func);
+export function logCastBool(variable, name, { func = null, mod = "MHL" } = {}) {
+  return logCast(variable, name, { type: Boolean, func, mod });
 }
-export function logCast(variable, type = String, name, func = null) {
+export function logCast(variable, name, { type = String, func = null, mod = "MHL" } = {}) {
   type = typeof type === "function" ? type : globalThis[String(type)] ?? null;
   if (!type) return variable; //todo: logging lol
   const targetType = type.name.toLowerCase();
   if (typeof variable !== targetType) {
-    mhlog(
+    debugger;
+    modLog(
       { [name]: variable },
       {
+        mod,
         prefix: `MHL.Warning.Fallback.Type`,
         func,
         context: { arg: name, type: typeof variable, expected: targetType },

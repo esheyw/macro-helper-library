@@ -1,10 +1,11 @@
-# PF2E Macro & Helper Library
+# Macro & Helper Library
 
 This module exists because I'm not good enough at TypeScript to contribute directly to Workbench.
 It is a collection of macros and helper functions I've written for PF2e. It will (hopefully) be continually expanding. If you have a macro you'd like to contribute, and it's unsuitable for inclusion in Symon's repo (ie, it uses some of the helper functions provided by this module), feel free to open a PR, or open an issue if you don't want to git.
 
+<!-- markdownlint-disable MD001 -->
 ### [Patch Notes](https://github.com/esheyw/macro-helper-library/blob/main/CHANGELOG.md)
-
+<!-- markdownlint-enable MD001 -->
 ## Licenses & Attribution
 
 Everything in the project not covered by other licenses is ©2024 Emmanuel Wineberg, released under the [MIT License](https://opensource.org/license/mit/) (included as `LICENSE`).

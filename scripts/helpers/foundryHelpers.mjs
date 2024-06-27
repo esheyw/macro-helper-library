@@ -1,5 +1,7 @@
+import { MHLDialog } from "../apps/MHLDialog.mjs";
 import { fu } from "../constants.mjs";
 import { MHLError, mhlog } from "./errorHelpers.mjs";
+import { prependIndefiniteArticle } from "./stringHelpers.mjs";
 
 export function doc(input, type = null, { parent = null, returnIndex = false, async = false } = {}) {
   const func = `doc`;
@@ -130,4 +132,32 @@ export function getModelDefaults(model) {
     acc[key] = initialValue;
     return acc;
   }, {});
+}
+export async function pickAThingDialog({ things = null, title = null, thingType = "Item", dialogOptions = {} } = {}) {
+  if (!Array.isArray(things)) {
+    throw MHLError(`MHL.PickAThing.Error.ThingsFormat`);
+  }
+  const buttons = things.reduce((acc, curr) => {
+    let buttonLabel = ``;
+    if (!("label" in curr && "value" in curr)) {
+      throw MHLError(`MHL.PickAThing.Error.MalformedThing`, { log: { badthing: curr } });
+    }
+    if (curr?.img) {
+      buttonLabel += `<img src="${curr.img}" alt="${curr.label}" data-tooltip="${curr?.indentifier ?? curr.label}" />`;
+    }
+    buttonLabel += `<span class="item-name">${curr.label}</span>`;
+    if (curr?.identifier) {
+      buttonLabel += `<span class="dupe-id">(${curr.identifier})</span>`;
+    }
+    acc[curr.value] = { label: buttonLabel };
+    return acc;
+  }, {});
+  dialogOptions.classes ??= [];
+  dialogOptions.classes.push("pick-a-thing");
+  const dialogData = {
+    title: title ?? `Pick ${prependIndefiniteArticle(thingType.capitalize() ?? "Thing")}`,
+    buttons,
+    close: () => false,
+  };
+  return await MHLDialog.wait(dialogData, dialogOptions);
 }

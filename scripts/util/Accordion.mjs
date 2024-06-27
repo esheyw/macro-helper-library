@@ -1,7 +1,7 @@
 //This file originally copied in its entirety from the foundry dnd5e system, under MIT license as seen at https://github.com/foundryvtt/dnd5e/blob/master/LICENSE.txt
 //subsequent edits by Emmanuel Wineberg
 
-import { logCastString, mhlog } from "../helpers/errorHelpers.mjs";
+import { logCastString, logCastNumber } from "../helpers/errorHelpers.mjs";
 /**
  * @typedef {object} AccordionConfiguration
  * @property {string} headingSelector    The CSS selector that identifies accordion headers in the given markup.
@@ -19,11 +19,13 @@ import { logCastString, mhlog } from "../helpers/errorHelpers.mjs";
 export class Accordion {
   constructor(config) {
     const func = `Accordion#constructor`;
+    const mod = config.mod ?? "MHL"    
     this.#config = {
       contentSelector:
-        logCastString(config.contentSelector, "config.contentSelector", func) + ":not(.accordion-content)",
-      headingSelector: logCastString(config.headingSelector, "config.headingSelector", func),
-      initialOpen: "initialOpen" in config ? logCastNumber(config.initialOpen, "config.initialOpen", func) : Infinity,
+        logCastString(config.contentSelector, "config.contentSelector", {func, mod}) + ":not(.mhl-accordion-content)",
+      headingSelector: logCastString(config.headingSelector, "config.headingSelector",  {func, mod}),
+      initialOpen: logCastNumber(config.initialOpen ?? Infinity, "config.initialOpen",  {func, mod}),
+      collapseOthers: !!(config.collapseOthers ?? false),
     };
   }
 
@@ -70,7 +72,7 @@ export class Accordion {
 
       if (!content) continue;
       const wrapper = document.createElement("div");
-      wrapper.classList.add("accordion");
+      wrapper.classList.add("mhl-accordion");
       heading.before(wrapper);
       wrapper.append(heading, content);
       this.#sections.set(heading, content);
@@ -80,8 +82,8 @@ export class Accordion {
       } else if (this.#collapsed[collapsedIndex]) {
         wrapper.classList.add("collapsed");
       }
-      heading.classList.add("accordion-heading");
-      content.classList.add("accordion-content");
+      heading.classList.add("mhl-accordion-heading");
+      content.classList.add("mhl-accordion-content");
       heading.addEventListener("click", this._onClickHeading.bind(this));
       collapsedIndex++;
     }
