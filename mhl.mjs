@@ -2991,7 +2991,7 @@ class SettingManagerDefaults extends foundry.abstract.TypeDataModel {
       moduleResetIcon: new fields.StringField({
         required: true,
         nullable: false,
-        initial: () => (AIF() ? "mdi-reply-all" : "fa-reply-all"),
+        initial: () => (AIF_ACTIVE() ? "mdi-reply-all" : "fa-reply-all"),
 
         label: `${PREFIX}.ModuleResetIcon.Label`,
         hint: `${PREFIX}.ModuleResetIcon.Hint`,
@@ -2999,14 +2999,14 @@ class SettingManagerDefaults extends foundry.abstract.TypeDataModel {
       groupResetIcon: new fields.StringField({
         required: true,
         nullable: false,
-        initial: () => (AIF() ? "mdi-reply" : "fa-reply"),
+        initial: () => (AIF_ACTIVE() ? "mdi-reply" : "fa-reply"),
         label: `${PREFIX}.GroupResetIcon.Label`,
         hint: `${PREFIX}.GroupResetIcon.Hint`,
       }),
       settingResetIcon: new fields.StringField({
         required: true,
         nullable: false,
-        initial: () => (AIF() ? "mdi-restore" : "fa-arrow-rotate-left"),
+        initial: () => (AIF_ACTIVE() ? "mdi-restore" : "fa-arrow-rotate-left"),
         label: `${PREFIX}.SettingResetIcon.Label`,
         hint: `${PREFIX}.SettingResetIcon.Hint`,
       }),
@@ -4162,6 +4162,159 @@ var fields = /*#__PURE__*/Object.freeze({
 var data = /*#__PURE__*/Object.freeze({
   __proto__: null,
   fields: fields
+});
+
+//taken from the https://github.com/foundryvtt/dnd5e repo
+
+/**
+ * A custom HTML element that represents a checkbox-like input that is displayed as a slide toggle.
+ * @fires change
+ */
+class SlideToggleElement extends HTMLElement {
+  /** @override */
+  static formAssociated = true;
+
+  /** @inheritDoc */
+  constructor() {
+    super();
+    this.#internals = this.attachInternals();
+    this.#internals.role = "switch";
+    this.#internals.ariaChecked = this.hasAttribute("checked") ? "true" : "false";
+  }
+
+  /**
+   * The custom element's form and accessibility internals.
+   * @type {ElementInternals}
+   */
+  #internals;
+
+  /**
+   * The form this element belongs to, if any.
+   * @type {HTMLFormElement}
+   */
+  get form() {
+    return this.#internals.form;
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * The name of the toggle.
+   * @type {string}
+   */
+  get name() {
+    return this.getAttribute("name");
+  }
+
+  set name(value) {
+    this.setAttribute("name", value);
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Whether the slide toggle is toggled on.
+   * @type {boolean}
+   */
+  get checked() {
+    return this.hasAttribute("checked");
+  }
+
+  set checked(value) {
+    //todo localize error
+    if ( typeof value !== "boolean" ) throw new Error("Slide toggle checked state must be a boolean.");
+    this.toggleAttribute("checked", value);
+    this.#internals.ariaChecked = `${value}`;
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * The value of the input as it appears in form data.
+   * @type {string}
+   */
+  get value() {
+    return this.getAttribute("value") || "on";
+  }
+
+  set value(value) {
+    this.setAttribute("value", value);
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Masquerade as a checkbox input.
+   * @type {string}
+   */
+  get type() {
+    return "checkbox";
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Activate the element when it is attached to the DOM.
+   * @inheritDoc
+   */
+  connectedCallback() {
+    this.replaceChildren();
+    this.append(...this._buildElements());
+    this._activateListeners();
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Create the constituent components of this element.
+   * @returns {HTMLElement[]}
+   * @protected
+   */
+  _buildElements() {
+    const track = document.createElement("div");
+    track.classList.add("mhl-slide-toggle-track");
+    const thumb = document.createElement("div");
+    thumb.classList.add("mhl-slide-toggle-thumb");
+    track.append(thumb);
+    return [track];
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Guard against adding event listeners more than once.
+   * @type {boolean}
+   */
+  #listenersAdded = false;
+
+  /**
+   * Activate event listeners.
+   * @protected
+   */
+  _activateListeners() {
+    if ( this.#listenersAdded ) return;
+    this.addEventListener("click", this._onToggle.bind(this));
+    this.#listenersAdded = true;
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Handle toggling the control.
+   * @param {PointerEvent} event  The triggering event.
+   * @protected
+   */
+  _onToggle(event) {
+    this.checked = !this.checked;
+    this.dispatchEvent(new Event("change"));
+  }
+}
+
+window.customElements.define("mhl-slide-toggle", SlideToggleElement);
+
+var elements = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  SlideToggleElement: SlideToggleElement
 });
 
 //the following are provided by pf2e at least, maybe other systems; only register if necessary
@@ -7003,7 +7156,7 @@ HighlightJS.registerLanguage("json", json);
 
 const MODULE = () => game.modules.get(MODULE_ID);
 const MHL$1 = () => MODULE().api;
-const AIF = () => game.modules.get("additional-icon-fonts")?.active;
+const AIF_ACTIVE = () => game.modules.get("additional-icon-fonts")?.active;
 const SM$1 = () => MHL$1().managers.get(MODULE_ID);
 
 Hooks.once("init", () => {
@@ -7015,6 +7168,7 @@ Hooks.once("init", () => {
     util,
     data,
     hljs: HighlightJS,
+    elements,
   };
 
   //helpers go in the root of the api object
@@ -7056,7 +7210,7 @@ Hooks.once("setup", () => {
 
 Hooks.once("ready", () => {
   // handle defaults fallback as best as possible
-  if (AIF()) {
+  if (AIF_ACTIVE()) {
     // if aif is ever enabled, record that fact
     SM$1().set("aif-enabled", true);
   } else {
@@ -7074,4 +7228,4 @@ Hooks.once("ready", () => {
     });
 });
 
-export { AIF, MHL$1 as MHL, MODULE, SM$1 as SM };
+export { AIF_ACTIVE, MHL$1 as MHL, MODULE, SM$1 as SM };

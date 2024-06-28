@@ -1,0 +1,88 @@
+/* Material Theme
+ */
+
+@keyframes materialRipple {
+  0% {
+    transform: scale(0);
+  }
+  20% {
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+.mhl-switch-toggle.switch-material {
+  @include clearfix;
+  overflow: visible;
+  a {
+    top: 48%;
+    width: size(6) !important;
+    height: size(6);
+    margin-left: size(4);
+    background: #3f51b5;
+    border-radius: 100%;
+
+    transform: translateY(-50%);
+    transition: transform 0.4s ease-in;
+  }
+  label {
+    color: rgba(0, 0, 0, 0.54);
+    font-size: 1em;
+  }
+  label:before {
+    content: "";
+    position: absolute;
+    top: 48%;
+    left: 0;
+    display: block;
+    width: size(14);
+    height: size(14);
+    border-radius: 100%;
+    border: size(2) solid rgba(0, 0, 0, 0.54);
+    transform: translateY(-50%);
+  }
+  input:checked + label:before {
+    border-color: #3f51b5;
+  }
+
+  label:after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 3;
+    display: block;
+    width: size(64);
+    height: size(64);
+    border-radius: 100%;
+    background: #3f51b5;
+    opacity: 0.4;
+    margin-left: size(-20);
+    margin-top: size(-20);
+
+    transform: scale(0);
+    transition: opacity 0.4s ease-in;
+  }
+
+  // label:after {
+  //   width: size(52);
+  //   height: size(52);
+  //   margin-top: size(-12);
+  // }
+  input:checked + label:after {
+    animation: materialRipple 0.4s ease-in;
+  }
+  /* trick to prevent the default checked ripple animation from showing
+ * when the page loads.
+ * the ripples are hidden by default, and shown only when the input is focused.
+ */
+  input + label:after {
+    visibility: hidden;
+  }
+  input:focus:checked + label:after {
+    visibility: visible;
+  }
+}

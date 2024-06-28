@@ -1,3 +1,5 @@
+@import "Variables", "Functions", "Mixins";
+
 :root {
   --mhl-frame-color-1: var(--color-primary-1, var(--color-bg-trait));
   --mhl-frame-color-2: var(--color-primary-2, var(--color-pf-primary-light));
@@ -15,11 +17,11 @@
     --mhl-reset-text-shadow: none;
   }
   --mhl-text-error-decoration: underline wavy var(--mhl-color-failure);
-  --mhl-accordion-speed: 500ms;  
+  --mhl-accordion-speed: 500ms;
 }
 
 .mhl-fallback-icon {
-  color: var(--mhl-color-failure)
+  color: var(--mhl-color-failure);
 }
 div.section-separator {
   display: flex;
@@ -50,9 +52,10 @@ div.section-separator {
   code {
     white-space: nowrap;
   }
-  line-height: 200%;
+  line-height: 200%
 }
-@import "pickAThing", "updateInitiativeStatistics", "MHLSettingsManager", "MHLManagerSettingsMenu", "Accordion";
+@import "pickAThing", "updateInitiativeStatistics", "MHLSettingsManager", "MHLManagerSettingsMenu", "Accordion",
+  "SlideToggleElement", "ToggleSwitch";
 
 .mhl-hljs-light {
   @import "../node_modules/highlight.js/scss/atom-one-light.scss";

@@ -1,4 +1,4 @@
-import { AIF } from "../../init.mjs";
+import { AIF_ACTIVE } from "../../init.mjs";
 const PREFIX = `MHL.Setting.ManagerDefaults`;
 
 export class SettingManagerDefaults extends foundry.abstract.TypeDataModel {
@@ -24,7 +24,7 @@ export class SettingManagerDefaults extends foundry.abstract.TypeDataModel {
       moduleResetIcon: new fields.StringField({
         required: true,
         nullable: false,
-        initial: () => (AIF() ? "mdi-reply-all" : "fa-reply-all"),
+        initial: () => (AIF_ACTIVE() ? "mdi-reply-all" : "fa-reply-all"),
 
         label: `${PREFIX}.ModuleResetIcon.Label`,
         hint: `${PREFIX}.ModuleResetIcon.Hint`,
@@ -32,14 +32,14 @@ export class SettingManagerDefaults extends foundry.abstract.TypeDataModel {
       groupResetIcon: new fields.StringField({
         required: true,
         nullable: false,
-        initial: () => (AIF() ? "mdi-reply" : "fa-reply"),
+        initial: () => (AIF_ACTIVE() ? "mdi-reply" : "fa-reply"),
         label: `${PREFIX}.GroupResetIcon.Label`,
         hint: `${PREFIX}.GroupResetIcon.Hint`,
       }),
       settingResetIcon: new fields.StringField({
         required: true,
         nullable: false,
-        initial: () => (AIF() ? "mdi-restore" : "fa-arrow-rotate-left"),
+        initial: () => (AIF_ACTIVE() ? "mdi-restore" : "fa-arrow-rotate-left"),
         label: `${PREFIX}.SettingResetIcon.Label`,
         hint: `${PREFIX}.SettingResetIcon.Hint`,
       }),

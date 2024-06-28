@@ -3,6 +3,7 @@ import * as macros from "./macros/index.mjs";
 import * as apps from "./apps/index.mjs";
 import * as util from "./util/index.mjs";
 import * as data from "./data/index.mjs";
+import * as elements from "./elements/index.mjs";
 import { SETTINGS, setting } from "./settings/settings.mjs";
 import { MODULE_ID, VERIFIED_SYSTEM_VERSIONS, fu } from "./constants.mjs";
 import { registerHandlebarsHelpers } from "./handlebars.mjs";
@@ -13,7 +14,7 @@ hljs.registerLanguage("json", hljsJSON);
 
 export const MODULE = () => game.modules.get(MODULE_ID);
 export const MHL = () => MODULE().api;
-export const AIF = () => game.modules.get("additional-icon-fonts")?.active;
+export const AIF_ACTIVE = () => game.modules.get("additional-icon-fonts")?.active;
 export const SM = () => MHL().managers.get(MODULE_ID);
 
 Hooks.once("init", () => {
@@ -25,6 +26,7 @@ Hooks.once("init", () => {
     util,
     data,
     hljs,
+    elements,
   };
 
   //helpers go in the root of the api object
@@ -66,7 +68,7 @@ Hooks.once("setup", () => {
 
 Hooks.once("ready", () => {
   // handle defaults fallback as best as possible
-  if (AIF()) {
+  if (AIF_ACTIVE()) {
     // if aif is ever enabled, record that fact
     SM().set("aif-enabled", true);
   } else {

@@ -1,0 +1,20 @@
+/* Holo Theme
+ */
+.mhl-switch-toggle.switch-holo {
+  background-color: #464747;
+  border-radius: 1px;
+  box-shadow: inset rgba(0, 0, 0, 0.1) 0 1px 0;
+
+  color: #fff;
+  text-transform: uppercase;
+  label {
+    font-size: 85%;
+    line-height: size(30) + size(0.3 * 15);
+    color: #fff;
+  }
+  a {
+    background-color: #666;
+    border-radius: 1px;
+    box-shadow: inset rgba(255, 255, 255, 0.2) 0 1px 0, inset rgba(0, 0, 0, 0.3) 0 -1px 0;
+  }
+}
