@@ -1,4 +1,4 @@
-import { MHLError, mhlog } from "./errorHelpers.mjs";
+import { mhlError, mhlog } from "./errorHelpers.mjs";
 export function oneTargetOnly(options = {}) {
   let { user, useFirst, func } = options;
   const targets = anyTargets({ user, func });
@@ -6,9 +6,9 @@ export function oneTargetOnly(options = {}) {
   const firstTarget = targets.first();
   if (targets.size > 1) {
     if (useFirst) {
-      mhlog(`MHL.Warning.Fallback.FirstTarget`, { context: { name: firstTarget.name }, func });
+      mhlog(`MHL.Fallback.FirstTarget`, { context: { name: firstTarget.name }, func });
     } else {
-      throw MHLError(`MHL.Error.Target.NotOneTargetted`, { func });
+      throw mhlError(`MHL.Error.Target.NotOneTargetted`, { func });
     }
   }
   return firstTarget;
@@ -18,10 +18,10 @@ export function anyTargets(options = {}) {
   user ??= game.user;
   if (typeof user === "string") user = game.users.get(user) ?? game.users.getName(user);
   if (!(user instanceof User)) {
-    throw MHLError(`MHL.Error.Type.User`, { context: { arg: "user" }, log: { user }, func });
+    throw mhlError({ user }, { context: { arg: "user" }, text: `MHL.Error.Type.User`, func });
   }
   if (user.targets.size === 0) {
-    throw MHLError(`MHL.Error.Target.NotAnyTargetted`, { func });
+    throw mhlError(`MHL.Error.Target.NotAnyTargetted`, { func });
   }
   return user.targets;
 }

@@ -1,84 +1,104 @@
-import { fu } from "../constants.mjs";
-import { mhlocalize } from "./stringHelpers.mjs";
+import { fu, MODULE_ID } from "../constants.mjs";
+import { hasTags, localize } from "./stringHelpers.mjs";
 import { elementFromString } from "./DOMHelpers.mjs";
 import { escapeHTML } from "./stringHelpers.mjs";
-import { mhlog } from "./errorHelpers.mjs";
+import { logCastString, mhlog } from "./errorHelpers.mjs";
 import { isEmpty } from "./otherHelpers.mjs";
-import { getFunctionOptions, getStringArgs, isPlainObject } from "./otherHelpers.mjs";
+import { getStringArgs } from "./otherHelpers.mjs";
 
-export function getIconHTMLString(...args) {
+export function getIconHTMLString(input, { element = "i", infer = true, strict = false, fallback = true, font } = {}) {
   const func = `getIconHTMLString`;
-  const failValidation = () => {
-    mhlog({ args, options }, { type: "warn", prefix: `MHL.Error.Validation.IconGeneric`, func });
-    return "";
+  const options = { element, infer, strict, fallback, font };
+  const fallbackIconClasses = getFallbackIconClasses(fallback);
+  const failureReturn = !fallbackIconClasses
+    ? ""
+    : `<${element} class="${fallbackIconClasses}" 
+          data-tooltip-class="mhl-pre-tooltip" 
+          data-tooltip="${localize(`MHL.Fallback.Icon.Tooltip`, { input: escapeHTML(JSON.stringify(input)) })}">`;
+  const context = {
+    ...(fallbackIconClasses && { fallback: { key: "MHL.Fallback.Icon.Classes", context: { fallbackIconClasses } } }),
   };
-  const validateHTML = (html) => {
-    const node = elementFromString(html);
-    if (!node || !node.className) return failValidation();
-    const validated = getIconClasses(node.className, options);
-    if (!validated) return "";
+
+  // don't split yet so we can test for whole elements
+  const stringed = getStringArgs(input, { split: false });
+  if (stringed.length === 0) {
+    mhlog({ input, ...options }, { func, context, text: "MHL.Validation.Generic" });
+    return failureReturn;
+  }
+  const containsHTML = stringed.find((s) => hasTags(s));
+  if (containsHTML) {
+    const node = elementFromString(htmlString);
+    if (!node || !node.className) {
+      mhlog({ input, ...options }, { func, context, text: "MHL.Validation.Icon.ExistingHTML" });
+      return failureReturn;
+    }
+    const validated = getIconClasses(node.className, { infer, strict, fallback, font, log: false });
+    // getIconClasses already logged
+    if (!validated || validated === fallbackIconClasses) return failureReturn;
     node.className = validated;
     return node.outerHTML;
-  };
-  const options = getFunctionOptions(args) ?? {};
-  const element = options.element ?? "i";
-  if (/<[^>]+>/.test(args[0])) return validateHTML(args[0]);
-  const stringed = getStringArgs(args);
-  if (stringed.length === 0) return failValidation();
-  const containsHTML = stringed.find((s) => /<[^>]+>/.test(s));
-  if (containsHTML) {
-    return validateHTML(containsHTML);
   } else {
     const validated = getIconClasses(stringed, { options });
-    if (isEmpty(validated)) return failValidation();
-    return `<${element} class="${validated}"${
-      validated === (options.fallback ?? CONFIG.MHL.fallbackIcon)
-        ? `data-tooltip-class="mhl-pre-tooltip" data-tooltip="${mhlocalize(`MHL.Warning.Fallback.FallbackIconTooltip`, {
-            args: escapeHTML(JSON.stringify(args)),
-          })}"`
-        : ``
-    }></${element}>`;
+    // getIconClasses already logged
+    if (isEmpty(validated) || validated === fallbackIconClasses) return failureReturn;
+    return `<${element} class="${validated}"></${element}>`;
   }
 }
-
-export function getIconClasses(...args) {
-  const func = `getIconClasses`;
-  if (args.length === 0 || isPlainObject(args[0])) return "";
-  const options = getFunctionOptions(args) ?? {};
-  const stringed = getStringArgs(args, { map: (s) => s.toLowerCase() });
-  const infer = options.infer ?? true;
-  const strict = options.strict ?? false;
-  const fallback =
-    options.fallback ?? true
-      ? typeof options.fallback === "string"
-        ? options.fallback
-        : CONFIG.MHL.fallbackIcon
-      : null;
-  const fail = () => {
-    if (fallback) {
-      mhlog({ args, options }, { func, prefix: `MHL.Warning.Fallback.FallbackIcon`, context: { fallback } });
-      return fallback;
-    }
-    return "";
-  };
-  let font;
-  if (isPlainObject(options?.font)) {
-    font = options.font;
-  } else if (!("font" in options) || isEmpty(options.font) || typeof options.font === "string") {
-    font = getIconFontEntry(stringed, typeof options?.font === "string" ? options.font : null);
-    if (!font) return fail();
+/**
+ * Gets the current fallback icon classes for the given context
+ *
+ * @param {boolean|string} fallback The classList string to return if icon validation fails. If `true`, uses `CONFIG["macro-helper-library"].fallbackIconClasses`.
+ * If `false`, returns `""` on failure.
+ * @returns {string|null}
+ */
+function getFallbackIconClasses(fallback = true) {
+  const func = `getFallbackIconClasses`;
+  let fallbackIconClasses;
+  if (fallback === true) {
+    fallbackIconClasses = getIconClasses(CONFIG[MODULE_ID].fallbackIconClasses, { fallback: false });
+  } else if (fallback !== false) {
+    fallbackIconClasses = getIconClasses(logCastString(fallback, "fallback", { func }), { fallback: false });
   }
-  if (!Array.isArray(getStringArgs(font?.prefixes))) return ""; //todo: more logging
+
+  return fallbackIconClasses || null;
+}
+/**
+ * @typedef {import("../_types.mjs").IconFontEntry} IconFontEntry
+ */
+/**
+ * Returns a set of valid icon font css classes, or `""` if validation fails
+ * @param {string|string[]} input The input to process
+ * @param {object}         [options={}]
+ * @param {boolean}        [options.infer=true] Whether or not to check if a given input works with any of the registered icon font prefixes.
+ * Uses the first found according to icon font sort order (FA first unless you've meddled with it in your world)
+ * @param {boolean}        [options.strict=false] If true, will strip any classes that don't appear in the icon font schema
+ * @param {string|boolean} [options.fallback=true] The classList string to return if icon validation fails. If `true`, uses `CONFIG["macro-helper-library"].fallbackIconClasses`.
+ * If `false`, returns `""` on failure.
+ * @param {IconFontEntry|string|string[]} [options.font] The icon font entry, or string name of a registered entry, or array of such, to limit inference to
+ * @param {boolean} [log=true] Whether to log fallback or validation failure or rely on the caller to do so
+ * @returns {string} A valid classlist for the provided/inferred icon glyph, or `""` if none found and fallback was `false` or malformed
+ */
+export function getIconClasses(input, { infer = true, strict = false, fallback = true, font } = {}) {
+  const func = `getIconClasses`;
+  const stringed = getStringArgs(input, { map: (s) => s.toLowerCase() });
+  const fallbackIconClasses = getFallbackIconClasses(fallback);
+  const fontEntry = getIconFontEntry(stringed, font);
+  if (!fontEntry) {
+    // getIconFontEntry already logged
+    return fallbackIconClasses ?? "";
+  }
   const glyphDefault = {
     pattern: "[-a-z0-9_]+",
     required: true,
   };
-  const glyphSchema = font?.schema?.glyph ?? {};
-  const schema = fu.duplicate(font.schema ?? {});
+  const glyphSchema = fontEntry.schema.glyph ?? {};
+  const schema = fu.duplicate(fontEntry.schema);
   delete schema.glyph; // ensure glyph is last entry
   schema.glyph = fu.mergeObject(glyphDefault, glyphSchema, { inplace: false });
-  const aliases = font.aliases ?? {};
+  const aliases = fontEntry.aliases ?? {};
+  // pass through getStringArgs again because some aliases expand to more than one class
   const parts = getStringArgs(stringed, { map: (s) => (s in aliases ? aliases[s] : s) });
+  //most parts have an implicit max of 1, but its easier to handle if they're all arrays
   const partsSeen = Object.fromEntries(Object.keys(schema).map((slug) => [slug, []]));
   partsSeen.others = [];
   const precluded = [];
@@ -90,31 +110,35 @@ export function getIconClasses(...args) {
         if (part !== data.value.toLowerCase()) continue;
         exact = true;
       } else {
-        const prefixes = getStringArgs(data.prefixes ?? font.prefixes);
+        const prefixes = getStringArgs(data.prefixes ?? fontEntry.prefixes);
         matches = new RegExp(
           `^(${prefixes.map(RegExp.escape).join("|")})?(${
-            "choices" in data ? data.choices.map(RegExp.escape).join("|") : data.pattern ?? "\n" //presumably/hopefully a \n will never match?
+            "choices" in data ? data.choices.map(RegExp.escape).join("|") : data.pattern ?? "\n"
+            //presumably/hopefully a \n will never match?
+            //TODO: what did I mean by that?!
           })$`,
           "i"
         ).exec(part);
       }
       if (matches || exact) {
+        const prefixFound = !!matches[1];
         // not exact, can't infer, and no prefix
-        if (!exact && !infer && !matches[1]) continue;
-        // matched = skip fallback add to others
+        if (!exact && !infer && !prefixFound) continue;
+        // matched = don't add to others if otherwise unhandled
         matched = true;
         // an exact match is precluded, discard
-        if (precluded.includes(slug) && (exact || matches[1])) continue;
-        //cap reached, discard
+        if (precluded.includes(slug) && (exact || prefixFound)) continue;
+
         if (partsSeen[slug].length >= (data.max ?? 1)) {
-          if (!matches[1]) matched = false; // if we were inferring, it can get dumped to others
+          //cap reached, discard
+          if (!prefixFound) matched = false; // if we were inferring, it can get dumped to others
           continue;
         }
-        if (slug === "glyph" && !isValidIcon(matches[2].toLowerCase(), font.name)) {
+        if (slug === "glyph" && !isValidIcon(matches[2].toLowerCase(), fontEntry.name)) {
           matched = false; // dump to fallback handling
           continue;
         }
-        partsSeen[slug].push(exact ? part : (matches[1] || data.prefixes?.[0] || font.prefixes[0]) + matches[2]);
+        partsSeen[slug].push(exact ? part : (matches[1] || data.prefixes?.[0] || fontEntry.prefixes[0]) + matches[2]);
         if ("precludes" in data) precluded.push(...getStringArgs(data.precludes));
         break;
       }
@@ -126,36 +150,55 @@ export function getIconClasses(...args) {
   }
   for (const [slug, data] of Object.entries(schema)) {
     if (data.required && partsSeen[slug].length === 0) {
-      if ("default" in data) partsSeen[slug].push(data.default);
-      else return fail();
+      if ("default" in data) {
+        partsSeen[slug].push(data.default);
+      } else {
+        mhlog(
+          { input, infer, strict, fallback, font },
+          {
+            func,
+            text: "MHL.Validation.Icon.MissingRequired",
+            context: {
+              ...(fallbackIconClasses && {
+                fallback: { key: "MHL.Fallback.Icon.Classes", context: { fallbackIconClasses } },
+              }),
+              ...(font && { allowed: { key: "MHL.Allowed", transform: "toLocaleLowercase" } }),
+              ...(!font && { registered: { key: "MHL.Registered", transform: "toLocaleLowercase" } }),
+            },
+          }
+        );
+      }
     }
   }
-  return Object.values(partsSeen)
-    .flat()
-    .filter((p) => !isEmpty(p))
-    .join(" ")
-    .trim();
+  return getStringArgs(Object.values(partsSeen), { split: false, join: true });
 }
 
 export function isValidIcon(input, limitTo = null) {
   return !!getIconFontEntry(input, limitTo);
 }
 
+/**
+ * Returns the first icon font entry a given input is valid for, or null if none found
+ * @param {string|string[]} input StringArgs input
+ * @param {string|string[]} limitTo A font or fonts to limit the search to (by `name`)
+ * @returns {string|null}
+ */
 export function getIconFontEntry(input, limitTo = null) {
   const func = `getIconFontEntry`;
   let parts;
   if (input instanceof HTMLElement) {
-    parts = input.className.split(/\s+/);
+    parts = getStringArgs(input.className);
   } else if (typeof input === "string") {
-    parts = (elementFromString(input)?.className ?? input).split(/\s+/);
+    parts = getStringArgs(elementFromString(input)?.className ?? input);
   } else if (Array.isArray(input)) {
     parts = getStringArgs(input);
   } else {
+    mhlog({ input, limitTo }, { func, text: "MHL.Validation.Generic" });
     return null;
   }
 
   limitTo = !isEmpty(limitTo) ? getStringArgs(limitTo) : null;
-  const allowedIconFonts = CONFIG.MHL.iconFonts
+  const allowedIconFonts = CONFIG[MODULE_ID].iconFonts
     .filter((f) => (limitTo ? limitTo.includes(f.name) : true))
     .toSorted((a, b) => (a.sort < b.sort ? -1 : a.sort === b.sort ? 0 : 1));
   for (const font of allowedIconFonts) {
@@ -165,6 +208,7 @@ export function getIconFontEntry(input, limitTo = null) {
       if (font.list.includes(testString)) return font;
     }
   }
+  mhlog({ parts, input, limitTo }, { func, text: "MHL.Validation.Icon.Generic" });
   return null;
 }
 

@@ -1,4 +1,4 @@
-import { mhlog } from "../helpers/errorHelpers.mjs";
+import { error, mhlog } from "../helpers/errorHelpers.mjs";
 import { isPlainObject } from "../helpers/otherHelpers.mjs";
 import { getIconListFromCSS } from "../helpers/iconHelpers.mjs";
 
@@ -7,7 +7,7 @@ export class IconFontsHandler {
     const func = `IconFontsHandler##validateList`;
     let errorstr = "";
     const fail = (errorstr) => {
-      mhlog({ entry }, { type: "error", prefix: errorstr, func });
+      error({ entry }, { text: errorstr, func });
       return false;
     };
 
@@ -22,9 +22,10 @@ export class IconFontsHandler {
     if (isPlainObject(entry.schema) && "glyph" in entry.schema && "value" in entry.schema.glyph)
       return fail(`MHL.Error.Validation.IconSchemaGlyphExact`);
     if ("sort" in entry && !Number.isInteger(entry.sort)) return fail("MHL.IconFontsHandler.Error.SortInteger");
-    if (!("sort" in entry) || target.find((e) => e.sort === sort)) {
-      mhlog(`MHL.IconFontsHandler.Fallback.Sort`, { type: "debug", context: { name: entry.name } });
+    if (!("sort" in entry) || target.find((e) => e.sort === entry.sort)) {
       let sort = target.length * 5;
+      // don't note the first one
+      if (sort !== 0) mhlog(`MHL.IconFontsHandler.Fallback.Sort`, { context: { name: entry.name } });
       while (target.find((e) => e.sort === sort)) sort += 5;
       entry.sort = sort;
     }

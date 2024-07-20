@@ -1,17 +1,17 @@
 {{log this}}
 {{!-- {{#if (eq resetType "setting")}}
-  <h2>{{mhlocalize "MHL.SettingsManager.ResetSingle.DialogHeader" setting=setting}}</h2>
-  <p>{{mhlocalize "MHL.SettingsManager.ResetSingle.DialogBody" value=value}}</p>
+  <h2>{{mhl-localize "MHL.SettingsManager.ResetSingle.DialogHeader" setting=setting}}</h2>
+  <p>{{mhl-localize "MHL.SettingsManager.ResetSingle.DialogBody" value=value}}</p>
 {{else}}
-  <h2>{{mhlocalize "MHL.SettingsManager.ResetMultiple.DialogHeader" divisionName=divisionName}}</h2>
+  <h2>{{mhl-localize "MHL.SettingsManager.ResetMultiple.DialogHeader" divisionName=divisionName}}</h2>
 {{/if}} --}}
 <style>
 
 
 </style>
-<h1>{{mhlocalize
+<h1>{{mhl-localize
     (concat "MHL.SettingsManager.Reset." (capitalize resetType) ".DialogHeader")
-    target=(mhlocalize target)
+    target=(mhl-localize target)
   }}</h1>
 {{#unless (or (eq resetType "setting") (eq defaultlessCount 0))}}
   <p>This {{resetType}} has <span class="count-tooltip" data-tooltip-direction="UP" data-tooltip="{{defaultlessTooltip}}">{{defaultlessCount}}</span> settings that lack defaults and cannot be reset.</p>  
@@ -21,7 +21,7 @@
   <table class="{{resetType}}">
     <thead>
       <tr>
-        <th>{{mhlocalize "DOCUMENT.Setting"}}</th>
+        <th>{{mhl-localize "DOCUMENT.Setting"}}</th>
         <th>Type</th>
         <th>Saved</th>
         <th>Default</th>
@@ -31,7 +31,7 @@
     <tbody>
       {{#each settings}}
         <tr class="default-{{isDefault}}">
-          <td>{{mhlocalize name}}</td>
+          <td>{{mhl-localize name}}</td>
           <td class="value-display">{{{typeIcon}}}</td>
           <td class="value-display {{#if isObject}}object-setting{{/if}}">{{displaySavedValue}}{{#if isColor}}<div class="color-box" style="background-color: {{savedValue}}"></div>{{/if}}</td>
           <td class="value-display {{#if isObject}}object-setting{{/if}}">{{displayDefaultValue}}{{#if isColor}}<div class="color-box" style="background-color: {{defaultValue}}"></div>{{/if}}</td>

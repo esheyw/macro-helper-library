@@ -1,5 +1,5 @@
 import { oneTokenOnly } from "../helpers/tokenHelpers.mjs";
-import { MHLError, requireSystem } from "../helpers/errorHelpers.mjs";
+import { mhlError, requireSystem } from "../helpers/errorHelpers.mjs";
 export async function recoverOldLashingCurrents() {
   const func = "recoverOldLashingCurrents";
   requireSystem("pf2e", `MHL | ${func}`);
@@ -11,7 +11,7 @@ export async function recoverOldLashingCurrents() {
     errorIfEmpty: false,
   });
   if (!existingLC) {
-    throw MHLError("MHL.Macros.LashingCurrents.Error.NoExistingFound", { context: { name: token.name }, func });
+    throw mhlError("MHL.Macros.LashingCurrents.Error.NoExistingFound", { context: { name: token.name }, func });
   }
   let originalRelicWeaponData = JSON.parse(existingLC.flags.pf2e.originalRelicWeapon);
 

@@ -1,5 +1,4 @@
 import { MODULE_ID, fu } from "../constants.mjs";
-import { mhlog } from "../helpers/index.mjs";
 const PREFIX = "MHL.SettingMenu"
 const funcPrefix = "MHLSettingMenu";
 export class MHLSettingMenu extends FormApplication {

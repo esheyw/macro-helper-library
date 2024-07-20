@@ -1,25 +1,20 @@
 {{log this}}
 <form>
-  {{#if v12}}
-    <h2>Generated Model Form</h2>
-    {{#each model.schema.fields as |field|}}
-      {{log field}}
-      {{formField field localize=true name=field.name label=field.label hint=field.hint value=(lookup @root.model field.name) }}
-    {{/each}}
-  {{else}}
-    {{#each model.schema.fields as |field|}}
-    <div class="form-group">
-      <label for="{{concat @root.module "-" @root.key "-" field.name}}">{{mhlocalize field.label}}</label>
-      <div class="form-fields">
-        <input id="{{concat @root.module "-" @root.key "-" field.name}}" name="{{field.name}}" value="{{lookup @root.model field.name}}" type="text">
-      </div>
-      {{#if field.hint}}
-      <p class="notes">{{mhlocalize field.hint}}</p>
-      {{/if}}
-    </div>
-    {{/each}}
-  {{/if}}
+  <h2>Generated Model Form</h2>
+  {{#each model.schema.fields as |field|}}
+    {{log field}}
+    {{formField
+      field
+      localize=true
+      name=field.name
+      label=field.label
+      hint=field.hint
+      value=(lookup @root.model field.name)
+    }}
+  {{/each}}
+
   <button type="submit" name="submit">
-    {{getIcon "check" "fa-regular"}} {{mhlocalize "EFFECT.Submit"}}
+    {{getIcon "check" "fa-regular"}}
+    {{mhl-localize "EFFECT.Submit"}}
   </button>
 </form>

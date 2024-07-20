@@ -1,7 +1,7 @@
 import { LABELABLE_TAGS, fu } from "../constants.mjs";
-import { MHLError, localizedBanner, mhlog, log } from "../helpers/errorHelpers.mjs";
+import { log } from "../helpers/errorHelpers.mjs";
 import { isEmpty } from "../helpers/otherHelpers.mjs";
-import { mhlocalize } from "../helpers/stringHelpers.mjs";
+import { localize } from "../helpers/stringHelpers.mjs";
 import { htmlQuery, htmlQueryAll } from "../helpers/DOMHelpers.mjs";
 const funcPrefix = `MHLDialog`;
 
@@ -32,7 +32,7 @@ export class MHLDialog extends Dialog {
       const contentData = this.data.contentData;
       const disallowedKeys = ["buttons", "content"];
       if (!Object.keys(contentData).every((k) => !disallowedKeys.includes(k))) {
-        throw MHLError(`MHL.Dialog.Error.ReservedKeys`, {
+        throw this.#error(`MHL.Dialog.Error.ReservedKeys`, {
           context: { keys: disallowedKeys.join(", ") },
           func: "MHLDialog: ",
           log: { contentData },
@@ -43,11 +43,14 @@ export class MHLDialog extends Dialog {
     if ("cancelButtons" in this.data) {
       const cancelButtons = this.data.cancelButtons;
       if (!Array.isArray(cancelButtons) || !cancelButtons.every((b) => typeof b === "string")) {
-        throw MHLError(`MHL.Error.Type.Array`, {
-          context: { arg: "cancelButtons", of: mhlocalize(`MHL.Error.Type.Of.ButtonLabelStrings`) },
-          func,
-          log: { cancelButtons },
-        });
+        throw this.#error(
+          { cancelButtons },
+          {
+            context: { arg: "cancelButtons", of: `MHL.Error.Type.Of.ButtonLabelStrings` },
+            func,
+            text: `MHL.Error.Type.Array`,
+          }
+        );
       }
     }
     this.data.cancelButtons ??= ["no", "cancel"];
@@ -73,14 +76,13 @@ export class MHLDialog extends Dialog {
                     : f
                 )
                 .join(", ");
-              // don't use MHLBanner for genericity, use data.prefix for specificity
-              localizedBanner(`MHL.Dialog.Warning.RequiredFields`, {
+              this.#log(`MHL.Dialog.Warning.RequiredFields`, {
                 context: { fields: fieldsError },
                 type: "warn",
                 console: false,
-                prefix: this.data.prefix,
+                banner: true,
               });
-              log({ formValues }, { type: "warn", prefix: this.data.prefix });
+              this.#log({ formValues }, { type: "warn" });
               return false;
             }
             return true;
@@ -88,13 +90,26 @@ export class MHLDialog extends Dialog {
           break;
         }
       default:
-        throw MHLError(`MHL.Dialog.Error.BadValidator`, { func: "MHLDialog: ", log: { validator } });
+        throw this.#log(
+          { validator },
+          { func: "MHLDialog##processValidatorData", text: `MHL.Dialog.Error.BadValidator`, error: true }
+        );
     }
     return validator;
   }
   #_validate() {
     if (!("validator" in this.data)) return true;
     return this.data.validator(this.options.jQuery ? this.element : this.element[0]);
+  }
+
+  #error(loggable, options = {}) {
+    options.error = true;
+    return this.#log(loggable, options);
+  }
+
+  #log(loggable, options = {}) {
+    options.prefix = this.data.prefix;
+    log(loggable, options);
   }
 
   getData() {
@@ -198,7 +213,7 @@ export class MHLDialog extends Dialog {
           allowProtoPropertiesByDefault: true,
         });
       }
-      data.content ||= mhlocalize(`MHL.Dialog.Error.TemplateFailure`);
+      data.content ||= localize(`MHL.Dialog.Error.TemplateFailure`);
     }
     return super._renderInner(data);
   }

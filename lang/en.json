@@ -1,5 +1,7 @@
 {
   "MHL": {
+    "Registered": "Registered",
+    "Allowed": "Allowed",
     "Confirm": "Confirm",
     "Count": "Count",
     "Current": "Current",
@@ -19,17 +21,10 @@
     },
     "Error": {
       "BannerType": "Banner type must be one of \"info\", \"warn\", or \"error\".",
-      "BothMustBeClassesOrClassedObjects": "Both parameters must be classes or objects with a constructor.",
-      "BothMustBeMaps": "At least one of original or other are not Maps or subclasses of Map.",
-      "DataModel": {
-        "InitialFunctionFailure": "This model's `{field}` field's `initial` function threw an error, probably from being run too early."
-      },
       "Generic": "You broke something.",
       "InvalidCamel": "I don't think {camel} is a real camel.",
       "InvalidType": "Invalid type \"{type}\" provided.",
-      "LogType": "Log type must be one of \"debug\", \"info\", \"warn\", or \"error\".",
       "NotADocumentType": "Type {type} is not a valid type of Document.",
-      "RequireSameInheritanceChain": "Both objects' classes must be from the same inheritance chain.",
       "RequiresSystem": "This macro/helper/class is only compatible with the <code>{system}</code> system.",
       "Target": {
         "NotAnyTargetted": "Must have at least one token targetted.",
@@ -57,7 +52,6 @@
       },
       "UnsupportedDocument": "Document type {type} not supported by this function.",
       "Validation": {
-        "IconGeneric": "The provided arguments did not produce a valid icon string from any registered Icon font.",
         "IconSchemaGlyphExact": "The glyph field of an icon font schema cannot define an exact `value`; use `choices` or `pattern`"
       },
       "WrongDocumentTypeRetrieved": "Document retrieved was not of type {type}."
@@ -154,6 +148,10 @@
         "Hint": "Makes the MHL API accessible via just `mhl` in the global scope. Available only after the Setup hook.",
         "Name": "Global API Access"
       },
+      "AccordionSpeed": {
+        "Name": "Animated Collapsible Group Speed",
+        "Hint": "The time in ms that expanding/collapsing an animated settings group takes."
+      },
       "LegacyAccess": {
         "Hint": "Populates `game.pf2emhl`, as is tradition. Available only after the Setup hook.",
         "Name": "Legacy API Access"
@@ -165,7 +163,7 @@
           "Info": "Info",
           "Warn": "Warning"
         },
-        "Hint": "The level at which `mhlog()`/`modLog()` calls will be made in debug mode if an explict type isn't passed.",
+        "Hint": "The level at which calls to `log()` and its descendant functions will be made in debug mode if an explict type isn't passed.",
         "Name": "Debug Log Level"
       },
       "ManagerDefaults": {
@@ -188,6 +186,10 @@
         "SettingResetIcon": {
           "Hint": "Same as above, but for the per-setting reset buttons.",
           "Label": "Setting Reset Icon"
+        },
+        "AccordionSpeed": {
+          "Hint": "The global speed at which animated collapsible groups transition",
+          "Label": "Animated Collapsible Group Speed"
         }
       },
       "ManagerDefaultsMenu": {
@@ -202,7 +204,22 @@
       "SettingsManager": "Setting Manager Defaults",
       "Testing": "Testing"
     },
+    "SettingsManagerReset": {
+      "Error": {
+        "ModuleRequired": "Must supply the module this settings reset app is for.",
+        "ManagedModuleRequired": "Could not find MHLSettingsManager instance for provided module {title}.",
+        "IconNotFound": "Could not acquire a type icon for the logged setting type."
+      },
+      "Title": {
+        "Module": "Reset All {module} Settings",
+        "Group": "Reset {module} Settings in Group {group}",
+        "Setting": "Reset {settingName}"
+      }
+    },
     "SettingsManager": {
+      "Log": {
+        "SettingDeleted": "Saved setting data for {key} of {module} deleted."
+      },
       "ColorPicker": {
         "ValidHexCode": "Must be a # followed by a valid 6-character hex color code"
       },
@@ -211,7 +228,7 @@
         "Button": {
           "Action": "A button replacement action must be a function.",
           "BadFormat": "Malformed button data for key {key} of {module}. Button data must be an object with at least an `action` property containing a function.",
-          "Label": "A setting's `button` data must contain a `label` property, either string or null (for localization key inference)."
+          "Label": "A setting's `button` data must contain a `label` property, either string or true (for localization key inference)."
         },
         "DuplicateSetting": "Setting ID \"{key}\" already exists for {module}.",
         "DuplicateSettingKey": "Setting key \"{key}\" already seen for {module}, skipping duplicate.",
@@ -290,17 +307,29 @@
     "SetTo": "Set To",
     "Very": "Very",
     "Visible": "Visible",
-    "Warning": {
-      "Fallback": {
-        "BannerType": "Provided notification banner type \"{type}\" is not valid, defaulting to \"{defaultType}\".",
-        "FallbackIcon": "Provided arguments did not produce a valid set of icon classes, using fallback value {fallback}",
-        "FallbackIconTooltip": "Using fallback icon. Parsed args: <p><code>{args}</code></p>",
-        "FirstTarget": "This operation requires a single target, using first target \"{name}\".",
-        "FirstToken": "This operation requires a single selected token, using first token \"{name}\".",
-        "LevelOutOfBounds": "Provided level ({level}) out of bounds! Defaulting to level 25.",
-        "LogType": "Provided log type \"{type}\" is not valid, defaulting to \"{defaultType}\".",
-        "Type": "Expected parameter \"{arg}\" to be of type \"{expected}\", not \"{type}\". Casting."
+    "Validation": {
+      "Generic": "No valid input was provided.{fallback}",
+      "Icon": {
+        "Generic": "Provided input(s) did not produce a valid icon string from any {registered}{allowed} icon font.{fallback}",
+        "ExistingHTML": "Provided input(s) contained HTML which did not resolve to a valid icon HTML string.{fallback}",
+
+        "MissingRequired": "Provided input(s) are missing the required part \"{slug}\" for font \"{fontName}\".{fallback}"
+      }
+    },
+    "Fallback": {
+      "BannerDiscarded": "<type was \"debug\", banner discarded>",
+      "BannerType": "Provided notification banner type \"{type}\" is not valid, using fallback \"{fallback}\".",
+      "FirstTarget": "This operation requires a single target, using first target \"{name}\".",
+      "FirstToken": "This operation requires a single selected token, using first token \"{name}\".",
+      "LevelOutOfBounds": "Provided level ({level}) out of bounds! Defaulting to level 25.",
+      "LogType": "Provided log type \"{type}\" is not valid, using fallback \"{fallback}\".",
+      "Icon": {
+        "Tooltip": "Using fallback icon. Parsed input: <p><code>{input}</code></p>",
+        "Classes": " Using fallback classes \"{fallbackIconClasses}\"."
       },
+      "Type": "Expected parameter \"{arg}\" to be of type \"{expected}\", not \"{type}\". Casting."
+    },
+    "Warning": {
       "SystemBelowVerified": "Your system version ({version}) is older than what Macro & Helper Library is verified for ({verified}). This may cause things to break, or might not; No guarantees."
     }
   }

@@ -22,10 +22,12 @@
   },
   "homepage": "https://github.com/esheyw/macro-helper-library#readme",
   "devDependencies": {
+    "@eslint/js": "^9.7.0",
     "@foundryvtt/foundryvtt-cli": "^1.0.2",
     "@rollup/plugin-commonjs": "^26.0.1",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "css-toggle-switch": "^4.1.0",
+    "globals": "^15.8.0",
     "highlight.js": "^11.9.0",
     "rollup": "^4.18.0",
     "sass": "^1.70.0"

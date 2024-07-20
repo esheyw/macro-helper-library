@@ -1,8 +1,8 @@
 import { anyTokens } from "../helpers/tokenHelpers.mjs";
 import { MHLDialog } from "../apps/MHLDialog.mjs";
 import { MODULE_ID, fu } from "../constants.mjs";
-import { MHLError, requireSystem } from "../helpers/errorHelpers.mjs";
-import { mhlocalize } from "../helpers/stringHelpers.mjs";
+import { mhlError, requireSystem } from "../helpers/errorHelpers.mjs";
+import { localize } from "../helpers/stringHelpers.mjs";
 
 export async function updateInitiativeStatistics() {
   const func = "updateInitiativeStatistics";
@@ -10,7 +10,7 @@ export async function updateInitiativeStatistics() {
   const tokens = anyTokens().filter(
     (t) => ["character", "npc"].includes(t.actor.type) && !t.actor.traits.intersects(new Set(["minion", "eidolon"]))
   );
-  if (!tokens.length) throw MHLError(`MHL.Macro.UpdateInitiativeStatistics.Error.NoValidTokens`, { func });
+  if (!tokens.length) throw mhlError(`MHL.Macro.UpdateInitiativeStatistics.Error.NoValidTokens`, { func });
 
   const renderCallback = (html) => {
     const allSelect = html.querySelector("select[name=all]");
@@ -20,7 +20,7 @@ export async function updateInitiativeStatistics() {
       if (ev.target.value) disabled = true;
       for (const select of actorSelects) {
         select.disabled = disabled;
-        select.dataset.tooltip = disabled ? mhlocalize(`MHL.Macro.UpdateInitiativeStatistics.DisabledTooltip`) : "";
+        select.dataset.tooltip = disabled ? localize(`MHL.Macro.UpdateInitiativeStatistics.DisabledTooltip`) : "";
       }
     });
   };

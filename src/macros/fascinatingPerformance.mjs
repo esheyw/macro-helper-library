@@ -1,4 +1,4 @@
-import { MHLBanner, MHLError, requireSystem } from "../helpers/errorHelpers.mjs";
+import { mhlError, mhlog, requireSystem } from "../helpers/errorHelpers.mjs";
 import { oneTokenOnly } from "../helpers/tokenHelpers.mjs";
 import { anyTargets } from "../helpers/targetHelpers.mjs";
 
@@ -10,27 +10,27 @@ export async function fascinatingPerformance() {
 
   const feat = actor.items.find((f) => f.slug === "fascinating-performance");
   if (!feat) {
-    throw MHLError(`MHL.Macro.FascinatingPerformance.Error.MustHaveFeat`);
+    throw mhlError(`MHL.Macro.FascinatingPerformance.Error.MustHaveFeat`);
   }
   const targets = anyTargets({ func });
 
   const prfRank = actor.skills.performance.rank;
   switch (prfRank) {
     case 0:
-      throw MHLError(`MHL.Macro.FascinatingPerformance.Error.MinimumTrained`);
+      throw mhlError(`MHL.Macro.FascinatingPerformance.Error.MinimumTrained`);
     case 1:
-      if (targets.size > 1) throw MHLError(`MHL.Macro.FascinatingPerformance.Error.SingleTargetOnly`);
+      if (targets.size > 1) throw mhlError(`MHL.Macro.FascinatingPerformance.Error.SingleTargetOnly`);
       break;
     case 2:
-      if (targets.size > 4) throw MHLError(`MHL.Macro.FascinatingPerformance.Error.FourTargetsOnly`);
+      if (targets.size > 4) throw mhlError(`MHL.Macro.FascinatingPerformance.Error.FourTargetsOnly`);
       break;
     case 3:
-      if (targets.size > 10) throw MHLError(`MHL.Macro.FascinatingPerformance.Error.TenTargetsOnly`);
+      if (targets.size > 10) throw mhlError(`MHL.Macro.FascinatingPerformance.Error.TenTargetsOnly`);
       break;
     case 4:
       break;
     default:
-      throw MHLError(`MHL.Error.Generic`);
+      throw mhlError(`MHL.Error.Generic`);
   }
   let singleTarget = targets.size === 1;
 
@@ -123,7 +123,7 @@ export async function fascinatingPerformance() {
         (i) => i.name.toLowerCase().includes("immun") && i.name.toLowerCase().includes("fascinating performance")
       );
       if (immunityEffect) {
-        MHLBanner(`MHL.Macro.FascinatingPerformance.Warning.TargetImmune`, { context: { name: targetToken.name }, func });
+        mhlog(`MHL.Macro.FascinatingPerformance.Warning.TargetImmune`, { banner: "warn", context: { name: targetToken.name }, func });
         continue;
       }
       const extraRollOptions = [];

@@ -2,9 +2,9 @@ import * as helpers from "./helpers/index.mjs";
 import * as macros from "./macros/index.mjs";
 import * as apps from "./apps/index.mjs";
 import * as util from "./util/index.mjs";
-import * as data from "./data/index.mjs";
+// import * as data from "./data/index.mjs";
 import * as elements from "./elements/index.mjs";
-import { SETTINGS, setting } from "./settings/settings.mjs";
+import { SETTINGS, setting, toggleGlobalAccess, toggleLegacyAccess } from "./settings/settings.mjs";
 import { MODULE_ID, VERIFIED_SYSTEM_VERSIONS, fu } from "./constants.mjs";
 import { registerHandlebarsHelpers } from "./handlebars.mjs";
 import { generateDefaultConfig, iconFontsDefaults } from "./config/config.mjs";
@@ -24,7 +24,7 @@ Hooks.once("init", () => {
     macros,
     apps,
     util,
-    data,
+    // data,
     hljs,
     elements,
   };
@@ -32,19 +32,20 @@ Hooks.once("init", () => {
   //helpers go in the root of the api object
   for (const [key, helper] of Object.entries(helpers)) {
     // only fill out system specific helpers if we're in that system
-    if (key.startsWith("systemhelpers_")) {
-      const system = key.substring(14);
-      if (game.system.id !== system) continue;
-      for (const [pkey, phelper] of Object.entries(helper)) {
-        mod.api[pkey] = phelper;
+    if (key === "systemHelpers") {
+      const systemHelpers = helper[game.system.id];
+      if (!systemHelpers) continue;
+      for (const [systemKey, systemHelper] of Object.entries(systemHelpers)) {
+        mod.api[systemKey] = systemHelper;
       }
+      continue;
     }
     mod.api[key] = helper;
   }
   //special exposure for ease of grabbing MHL settings
   mod.api.mhlSetting = setting;
 
-  CONFIG.MHL = generateDefaultConfig();
+  CONFIG[MODULE_ID] = generateDefaultConfig();
 });
 Hooks.once("i18nInit", () => {
   //do as much as possible here or later so errors can be localized
@@ -55,35 +56,40 @@ Hooks.once("i18nInit", () => {
       collapsible: false,
     },
     settings: SETTINGS,
+    cleanOnReady: true,
   };
   new util.MHLSettingsManager(MODULE_ID, settingManagerOptions);
-  CONFIG.MHL.iconFonts.push(...iconFontsDefaults);
+  CONFIG[MODULE_ID].iconFonts.push(...iconFontsDefaults);
   MHL().managers = util.MHLSettingsManager.managers;
 });
 
 Hooks.once("setup", () => {
-  if (setting("legacy-access")) game.pf2emhl = MHL();
-  if (setting("global-access")) globalThis.mhl = MHL();
+  if (game.user !== helpers.activeRealGM()) return;
+  const aifManager = MHL().managers.get("additional-icon-fonts");
+  const mdi = aifManager.get("materialdesign");
+  if (!mdi) {
+    aifManager.set("materialdesign", true, {
+      defer: true,
+      deferMessage: async () =>
+        apps.MHLDialog.confirm({
+          title: "Enable Material Design Font",
+          content:
+            "Macro & Helper Library requires the Material Design font from Additional Icon Fonts to be enabled or several icons will fail to display. Enable?",
+        }),
+    });
+  }
+  toggleLegacyAccess(setting("legacy-access"));
+  toggleGlobalAccess(setting("global-access"));
 });
 
 Hooks.once("ready", () => {
-  // handle defaults fallback as best as possible
-  if (AIF_ACTIVE()) {
-    // if aif is ever enabled, record that fact
-    SM().set("aif-enabled", true);
-  } else {
-    if (SM().beenSet("manager-defaults") && setting("aif-enabled")) {
-      //todo: 'do you want to reset' dialog
-    }
-  }
   //register helpers late so checks can be done on existing helpers
   registerHandlebarsHelpers();
 
   const verifiedFor = VERIFIED_SYSTEM_VERSIONS[game.system.id] ?? false;
-  if (verifiedFor && !fu.isNewerVersion(game.system.version, verifiedFor))
-    helpers.MHLBanner(`MHL.Warning.SystemBelowVerified`, {
+  if (verifiedFor && game.system.version !== verifiedFor && !fu.isNewerVersion(game.system.version, verifiedFor))
+    helpers.mhlWarn(`MHL.Warning.SystemBelowVerified`, {
       context: { version: game.system.version, verified: verifiedFor },
-      type: "warn",
       permanent: true,
     });
 });

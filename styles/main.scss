@@ -1,4 +1,4 @@
-@import "Variables", "Functions", "Mixins";
+@import "Variables", "Functions", "Mixins", "Generics";
 
 :root {
   --mhl-frame-color-1: var(--color-primary-1, var(--color-bg-trait));
@@ -17,7 +17,7 @@
     --mhl-reset-text-shadow: none;
   }
   --mhl-text-error-decoration: underline wavy var(--mhl-color-failure);
-  --mhl-accordion-speed: 500ms;
+  --mhl-accordion-speed: 350ms;
 }
 
 .mhl-fallback-icon {
@@ -48,18 +48,14 @@ div.section-separator {
     height: auto !important;
   }
 }
-.mhl-pre-tooltip {
-  code {
-    white-space: nowrap;
-  }
-  line-height: 200%
-}
-@import "pickAThing", "updateInitiativeStatistics", "MHLSettingsManager", "MHLManagerSettingsMenu", "Accordion",
-  "SlideToggleElement", "ToggleSwitch";
+@import "pickAThing", "updateInitiativeStatistics", "MHLSettingsManager", "MHLManagerDefaultsMenu", "Accordion",
+  "SlideToggleElement"; //, "ToggleSwitch";
+
+// @import "../node_modules/css-toggle-switch/src/toggle-switch.scss";
 
 .mhl-hljs-light {
   @import "../node_modules/highlight.js/scss/atom-one-light.scss";
 }
 .mhl-hljs-dark {
-  @import "../node_modules/highlight.js/scss/atom-one-dark.scss";
+  @import "../node_modules/highlight.js/scss/base16/oceanicnext.scss";
 }

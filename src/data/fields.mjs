@@ -1,6 +1,3 @@
-import { localeSort } from "../helpers/stringHelpers.mjs";
-
-
 // Lifted and de-TSified from the pf2e system
 export class DataUnionField extends foundry.data.fields.DataField {
   constructor(fields, options) {
@@ -40,20 +37,14 @@ export class DataUnionField extends foundry.data.fields.DataField {
   }
 }
 
-export class FunctionField extends foundry.data.fields.DataField {
+//todo: make worthy of exporting
+class FunctionField extends foundry.data.fields.DataField {
   _validateType(value) {
     return typeof value === "function";
   }
   _cast(value) {
     // wrap in pointless arrow function so that DataModel#initalize doesn't run it when accessed by the getter
-    return () => value;
-  }
-}
-
-export class GroupsOptionSortField extends FunctionField {
-  _cast(value) {
-    if (!value) return () => () => 0;
-    if (value === true || value === "a") return () => localeSort;
+    //todo: check it hasn't already been wrapped
     return () => value;
   }
 }

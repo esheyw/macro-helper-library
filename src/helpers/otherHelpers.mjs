@@ -1,10 +1,23 @@
 import { fu } from "../constants.mjs";
-import { MHLError } from "./errorHelpers.mjs";
+import { mhlog } from "./errorHelpers.mjs";
 
+/**
+ * @typedef {import("../_types.mjs").SortCallback} SortCallback
+ */
+
+/**
+ * Standard wait function
+ * @param {number} ms The time to wait in milliseconds
+ */
 export async function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/**
+ * Checks if a value is an object, but not a complex one.
+ * @param {any} obj The value being tested
+ * @returns {boolean}
+ */
 export function isPlainObject(obj) {
   if (typeof obj !== "object" || obj === null) {
     return false;
@@ -13,6 +26,16 @@ export function isPlainObject(obj) {
   return proto === null || proto === Object.prototype;
 }
 
+/**
+ * Returns the options object at the end of an array. For use with functions
+ * that take a variable number of arguments, but always/optionally finish with
+ * an options object.
+ * @param {Array<any>} inputs A ...rest arguments array
+ * @param {object} [options={}]
+ * @param {boolean} [options.handlebars=true] If true and the object contains a `hash` property, will return that instead of the whole object
+ * This is how handlebars passes `{{helper param1=value1}}` arguments.
+ * @returns {object|null} The options object, or `null` if none found or `inputs` wasn't an Array.
+ */
 export function getFunctionOptions(inputs, { handlebars = true } = {}) {
   if (!Array.isArray(inputs)) return null;
   const lastInput = inputs.at(-1);
@@ -23,38 +46,70 @@ export function getFunctionOptions(inputs, { handlebars = true } = {}) {
   return null;
 }
 
-export function getStringArgs(inputs, { join = null, split = /\s+/, map = null } = {}) {
+/**
+ * Processes potentially messy stringish input.
+ *
+ * @param {string|Array<string|Array<string|Array<string>>>} inputs A string or array of strings to be processed
+ * @param {object} [options]
+ * @param {string|boolean} [options.join=false] The string used to join entries before return, `true` means use the default `" "`, `false` is no join
+ * @param {RegExp|string|boolean} [options.split=true] Splits each input on this value unless falsy. `true` means use the default `/\s+/`
+ * @param {Function} [options.map] A callback to map every processed string. Applied before joining
+ * @param {boolean} [options.unique=false] Whether to only allow one instance of any processed value
+ * @returns {string|string[]} The processed values, or a string joined by `join` if provided
+ */
+export function getStringArgs(inputs, { join, split = /\s+/, map, unique = false } = {}) {
   if (!Array.isArray(inputs)) inputs = [inputs];
+  const mapFn = typeof map === "function" ? map : _i;
+  const splitFn = !split ? _i : (i) => i.split(split);
+  if (join === true) join = " ";
   inputs = inputs
     .flat(Infinity)
     .filter((i) => !isEmpty(i))
-    .map((i) => String(i).trim())
-    .flatMap((i) => (split && (typeof split === "string" || split instanceof RegExp) ? i.split(split) : i));
-  if (typeof map === "function") inputs = inputs.map(map);
-  if (join && typeof join !== "string") join = " ";
+    //split before and after the provided map in case it introduced new splitables
+    .flatMap(splitFn)
+    .map((i) => mapFn(String(i).trim()))
+    .flatMap(splitFn);
+  if (unique) inputs = [...new Set(inputs)];
   return join ? inputs.join(String(join)) : inputs;
 }
 
+/**
+ * A modified `foundry.utils.deepClone` that (arguably) handles cloning Maps, Collections, and Sets
+ *
+ * Quickly clone a simple piece of data, returning a copy which can be mutated safely.
+ * This method DOES support recursive data structures containing inner objects or arrays.
+ * This method DOES support Dates, Sets, Maps and Collections
+ * This method DOES NOT support anything beyond that.
+ * @param {*} original                     Some sort of data
+ * @param {object} [options]               Options to configure the behaviour of deepClone
+ * @param {boolean} [options.strict=false]  Throw an Error if deepClone is unable to clone something instead of
+ *                                          returning the original
+ * @param {boolean} [options.cloneKeys=true] Whether to copy Map/Collection keys as reference, or clone them
+ * @param {boolean} [options.cloneValues=true] Whether to copy Set/Map/Collection keys as reference, or clone them
+ * TODO: why is this not in use anymore it seemed important
+ * @param {number} [options._d]             An internal depth tracker
+ * @return {*}                             The clone of that data
+ */
 export function deeperClone(
   original,
-  { strict = false, returnOriginal = true, keepMapKeys = false, keepMapValues = false } = {}
+  { strict = false, returnOriginal = true, cloneKeys = true, cloneValues = true } = {}
 ) {
   // Simple types
   if (typeof original !== "object" || original === null) return original;
-  const options = { strict, returnOriginal, keepMapKeys, keepMapValues };
+  const options = { strict, returnOriginal, cloneKeys, cloneValues };
   // Arrays
   if (original instanceof Array) return original.map((o) => deeperClone(o, options));
   // Sets
   if (original instanceof Set) {
     const out = new Set();
-    for (const element of original) out.add(deeperClone(element, options));
+    for (const element of original) out.add(cloneValues ? deeperClone(element, options) : element);
     return out;
   }
   // Maps & Collections
   if (original instanceof Map) {
     const out = new original.constructor();
     for (const [k, v] of original.entries())
-      out.set(keepMapKeys ? k : deeperClone(k, options), keepMapValues ? v : deeperClone(v, options));
+      out.set(cloneKeys ? deeperClone(k, options) : k, cloneValues ? deeperClone(v, options) : v);
     return out;
   }
   // Dates
@@ -62,6 +117,7 @@ export function deeperClone(
 
   // Unsupported advanced objects
   if (original.constructor && original.constructor !== Object) {
+    //todo: localize
     if (strict) throw new Error("deepClone cannot clone advanced objects");
     return returnOriginal ? original : undefined;
   }
@@ -73,30 +129,12 @@ export function deeperClone(
   }
   return clone;
 }
-// this mostly exists to serve the map -> collection chain
-export function mostDerivedClass(c1, c2) {
-  const func = `mostDerivedClass`;
-  if (typeof c1 !== "function") c1 = c1.constructor ?? null;
-  if (typeof c2 !== "function") c2 = c2.constructor ?? null;
-  if (typeof c1 !== "function" || typeof c2 !== "function")
-    throw MHLError(`MHL.Error.BothMustBeClassesOrClassedObjects`, { func });
-  if (c1 === c2) return c1;
-  const c1list = fu.getParentClasses(c1);
-  const c2list = fu.getParentClasses(c2);
-  if (c1list.length === 0) {
-    if (c2list.length === 0 || !c2list.includes(c1)) return null;
-    return c2;
-  } else {
-    if (!c1list.includes(c2)) return null;
-    return c1;
-  }
-}
 
-// taken from https://stackoverflow.com/a/32728075, slightly modernized to handle Maps, Collections, and Sets
 /**
- * Checks if value is empty. Deep-checks arrays and objects
+ * Checks if value is empty. Deep-checks arrays and objects.
  * Note: isEmpty([]) == true, isEmpty({}) == true, isEmpty([{0:false},"",0]) == true, isEmpty({0:1}) == false
- * @param value
+ * @see {@link https://stackoverflow.com/a/32728075}, slightly modernized to handle Maps, Collections, and Sets
+ * @param {any} value
  * @returns {boolean}
  */
 
@@ -119,6 +157,13 @@ export function isEmpty(value) {
   );
 }
 
+/**
+ * Gets all keys from a Record that *are not* in a template object or array of valid string keys.
+ * Not recursive.
+ * @param {Record<string,any>} source The object being tested
+ * @param {Record<string,any>|Array<string>} valid A template object, or an array of valid keys
+ * @returns {Array<string>} Any keys found in `source` not allowed by `valid`
+ */
 export function getInvalidKeys(source, valid = []) {
   const validKeys = new Set(Array.isArray(valid) ? valid : isPlainObject(valid) ? Object.keys(valid) : []);
   if (isPlainObject(source)) {
@@ -127,6 +172,21 @@ export function getInvalidKeys(source, valid = []) {
   return [];
 }
 
+/**
+ * Takes an array of objects and returns a sort callback that will order an array
+ * with `order` first, and in that order, with all values not found in `order` not
+ * sorted further.
+ * @param {Array<any>} order
+ * @returns {SortCallback} The generated sort callback
+ *
+ * @example
+ * ```js
+ * const order = ["b", "f", "a"]
+ * const input = ["a", "b", "c", "d", "e", "f"]
+ * const sorter = generateSorterFromOrder(order)
+ * input.sort(sorter) // ["b", "f", "a", "c", "d", "e"]
+ * ```
+ */
 export function generateSorterFromOrder(order) {
   if (!Array.isArray(order)) order = [order];
   order = [...new Set(...order)];
@@ -146,32 +206,57 @@ export function generateSorterFromOrder(order) {
     }
   };
 }
-
-export function filterObject(source, template, {recursive= true, deletionKeys=false, templateValues=false}={}) {
+/**
+ * A slight modification of `foundry.utils.filterObject` to allow for
+ * not recursively testing inner objects.
+ * Filter the contents of some source object using the structure of a template object.
+ * Only keys which exist in the template are preserved in the source object.
+ *
+ * @param {object} source           An object which contains the data you wish to filter
+ * @param {object} template         An object which contains the structure you wish to preserve
+ * @param {object} [options={}]     Additional options which customize the filtration
+ * @param {boolean} [options.recursive=true] Whether to recursively test inner objects
+ * @param {boolean} [options.deletionKeys=false]    Whether to keep deletion keys
+ * @param {boolean} [options.templateValues=false]  Instead of keeping values from the source, instead draw values from the template
+ *
+ * @example Filter an object
+ * ```js
+ * const source = {foo: {number: 1, name: "Tim", topping: "olives"}, bar: "baz", other: 65};
+ * const template = {foo: {number: 0, name: "Mit", style: "bold"}, other: 72};
+ * filterObject(source, template); // {foo: {number: 1, name: "Tim"}, other: 65};
+ * filterObject(source, template, {templateValues: true}); // {foo: {number: 0, name: "Mit"}, other: 72};
+ * filterObject(source, template, {recursive: false}) // NEW {foo: {number: 1, name: "Tim", topping: "olives"}, other: 65}
+ * ```
+ */
+export function filterObject(
+  source,
+  template,
+  { recursive = true, deletionKeys = false, templateValues = false } = {}
+) {
   // Validate input
   const ts = fu.getType(source);
   const tt = fu.getType(template);
   //todo: localize error
-  if ( (ts !== "Object") || (tt !== "Object")) throw new Error("One of source or template are not Objects!");
+  if (ts !== "Object" || tt !== "Object") throw new Error("One of source or template are not Objects!");
 
   // Define recursive filtering function
-  const _filter = function(s, t, filtered, recursive) {
-    for ( let [k, v] of Object.entries(s) ) {
+  const _filter = function (s, t, filtered, recursive) {
+    for (let [k, v] of Object.entries(s)) {
       let has = t.hasOwnProperty(k);
       let x = t[k];
 
       // Case 1 - inner object
-      if ( has && (fu.getType(v) === "Object") && (fu.getType(x) === "Object") ) {
+      if (has && fu.getType(v) === "Object" && fu.getType(x) === "Object") {
         filtered[k] = recursive ? _filter(v, x, {}) : v;
       }
 
       // Case 2 - inner key
-      else if ( has ) {
+      else if (has) {
         filtered[k] = templateValues ? x : v;
       }
 
       // Case 3 - special key
-      else if ( deletionKeys && k.startsWith("-=") ) {
+      else if (deletionKeys && k.startsWith("-=")) {
         filtered[k] = v;
       }
     }
@@ -181,178 +266,24 @@ export function filterObject(source, template, {recursive= true, deletionKeys=fa
   // Begin filtering at the outer-most layer
   return _filter(source, template, {}, recursive);
 }
-
-// export function mergeObjectExtended2(
-//   original,
-//   other = {},
-//   {
-//     insertKeys = true,
-//     insertValues = true,
-//     overwrite = true,
-//     recursive = true,
-//     inplace = true,
-//     enforceTypes = false,
-//     performDeletions = false,
-//     arraysUnique = false,
-//   } = {},
-//   _d = 0
-// ) {
-//   const func = `mergeObjectExtended`;
-//   other = other ?? {}; //check for nullish instead of falsey
-//   if (!(original instanceof Object) || !(other instanceof Object)) {
-//     throw new Error("One of original or other are not Objects!");
-//   }
-//   const options = {
-//     insertKeys,
-//     insertValues,
-//     overwrite,
-//     recursive,
-//     inplace,
-//     enforceTypes,
-//     performDeletions,
-//     arraysUnique,
-//   };
-//   const originalType = fu.getType(original);
-//   const otherType = fu.getType(other);
-//   // original and other must either both be plain objects or be in the same inheritance chain
-//   let cls;
-//   if (isPlainObject(original) !== isPlainObject(other) || !(cls = mostDerivedClass(original, other))) {
-//     throw MHLError(`MHL.Error.RequireSameInheritanceChain`, { func });
-//   }
-// }
-
-// export function mergeObjectExtended(
-//   original,
-//   other = {},
-//   {
-//     insertKeys = true,
-//     insertValues = true,
-//     overwrite = true,
-//     recursive = true,
-//     inplace = true,
-//     enforceTypes = false,
-//     performDeletions = false,
-//     arraysUnique = false,
-//   } = {},
-//   _d = 0
-// ) {
-//   other = other || {};
-//   if (!(original instanceof Object) || !(other instanceof Object)) {
-//     throw new Error("One of original or other are not Objects!");
-//   }
-//   const options = {
-//     insertKeys,
-//     insertValues,
-//     overwrite,
-//     recursive,
-//     inplace,
-//     enforceTypes,
-//     performDeletions,
-//     arraysUnique,
-//   };
-
-//   // Special handling at depth 0
-//   if (_d === 0) {
-//     if (Object.keys(other).some((k) => /\./.test(k))) other = fu.expandObject(other);
-//     if (Object.keys(original).some((k) => /\./.test(k))) {
-//       const expanded = fu.expandObject(original);
-//       if (inplace) {
-//         Object.keys(original).forEach((k) => delete original[k]);
-//         Object.assign(original, expanded);
-//       } else original = expanded;
-//     } else if (!inplace) original = deeperClone(original);
-//   }
-
-//   // Iterate over the other object
-//   for (let k of Object.keys(other)) {
-//     const v = other[k];
-//     if (original.hasOwnProperty(k)) _mergeUpdate(original, k, v, options, _d + 1);
-//     else _mergeInsert(original, k, v, options, _d + 1);
-//   }
-//   return original;
-// }
-
-// /**
-//  * A helper function for merging objects when the target key does not exist in the original
-//  * @private
-//  */
-// function _mergeInsert(original, k, v, { insertKeys, insertValues, performDeletions } = {}, _d) {
-//   // Delete a key
-//   if (k.startsWith("-=") && performDeletions) {
-//     delete original[k.slice(2)];
-//     return;
-//   }
-
-//   const canInsert = (_d <= 1 && insertKeys) || (_d > 1 && insertValues);
-//   if (!canInsert) return;
-
-//   // Recursively create simple objects
-//   if (isPlainObject(v)) {
-//     original[k] = mergeObjectExtended({}, v, { insertKeys: true, inplace: true, performDeletions });
-//     return;
-//   }
-
-//   // Insert a key
-//   original[k] = v;
-// }
-
-// /**
-//  * A helper function for merging objects when the target key exists in the original
-//  * @private
-//  */
-// export function _mergeUpdate(
-//   original,
-//   mergeKey,
-//   mergeValue,
-//   { insertKeys, insertValues, enforceTypes, overwrite, recursive, performDeletions, arraysUnique } = {},
-//   _d
-// ) {
-//   const func = "_mergeUpdate";
-//   const originalValue = original[mergeKey];
-//   const mergeValueType = fu.getType(mergeValue);
-//   const originalValueType = fu.getType(originalValue);
-//   const options = { insertKeys, insertValues, enforceTypes, overwrite, recursive, performDeletions, arraysUnique };
-//   if (mergeValueType === "Array" && originalValueType === "Array") {
-//     for (const element of mergeValue) {
-//       // mhlog(
-//       //   { element, v, includes: x.includes(element), arraysUnique },
-//       //   { type: "warn", func, prefix: "array comp" }
-//       // );
-//       if (arraysUnique && originalValue.includes(element)) continue;
-//       originalValue.push(element);
-//     }
-//     return;
-//   }
-
-//   if (mergeValueType === "Set" && originalValueType === "Set") {
-//     for (const element of mergeValue) originalValue.add(element);
-//     return;
-//   }
-//   if (mergeValueType === "Map" && originalValueType === "Map") {
-//     mhlog({ x: deeperClone(originalValue), v: deeperClone(mergeValue) }, { type: "warn", prefix: "map compare", func });
-//     for (const [mergeMapKey, mergeMapValue] of mergeValue.entries()) {
-//       if (originalValue.has(mergeMapKey)) {
-//         const originalMapValue = originalValue.get(mergeMapKey);
-//         const oMVType = fu.getType(originalMapValue);
-//         const mMVType = fu.getType(mergeMapValue);
-//         if (mMVType === "Object")
-//           mergeObjectExtended(originalMapValue, mergeMapValue, { ...options, inplace: true }, _d);
-//       } else {
-//         originalValue.set(mergeMapKey, mergeMapValue);
-//       }
-//       mhlog({ x: deeperClone(originalValue) }, { type: "warn", prefix: "map entry processed", func });
-//     }
-//   }
-//   // Recursively merge an inner object
-//   if (mergeValueType === "Object" && originalValueType === "Object" && recursive) {
-//     return mergeObjectExtended(originalValue, mergeValue, { ...options, inplace: true }, _d);
-//   }
-
-//   // Overwrite an existing value
-//   if (overwrite) {
-//     if (originalValueType !== "undefined" && mergeValueType !== originalValueType && enforceTypes) {
-//       throw new Error(`Mismatched data types encountered during object merge.`);
-//     }
-//     original[mergeKey] = mergeValue;
-//   }
-// }
+/**
+ * Function that returns its first parameter.
+ * For simplifying applying-optional-maps logic.
+ * @param {*} self any value
+ * @returns {*} that value
+ *
+ * @example
+ * Split can be null, in which case we want to do nothing to the elements,
+ * but breaking up the chained functions would be unsightly
+ *
+ * ```js
+ * split = split === null ? _i : (i) => i.split(split);
+ * inputs = inputs
+ *   .flat(Infinity)
+ *   .filter((i) => !isEmpty(i))
+ *   .flatMap(split)
+ * ```
+ */
+export function _i(self) {
+  return self;
+}

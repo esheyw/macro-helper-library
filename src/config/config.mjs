@@ -1,4 +1,8 @@
 import { IconFontsHandler } from "./IconFontsHandler.mjs";
+/**
+ * @typedef {import("../_types.mjs").IconFontEntry} IconFontEntry
+ */
+/** @type {Array<IconFontEntry>} */
 export const iconFontsDefaults = [
   {
     name: "fontawesome",
@@ -27,10 +31,10 @@ export const iconFontsDefaults = [
         pattern: "sharp",
       },
       rotate: {
-        pattern: "rotate-(90|180|270|by)"
+        pattern: "rotate-(90|180|270|by)",
       },
       flip: {
-        pattern: "flip-(horizonal|vertical|both)"
+        pattern: "flip-(horizonal|vertical|both)",
       },
       style: {
         choices: ["solid", "regular", "duotone", "light", "thin"],
@@ -41,13 +45,30 @@ export const iconFontsDefaults = [
   },
 ];
 export function generateDefaultConfig() {
-  const config = {};
+  const config = {
+    typeIconMap: new Collection([
+      [String, "format-quote-close-outline"],
+      ["StringField", "format-quote-close-outline"],
+      [Number, "numeric"],
+      ["NumberField", "numeric"],
+      [Boolean, "checkbox-outline"],
+      ["BooleanField", "checkbox-outline"],
+      [Object, "code-braces"],
+      ["ObjectField", "code-braces"],
+      ["SchemaField", "code-braces"],
+      ["ColorField", "palette"],
+      ["model", "database"],
+      ["field", "code-braces"], //todo: find better
+      ["function", "function"],
+      ["unknown", "question flip-vertical"],
+    ]),
+    fallbackIconClasses: "fa-solid fa-question mhl-fallback-icon",
+    disabledClasses: ["disabled-transparent", "disabled-hidden", "disabled-blurry"],
+  };
   Object.defineProperty(config, "iconFonts", {
     writable: false,
     configurable: false,
     value: new Proxy(new Array(), new IconFontsHandler()),
   });
-  config.fallbackIcon = "fa-solid fa-question mhl-fallback-icon";
-  config.disabledClasses = ["disabled-transparent", "disabled-hidden", "disabled-blurry"];
   return config;
 }

@@ -1,20 +1,21 @@
 import { MHLDialog } from "../apps/MHLDialog.mjs";
 import { fu } from "../constants.mjs";
-import { MHLError, mhlog } from "./errorHelpers.mjs";
+import { mhlError } from "./errorHelpers.mjs";
 import { prependIndefiniteArticle } from "./stringHelpers.mjs";
 
 export function doc(input, type = null, { parent = null, returnIndex = false, async = false } = {}) {
+  //todo: find better solution for sync vs non-sync calls
   const func = `doc`;
   let document;
   if (type === true) async = true; // kinda gross?
   if (typeof type === "string") type = getDocumentClass(type);
   const requireType = (type) => {
-    if (typeof type !== "function" || !(type.prototype instanceof foundry.abstract.DataModel)) {
-      mhlog(
+    if (typeof type !== "function" || !(type.prototype instanceof foundry.abstract.Document)) {
+      mhlError(
         { input, type, parent },
         {
           func,
-          prefix: `MHL.Error.NotADocumentType`,
+          text: `MHL.Error.NotADocumentType`,
           context: { type: typeof type === "function" ? type.prototype.constructor.name : String(type) },
         }
       );
@@ -24,11 +25,11 @@ export function doc(input, type = null, { parent = null, returnIndex = false, as
   };
   const wrongType = (checkedDoc, type) => {
     if (!(checkedDoc instanceof type)) {
-      mhlog(
+      mhlError(
         { input, type, parent },
         {
           func,
-          prefix: `MHL.Error.WrongDocumentTypeRetrieved`,
+          text: `MHL.Error.WrongDocumentTypeRetrieved`,
           context: { type: typeof type === "function" ? type.name : String(type) },
         }
       );
@@ -75,6 +76,7 @@ export function doc(input, type = null, { parent = null, returnIndex = false, as
 //root: root folder of the structure to update
 //exemplar: document to copy ownership structure of
 export async function applyOwnshipToFolderStructure(root, exemplar) {
+  //todo: allow non-nested object as exemplar
   const ids = getIDsFromFolder(root); // handles type checking of root
   const updates = ids.map((id) => fu.flattenObject({ _id: id, ownership: exemplar.ownership }));
   const dc = CONFIG[root.type].documentClass;
@@ -86,14 +88,16 @@ export async function applyOwnshipToFolderStructure(root, exemplar) {
 export function getIDsFromFolder(root) {
   if (!(root instanceof Folder)) {
     if (typeof root === "string") root = game.folders.get(root);
-    if (!root) throw MHLError("MHL.Error.Type.Folder", { context: { arg: "root" }, func: "getIDsFromFolder" });
+    if (!root) throw mhlError("MHL.Error.Type.Folder", { context: { arg: "root" }, func: "getIDsFromFolder" });
   }
+  //todo: handle folders of compendia (https://github.com/foundryvtt/foundryvtt/issues/11292)
   return root.contents.concat(root.getSubfolders(true).flatMap((f) => f.contents)).map((c) => c.id);
 }
 
 export function isOwnedBy(document, user) {
   //partially lifted from warpgate
-  const corrected = document instanceof TokenDocument ? document.actor : document instanceof Token ? document.document.actor : document;
+  const corrected =
+    document instanceof TokenDocument ? document.actor : document instanceof Token ? document.document.actor : document;
   const userID = doc(user, "User")?.id;
   if (corrected.ownership[userID] === 3) return true;
   return false;
@@ -111,36 +115,14 @@ export function activeRealGM() {
   return activeRealGMs[0] || null;
 }
 
-export function getModelDefaults(model) {
-  const func = `getModelDefaults`;
-  if (!(model.prototype instanceof foundry.abstract.DataModel)) {
-    mhlog({ model }, { func, prefix: "MHL.Error.Type.DataModel", context: { arg: "model" } });
-    return {};
-  }
-  return Object.entries(model.defineSchema()).reduce((acc, [key, field]) => {
-    let initialValue;
-    if (typeof field.initial === "function") {
-      try {
-        initialValue = field.initial();
-      } catch (e) {
-        mhlog({ e }, { type: 'error', func, prefix: "MHL.Error.DataModel.InitialFunctionFailure", context: { field: key } });
-        initialValue = undefined;
-      }
-    } else {
-      initialValue = field.initial;
-    }
-    acc[key] = initialValue;
-    return acc;
-  }, {});
-}
 export async function pickAThingDialog({ things = null, title = null, thingType = "Item", dialogOptions = {} } = {}) {
   if (!Array.isArray(things)) {
-    throw MHLError(`MHL.PickAThing.Error.ThingsFormat`);
+    throw mhlError(`MHL.PickAThing.Error.ThingsFormat`);
   }
   const buttons = things.reduce((acc, curr) => {
     let buttonLabel = ``;
     if (!("label" in curr && "value" in curr)) {
-      throw MHLError(`MHL.PickAThing.Error.MalformedThing`, { log: { badthing: curr } });
+      throw mhlError({ badthing: curr }, { text: `MHL.PickAThing.Error.MalformedThing` });
     }
     if (curr?.img) {
       buttonLabel += `<img src="${curr.img}" alt="${curr.label}" data-tooltip="${curr?.indentifier ?? curr.label}" />`;
@@ -160,4 +142,44 @@ export async function pickAThingDialog({ things = null, title = null, thingType 
     close: () => false,
   };
   return await MHLDialog.wait(dialogData, dialogOptions);
+}
+
+/**
+ * Unset all settings for a given module in both the world and current browser
+ *
+ * @export
+ * @param {string|foundry.packages.BaseModule} modID The module ID (or module instance) to unset settings for
+ * @param {object} [options]
+ * @param {boolean} [options.client=true] Whether to unset client settings in the browser running this function
+ * @param {boolean} [options.world=true] Whether to unset world settings
+ * @returns {{client: number, world: number}} The number of settings unset for each type
+ */
+export function unsetModuleSettings(modID, { client = true, world = true, fcs = false } = {}) {
+  if (modID instanceof foundry.packages.BaseModule) {
+    modID = modID.id;
+  }
+  const out = {
+    client: 0,
+    world: 0,
+  };
+  if (client) {
+    const clientStorage = game.settings.storage.get("client");
+    for (const clientKey of Object.keys(clientStorage)) {
+      if (clientKey.startsWith(modID)) {
+        out.client++;
+        clientStorage.removeItem(clientKey);
+      }
+    }
+  }
+  if (world) {
+    const worldStorage = game.settings.storage.get("world");
+    for (const worldSetting of worldStorage) {
+      if (worldSetting.key.startsWith(modID)) {
+        out.world++;
+        worldSetting.delete();
+      }
+    }
+  }
+  //TODO: add FCS reset support
+  return out;
 }

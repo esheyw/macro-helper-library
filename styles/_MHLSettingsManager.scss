@@ -1,5 +1,6 @@
 section.mhl-settings-manager {
   padding-right: 0.2em;
+
   details[data-setting-group] {
     summary {
       list-style: none;
@@ -20,7 +21,9 @@ section.mhl-settings-manager {
       }
     }
   }
+
   code {
+    // so enriched hints don't word-wrap
     white-space: nowrap;
   }
 
@@ -29,36 +32,47 @@ section.mhl-settings-manager {
     text-align: right;
     padding: 0 0.1em;
   }
+
   a[data-reset-type] {
     display: inline;
     padding-right: 0.2em;
-    transition: 0.5s ease-out all;
+    transition: all 0.5s ease-out;
     [class~="mdi"] {
+      // material design icons are slightly smaller than FA?
       font-size: 1.1em;
     }
     opacity: 1;
     text-shadow: var(--mhl-reset-text-shadow);
+
+    /*
+    * Disabled reset button classes
+    */
+    &[class^="disabled-"] {
+      cursor: default;
+    }
     &.disabled-blurry {
       filter: blur(2px);
-      cursor: default;
     }
 
     &.disabled-hidden {
       display: none;
-      cursor: default;
     }
 
     &.disabled-transparent {
       opacity: 0.25;
-      cursor: default;
     }
   }
   h3[data-setting-group] {
     border-bottom: 1px solid var(--color-underline-header);
   }
   div[data-setting-id] {
-    input[type="color"] {
+    &.app-v1-color-picker input[type="color"] {
       max-width: 20%;
+      height: var(--form-field-height);
+      margin-left: 5px;
+      border: 2px groove var(--color-border-light-highlight);
+      flex: 1.45;
+      cursor: pointer;
     }
 
     input[type="text"]:has(+ input[type="color"]):invalid {
@@ -75,14 +89,14 @@ section.mhl-settings-manager {
     }
   }
 }
-
+.mhl-reset-app,
 .mhl-dialog.mhl-reset {
   // .dialog-buttons button {
   //   // word-wrap: none;
   //   flex-basis: min-content;
   //   flex: 1;
   // }
-  &> * {
+  & > * {
     user-select: text;
   }
   min-width: 400px;
@@ -91,7 +105,6 @@ section.mhl-settings-manager {
     text-decoration: underline;
   }
   table {
-    
     width: 100%;
   }
   h3 {

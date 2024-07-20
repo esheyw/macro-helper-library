@@ -37,7 +37,7 @@
   "bugs": "https://github.com/esheyw/macro-helper-library/issues",
   "changelog": "https://github.com/esheyw/macro-helper-library/blob/main/CHANGELOG.md",
   "relationships": {
-    "recommends": [
+    "requires": [
       {
         "id": "additional-icon-fonts",
         "type": "module",
