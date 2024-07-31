@@ -13,7 +13,7 @@ import { hasTags } from "./stringHelpers.mjs";
 
 /**
  * Create an HTML element with various options
- * @param {string|HTMLElement} tag The element name to use in creation. If a string containing HTML is passed, attempts to create an element from that string. 
+ * @param {string|HTMLElement} tag The element name to use in creation. If a string containing HTML is passed, attempts to create an element from that string.
  * If an HTMLElement is passed, modifies it according to `options`.
  * @param {CreateHTMLElementOptions} [options] Options to apply to the created element
  * @returns {HTMLElement} The created element
@@ -32,7 +32,7 @@ export function createHTMLElement(tag, { classes = [], dataset = {}, children = 
   if (innerHTML) {
     element.innerHTML = innerHTML;
   } else {
-    for (const child of children) {
+    for (const child of children.filter((c) => c)) {
       const childElement = child instanceof HTMLElement ? child : new Text(child);
       element.appendChild(childElement);
     }

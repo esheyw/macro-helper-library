@@ -1,6 +1,6 @@
 import { fu, MODULE_ID } from "../constants.mjs";
 import { hasTags, localize } from "./stringHelpers.mjs";
-import { elementFromString } from "./DOMHelpers.mjs";
+import { createHTMLElement, elementFromString } from "./DOMHelpers.mjs";
 import { escapeHTML } from "./stringHelpers.mjs";
 import { logCastString, mhlog } from "./errorHelpers.mjs";
 import { isEmpty } from "./otherHelpers.mjs";
@@ -121,7 +121,7 @@ export function getIconClasses(input, { infer = true, strict = false, fallback =
         ).exec(part);
       }
       if (matches || exact) {
-        const prefixFound = !!matches[1];
+        const prefixFound = matches ? !!matches[1] : false;
         // not exact, can't infer, and no prefix
         if (!exact && !infer && !prefixFound) continue;
         // matched = don't add to others if otherwise unhandled
@@ -229,4 +229,40 @@ export function getIconListFromCSS(needle, prefixes) {
         return acc;
       }, new Set()),
   ];
+}
+export function getTypeIcon(type) {
+  const map = CONFIG[MODULE_ID].typeIconMap;
+  let glyph, tooltip;
+  if ((glyph = map.get(type))) {
+    tooltip = type.name;
+  } else if ((glyph = map.get(type?.constructor?.name))) {
+    tooltip = type.constructor.name;
+  } else if (type instanceof foundry.data.fields.DataField) {
+    glyph = map.get("field");
+    tooltip = type.constructor.name;
+  } else if (type?.prototype instanceof foundry.abstract.DataModel) {
+    glyph = map.get("model");
+    tooltip = `DataModel: ${type.name}`;
+  } else if (typeof type === "function") {
+    glyph = map.get("function");
+    tooltip = `Function: ${type.name}`;
+  } else {
+    glyph = map.get("unknown");
+    tooltip = `Unknown: ${String(type)}`;
+    mhlog({ type }, { func: "mhl-settingTypeIcon", text: "MHL.SettingsManagerReset.Error.UnknownSettingType" });
+  }
+  return { glyph, tooltip };
+}
+export function getTypeIconHTML(type) {
+  
+  let { glyph, tooltip } = getTypeIcon(type);
+
+  const primaryIcon = getIconHTMLString(glyph);
+  let secondaryIcon;
+  if (type instanceof foundry.data.fields.SetField) {
+    const { glyph: innerGlyph, tooltip: innerTooltip } = getTypeIcon(type.element);
+    secondaryIcon = `<span class="inner-type">${getIconHTMLString(innerGlyph)}</span>`;
+    tooltip += `(${innerTooltip})`;
+  }
+  return primaryIcon + (secondaryIcon ? `(${secondaryIcon})` : "");
 }

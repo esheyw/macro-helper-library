@@ -1,5 +1,5 @@
-import SlideToggleElement from "./SlideToggleElement.mjs";
+import { SlideToggleElement } from "./SlideToggleElement.mjs";
 
-window.customElements.define("mhl-slide-toggle", SlideToggleElement);
+window.customElements.define(SlideToggleElement.tagName, SlideToggleElement);
 
 export { SlideToggleElement };

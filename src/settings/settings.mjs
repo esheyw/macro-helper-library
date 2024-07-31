@@ -18,7 +18,7 @@ export const SETTINGS = () => ({
     name: true,
     hint: true,
     label: true,
-    icon: "icons",
+    icon: "mdi mdi-database-sync",
     group: ".SettingsManager",
     for: "manager-defaults",
     restricted: true,

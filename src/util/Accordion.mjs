@@ -19,13 +19,14 @@ import { logCastString, logCastNumber } from "../helpers/errorHelpers.mjs";
 export class Accordion {
   constructor(config) {
     const func = `Accordion#constructor`;
-    const mod = config.mod ?? "MHL"    
+    const mod = config.mod ?? "MHL";
     this.#config = {
       contentSelector:
-        logCastString(config.contentSelector, "config.contentSelector", {func, mod}) + ":not(.mhl-accordion-content)",
-      headingSelector: logCastString(config.headingSelector, "config.headingSelector",  {func, mod}),
-      initialOpen: logCastNumber(config.initialOpen ?? Infinity, "config.initialOpen",  {func, mod}),
+        logCastString(config.contentSelector, "config.contentSelector", { func, mod }) + ":not(.mhl-accordion-content)",
+      headingSelector: logCastString(config.headingSelector, "config.headingSelector", { func, mod }),
+      initialOpen: logCastNumber(config.initialOpen ?? Infinity, "config.initialOpen", { func, mod }),
       collapseOthers: !!(config.collapseOthers ?? false),
+      wrapperSelector: logCastString(config.wrapperSelector ?? "", "config.wrapperSelector", { func, mod }),
     };
   }
 
@@ -65,15 +66,22 @@ export class Accordion {
     if (firstBind) this.#collapsed = [];
     this.#sections = new Map();
     this.#ongoing = new Map();
-    const { headingSelector, contentSelector } = this.#config;
+    const { headingSelector, contentSelector, wrapperSelector } = this.#config;
     let collapsedIndex = 0;
     for (const heading of root.querySelectorAll(headingSelector)) {
       const content = heading.querySelector(contentSelector) ?? heading.parentElement.querySelector(contentSelector);
-
       if (!content) continue;
-      const wrapper = document.createElement("div");
+      let wrapper;
+      //try using passed wrapper...
+      if (wrapperSelector) {
+        wrapper = heading.closest(wrapperSelector);
+      }
+      // ...but fall back to creating one
+      if (!wrapper) {
+        wrapper = document.createElement("div");
+        heading.before(wrapper);
+      }
       wrapper.classList.add("mhl-accordion");
-      heading.before(wrapper);
       wrapper.append(heading, content);
       this.#sections.set(heading, content);
       content._fullHeight = content.getBoundingClientRect().height;

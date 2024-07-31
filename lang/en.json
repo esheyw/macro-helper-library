@@ -2,6 +2,7 @@
   "MHL": {
     "Registered": "Registered",
     "Allowed": "Allowed",
+    "Apply": "Apply",
     "Confirm": "Confirm",
     "Count": "Count",
     "Current": "Current",
@@ -193,9 +194,9 @@
         }
       },
       "ManagerDefaultsMenu": {
-        "Hint": "Set the default FontAwesome glyphs for modules using the setting manager that haven't provided their own overrides.",
-        "Label": "Icon Settings",
-        "Name": "Icon Settings"
+        "Hint": "Set the default values for several setting manager parameters for modules that haven't provided their own overrides.",
+        "Label": "Manager Defaults",
+        "Name": "Manager Defaults"
       }
     },
     "SettingGroup": {
@@ -218,10 +219,8 @@
     },
     "SettingsManager": {
       "Log": {
+        "FormResetBanner": "Resetting {count} form value(s) to their saved value(s).",
         "SettingDeleted": "Saved setting data for {key} of {module} deleted."
-      },
-      "ColorPicker": {
-        "ValidHexCode": "Must be a # followed by a valid 6-character hex color code"
       },
       "Error": {
         "BadModuleID": "First argument must be a string module ID or a Module object reference.",
@@ -252,6 +251,7 @@
         "NoDefault": "Setting {setting} of {module} does not have a default value recorded and cannot be reset.",
         "NotRegistered": "Setting {key} is not registered for {module}.",
         "NoValidSettings": "No valid settings could be retrieved from passed data for module {module}.",
+        "SymbolType": "Settings of type Symbol are useless for comparison against and should not be registered.",
         "Visibility": {
           "BadFormat": "Visibility data for setting {key} of {module} is invalid and has been logged and discarded. See the wiki for documentation.",
           "Recursion": "Visibility for setting {key} cannot depend upon itself.",
@@ -262,7 +262,6 @@
       },
       "Reset": {
         "DialogTitle": "Reset to Default",
-        "FormResetBanner": "Resetting {count} form value(s) to their saved value(s).",
         "Group": {
           "AllDefaultTooltip": "This group's settings' saved values are all currently default.",
           "DialogHeader": "Reset all settings of group {target}?",
@@ -302,7 +301,9 @@
         "IsDefault": "Setting is currently equal to its default value",
         "Tooltip": "Reset this setting to its default value"
       },
-      "Warning": {}
+      "Warning": {
+        "SettingTypeNonConfigurable": "Setting {key} for {module} is of a type that does not produce a valid input in the settings configuration app. Falling back to `config: false`."
+      }
     },
     "SetTo": "Set To",
     "Very": "Very",

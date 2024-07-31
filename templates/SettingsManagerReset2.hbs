@@ -1,0 +1,76 @@
+
+
+
+<div class="specificity">
+  {{#unless (or (eq resetType "setting") (eq noDefaultsCount 0))}}
+    <p>This {{resetType}} has <span class="count-tooltip" data-tooltip-class="no-defaults-list" data-tooltip-direction="LEFT" data-tooltip="{{noDefaultsTooltip}}">{{noDefaultsCount}}</span> settings that lack defaults and cannot be reset.</p>  
+  {{/unless}}
+  <table class="mhl-reset-{{resetType}}">
+    <thead>
+      {{> header-row}}
+    </thead>
+    <tbody>
+      {{#each settings.ungrouped}}        
+        {{> setting-row}}
+      {{/each}}
+      {{#each settings.groups}}
+        <tr>
+          <th colspan="5">{{mhl-localize @key}}</th>
+        </tr>
+        {{#each this}}
+          {{> setting-row}}
+        {{/each}}
+      {{/each}}
+    </tbody>
+    {{#if (gt settings.count 10)}}
+    <tfoot>
+      {{> header-row}}
+    </tfoot>
+    {{/if}}
+  </table>
+  <footer class="form-footer">
+    <button type="button" data-action="apply">
+      {{mhl-icon "check"}} {{mhl-localize "MHL.Apply"}}
+    </button>
+    <button type="submit">
+      {{mhl-icon "xmark"}} {{mhl-localize "Cancel"}}
+    </button>
+  </footer>
+</div>
+
+
+{{#*inline "setting-row"}}
+<tr class="default-{{isDefault}}">
+  <td>
+    <span class="setting-name" data-tooltip="{{mhl-localize name}}">{{mhl-localize name}}</span>
+  </td>
+  <td>
+    <div class="type-icon">{{{mhl-getTypeIcon type}}}</div>
+  </td>
+  <td class="saved-display value-display{{#if isObject}} object-setting{{/if}}">
+    {{~mhl-json savedValue~}}
+    {{~#if isColor~}}
+      <div class="color-box" style="background-color: {{savedValue}}"></div>
+    {{/if}}
+  </td>
+  <td class="default-display value-display{{#if isObject}} object-setting{{/if}}">
+    {{~mhl-json defaultValue~}}
+    {{~#if isColor~}}
+      <div class="color-box" style="background-color: {{defaultValue}}"></div>
+    {{/if}}
+  </td>
+  <td class="reset-toggle">
+    <input type="checkbox" name="{{key}}" {{checked (not isDefault)}} />
+  </td>
+</tr>
+{{/inline}}
+
+{{#*inline "header-row"}}
+<tr>
+  <th>{{mhl-localize "DOCUMENT.Setting"}}</th>
+  <th>Type</th>
+  <th>Saved</th>
+  <th>Default</th>
+  <th>Reset</th>
+</tr>
+{{/inline}}

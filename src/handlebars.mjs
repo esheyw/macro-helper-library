@@ -1,6 +1,6 @@
-import { getFunctionOptions, isEmpty, isPlainObject, mhlog } from "./helpers/index.mjs";
+import { createHTMLElement, getFunctionOptions, isEmpty, isPlainObject, mhlog } from "./helpers/index.mjs";
 import { localize, signedInteger, sluggify } from "./helpers/stringHelpers.mjs";
-import { getIconHTMLString } from "./helpers/iconHelpers.mjs";
+import { getIconHTMLString, getTypeIconHTML } from "./helpers/iconHelpers.mjs";
 import { MODULE_ID } from "./constants.mjs";
 //the following are provided by pf2e at least, maybe other systems; only register if necessary
 const pf2eReplacements = {
@@ -53,8 +53,8 @@ const mhlOriginals = {
     const type = !!value ? "check" : "xmark";
     return new Handlebars.SafeString(`<i class="fa-solid fa-square-${type}"></i>`);
   },
-  "mhl-icon": (stringOrStrings, options) => {
-    return new Handlebars.SafeString(getIconHTMLString(stringOrStrings, options.hash));
+  "mhl-icon": (stringOrStrings, options = {}) => {
+    return new Handlebars.SafeString(getIconHTMLString(stringOrStrings, options.hash ?? {}));
   },
   "mhl-contains": (...args) => {
     const options = getFunctionOptions(args);
@@ -64,30 +64,19 @@ const mhlOriginals = {
     const fn = options.all ? "every" : "some";
     return needles[fn]((n) => haystack.includes(n));
   },
-  "mhl-json": (data, indent) => JSON.stringify(data, null, Number(indent)),
+  "mhl-json": (data, options = {}) => {
+    const indent = options.hash?.indent ?? 2;
+    const replacer = typeof options.hash?.replacer === "function" ? options.hash.replacer : null;
+    return JSON.stringify(data, replacer, Number(indent));
+  },
   "mhl-sluggify": (value, options) => sluggify(String(value), options.hash),
   "mhl-array": (...args) => args.slice(0, -1),
-  "mhl-settingTypeIcon": (type, options) => {
-    const map = CONFIG[MODULE_ID].typeIconMap;
-    let glyph, tooltip;
-    if ((glyph = map.get(type))) {
-      tooltip = type.name;
-    } else if ((glyph = map.get(type?.constructor?.name))) {
-      tooltip = type.constructor.name;
-    } else if (type instanceof foundry.data.fields.DataField) {
-      glyph = map.get("field");
-      tooltip = type.constructor.name;
-    } else if (type?.prototype instanceof foundry.abstract.DataModel) {
-      glyph = map.get("model");
-      tooltip = `DataModel: ${type.name}`;
-    } else if (typeof type === "function") {
-      glyph = map.get("function");
-      tooltip = `Function: ${type.name}`;
-    } else {
-      glyph = map.get("unknown");
-      tooltip = `Unknown: ${String(type)}`;
-      mhlog({ type }, { func: "mhl-settingTypeIcon", text: "MHL.SettingsManagerReset.Error.UnknownSettingType" });
-    }
+  "mhl-getTypeIcon": (type) => {    
+    return new Handlebars.SafeString(getTypeIconHTML(type));
+  },
+
+  "mhl-hljs": (string, options) => {
+    //todo: write
   },
 };
 export function registerHandlebarsHelpers() {

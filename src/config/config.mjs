@@ -44,31 +44,33 @@ export const iconFontsDefaults = [
     },
   },
 ];
-export function generateDefaultConfig() {
-  const config = {
-    typeIconMap: new Collection([
-      [String, "format-quote-close-outline"],
-      ["StringField", "format-quote-close-outline"],
-      [Number, "numeric"],
-      ["NumberField", "numeric"],
-      [Boolean, "checkbox-outline"],
-      ["BooleanField", "checkbox-outline"],
-      [Object, "code-braces"],
-      ["ObjectField", "code-braces"],
-      ["SchemaField", "code-braces"],
-      ["ColorField", "palette"],
-      ["model", "database"],
-      ["field", "code-braces"], //todo: find better
-      ["function", "function"],
-      ["unknown", "question flip-vertical"],
-    ]),
-    fallbackIconClasses: "fa-solid fa-question mhl-fallback-icon",
-    disabledClasses: ["disabled-transparent", "disabled-hidden", "disabled-blurry"],
-  };
-  Object.defineProperty(config, "iconFonts", {
-    writable: false,
-    configurable: false,
-    value: new Proxy(new Array(), new IconFontsHandler()),
-  });
-  return config;
+
+export const MHL_CONFIG = {
+  typeIconMap: new Collection([
+    [String, "format-quote-close-outline"],
+    ["StringField", "format-quote-close-outline"],
+    [Number, "numeric"],
+    ["NumberField", "numeric"],
+    [Boolean, "checkbox-outline"],
+    ["BooleanField", "checkbox-outline"],
+    [Array, "code-brackets"],
+    ["ArrayField", "code-brackets"],
+    ["SetField", "code-brackets"],
+    [Object, "code-braces"],
+    ["ObjectField", "code-braces"],
+    ["SchemaField", "code-braces"],
+    ["ColorField", "palette-outline"],
+    ["DocumentUUIDField", "file-document-outline"],
+    ["model", "database"],
+    ["field", "code-braces"], //todo: find better
+    ["function", "function"],
+    ["unknown", "question flip-vertical"],
+  ]),
+  fallbackIconClasses: "fa-solid fa-question mhl-fallback-icon",
+  disabledClasses: ["disabled-transparent", "disabled-hidden", "disabled-blurry"],
 }
+Object.defineProperty(MHL_CONFIG, "iconFonts", {
+  writable: false,
+  configurable: false,
+  value: new Proxy(new Array(), new IconFontsHandler()),
+});

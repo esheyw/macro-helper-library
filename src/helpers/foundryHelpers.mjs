@@ -2,6 +2,15 @@ import { MHLDialog } from "../apps/MHLDialog.mjs";
 import { fu } from "../constants.mjs";
 import { mhlError } from "./errorHelpers.mjs";
 import { prependIndefiniteArticle } from "./stringHelpers.mjs";
+import * as R from "remeda";
+
+export function foundryLightOrDarkTheme() {
+  const clientSetting = game.settings.get("core", "colorScheme");
+  if (clientSetting) return clientSetting;
+  // clientSetting === "" means use browser/os preference
+  else if (matchMedia("(prefers-color-scheme: light)").matches) return "light";
+  return "dark";
+}
 
 export function doc(input, type = null, { parent = null, returnIndex = false, async = false } = {}) {
   //todo: find better solution for sync vs non-sync calls
@@ -181,5 +190,22 @@ export function unsetModuleSettings(modID, { client = true, world = true, fcs = 
     }
   }
   //TODO: add FCS reset support
+  return out;
+}
+
+export function getCSSVarsFromFoundryByScope(vars) {
+  if (!R.isPlainObject(vars)) return vars;
+  const out = {};
+  const href = `${document.location.origin}/css/style.css`;
+  const sheet = Array.from(document.styleSheets).find((sheet) => /^(?:(?!modules\/|systems\/).)*css\/style.css$/.test(sheet.href));
+  const rules = Array.from(sheet.cssRules).filter((rule) => rule instanceof CSSStyleRule);
+  for (const [scope, props] of Object.entries(vars)) {    
+    const rule = rules.find(r => r.selectorText === scope);
+    if (!rule || !Array.isArray(props)) continue;    
+    out[scope] = {}    
+    for (const key of props) {
+      out[scope][key] = rule.style.getPropertyValue(key)
+    }
+  }
   return out;
 }

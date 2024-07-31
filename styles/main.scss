@@ -1,6 +1,4 @@
-@import "Variables", "Functions", "Mixins", "Generics";
-
-:root {
+body {
   --mhl-frame-color-1: var(--color-primary-1, var(--color-bg-trait));
   --mhl-frame-color-2: var(--color-primary-2, var(--color-pf-primary-light));
   --mhl-text-color: var(--text-dark);
@@ -10,14 +8,34 @@
   --mhl-color-success: var(--color-level-success, rgb(35, 131, 35));
   --mhl-color-warning: var(--color-level-warning, #ee9b3a);
   --mhl-color-failure: var(--color-level-failure, rgb(148, 16, 16));
-
-  [data-color-scheme="dark"] {
+  --mhl-checkbox-checked-color: var(--color-warm-1);
+  --mhl-input-disabled-background: var(--color-disabled, var(--color-text-dark-4, #555));
+  --mhl-input-border-color: var(--color-border-dark-tertiary);
+  --mhl-color-box-border-color: black;
+  [data-theme] {
+    --mhl-checkbox-checked-color: var(--accent-color)
+    --mhl-input-disabled-background: var(--input-disabled-background)
+  }
+  [data-color-scheme="dark"], &.theme-dark .application {
+    --mhl-color-box-border-color: white;
     --mhl-text-color: var(--text-color-1, var(--text-light));
     --mhl-text-header-color: var(--mhl-text-color);
     --mhl-reset-text-shadow: none;
   }
   --mhl-text-error-decoration: underline wavy var(--mhl-color-failure);
   --mhl-accordion-speed: 350ms;
+  --mhl-mdi-size: 1.1em;
+}
+
+.mhl-display-none {
+  display: none;
+}
+
+.mhl-pre-tooltip {
+  code {
+    white-space: nowrap;
+  }
+  line-height: 200%;
 }
 
 .mhl-fallback-icon {

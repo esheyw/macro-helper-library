@@ -1,0 +1,86 @@
+
+
+
+<div class="specificity">
+  {{#unless (or (eq resetType "setting") (eq noDefaultsCount 0))}}
+    <p>This {{resetType}} has <span class="count-tooltip" data-tooltip-class="no-defaults-list" data-tooltip-direction="LEFT" data-tooltip="{{noDefaultsTooltip}}">{{noDefaultsCount}}</span> settings that lack defaults and cannot be reset.</p>  
+  {{/unless}}
+  <div class="section-grid">
+    <div class="table-header">
+      {{> header-row}}
+    </div>
+    <div class="table-body">
+      {{#if (gt settings.ungrouped.length 0)}}
+        {{#each settings.ungrouped}}        
+          {{> setting-row}}
+        {{/each}}
+      {{/if}}
+      {{#each settings.groups}}
+      <div class="setting-group-wrapper">
+        <div class="group-header {{#unless allDefault}}has-non-default{{/unless}}">
+          {{mhl-localize @key}}
+        </div>
+        <div class="group-setting-rows">
+        {{#each settings}}
+          {{> setting-row}}
+        {{/each}}
+        </div>
+      </div>
+      {{/each}}
+    </div>
+    <div class="table-footer">
+    {{#if (gt settings.count 10)}}    
+      {{> header-row}}
+    {{else}}
+      <div class="footer-filler"></div>
+    {{/if}}
+    </div>
+  </div>
+  <footer class="form-footer">
+    <button type="button" data-action="apply">
+      {{mhl-icon "check"}} {{mhl-localize "MHL.Apply"}}
+    </button>
+    <button type="submit">
+      {{mhl-icon "xmark"}} {{mhl-localize "Cancel"}}
+    </button>
+  </footer>
+</div>
+
+
+{{#*inline "setting-row"}}
+<div class="setting-row default-{{isDefault}}">
+  <span class="setting-name" data-tooltip="{{mhl-localize name}}">
+    {{~mhl-localize name~}}<br>
+    <code>
+      {{~key~}}
+    </code>
+  </span>
+  <span class="type-icon">
+    {{~{mhl-getTypeIcon type}~}}
+  </span>
+  <span class="saved-display value-display{{#if isObject}} object-setting{{/if}}">
+    {{~mhl-json savedValue~}}
+    {{~#if isColor~}}
+      <span class="color-box" style="background-color: {{savedValue}}"></span>
+    {{/if}}
+  </span>
+  <span class="default-display value-display{{#if isObject}} object-setting{{/if}}">
+    {{~mhl-json defaultValue~}}
+    {{~#if isColor~}}
+      <span class="color-box" style="background-color: {{defaultValue}}"></span>
+    {{/if}}
+  </span>
+  <span class="reset-toggle">
+    <input type="checkbox" name="{{key}}" {{checked (not isDefault)}} />
+  </span>
+</div>
+{{/inline}}
+
+
+{{#*inline "header-row"}}
+<span>{{mhl-localize "DOCUMENT.Setting"}}</span>
+<span>{{mhl-localize "Type"}}</span>
+<span>{{mhl-localize "Saved"}}</span>
+<span>{{mhl-localize "Default"}}</span>
+<span>{{mhl-localize "Reset"}}</span>
+{{/inline}}

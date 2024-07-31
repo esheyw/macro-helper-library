@@ -106,24 +106,21 @@ export function localize(key, context = {}, { recursive = true, defaultEmpty = t
  * @param {object} [options={}]
  * @param {MHLCamel} [options.camel=null] If non-null, the camel type to use. You can remember which is which,
  * because BactrianCase has two humps and dromedaryCase has only one.
- * @param {boolean} [options.pf2eCompat=false] Hopefully temporary workaround for a discrepancy between pf2e's
- * behaviour and the browser's when there's only one character after the last capital letter @see {@link https://github.com/foundryvtt/pf2e/issues/15341}
  * @returns {string} The transformed string
  */
-export function sluggify(text, { camel = null, pf2eCompat = false } = {}) {
+export function sluggify(text, { camel = null } = {}) {
   const wordCharacter = String.raw`[\p{Alphabetic}\p{Mark}\p{Decimal_Number}\p{Join_Control}]`;
   const nonWordCharacter = String.raw`[^\p{Alphabetic}\p{Mark}\p{Decimal_Number}\p{Join_Control}]`;
-  const nonWordCharacterRE = new RegExp(nonWordCharacter, "gu");
-
-  const wordBoundary = String.raw`(?:${wordCharacter})(?=${nonWordCharacter})|(?:${nonWordCharacter})(?=${wordCharacter})`;
-  const nonWordBoundary = String.raw`(?:${wordCharacter})(?=${wordCharacter}${pf2eCompat ? "|$" : ""})`;
+  const nonWordBoundary = String.raw`(?=^|$|${wordCharacter})`;
   const lowerCaseLetter = String.raw`\p{Lowercase_Letter}`;
   const upperCaseLetter = String.raw`\p{Uppercase_Letter}`;
-  const lowerCaseThenUpperCaseRE = new RegExp(`(${lowerCaseLetter})(${upperCaseLetter}${nonWordBoundary})`, "gu");
 
+  const nonWordCharacterRE = new RegExp(nonWordCharacter, "gu");
+  const lowerCaseThenUpperCaseRE = new RegExp(`(${lowerCaseLetter})(${upperCaseLetter}${nonWordBoundary})`, "gu");
   const nonWordCharacterHyphenOrSpaceRE =
     /[^-\p{White_Space}\p{Alphabetic}\p{Mark}\p{Decimal_Number}\p{Join_Control}]/gu;
-  const upperOrWordBoundariedLowerRE = new RegExp(`${upperCaseLetter}|(?:${wordBoundary})${lowerCaseLetter}`, "gu");
+  const upperOrWordBoundariedLowerRE = new RegExp(`${upperCaseLetter}|${nonWordCharacter}${lowerCaseLetter}`, "gu");
+
   text = logCastString(text, "text", { func: "sluggify" });
   if (text === "-") return text; //would otherwise be reduced to ""
   switch (camel) {

@@ -12,21 +12,10 @@ import { Accordion } from "./Accordion.mjs";
 import { deeperClone, isPlainObject } from "../helpers/otherHelpers.mjs";
 import { MHL } from "../init.mjs";
 import { MHLSettingsManagerReset } from "../apps/MHLSettingsManagerReset.mjs";
+import * as R from "remeda";
 
 const funcPrefix = `MHLSettingsManager`;
 export class MHLSettingsManager {
-  #enrichers = new Map([
-    [/`([^`]+)`/g, `<code>$1</code>`],
-    [/\[([^\]]+)\]\(([^\)]+)\)/g, `<a href="$2">$1</a>`],
-  ]);
-  #groups = new Set();
-  #initialized = false;
-  #module;
-  #options;
-  #potentialSettings = new Collection();
-  #resetListener;
-  #settings = new Collection();
-
   static #globalReadyHookID;
   static #managers = new Collection();
   static get managers() {
@@ -46,8 +35,32 @@ export class MHLSettingsManager {
     }
   }
 
+  static #INPUT_ELEMENTS = [
+    "color-picker",
+    "document-tags",
+    "file-picker",
+    "input",
+    "mhl-slide-toggle",
+    "multi-select",
+    "range-picker",
+    "select",
+    "string-tags",
+  ];
+
+  #enrichers = new Map([
+    [/`([^`]+)`/g, `<code>$1</code>`],
+    [/\[([^\]]+)\]\(([^\)]+)\)/g, `<a href="$2">$1</a>`],
+  ]);
+  #groups = new Set();
+  #initialized = false;
+  #module;
+  #options;
+  #potentialSettings = new Collection();
+  #resetListener;
+  #settings = new Collection();
+
   constructor(moduleFor, options = {}) {
-    const func = `${funcPrefix}#constructor`;
+    const func = "#constructor";
     this.#module = moduleFor instanceof foundry.packages.BaseModule ? moduleFor : game.modules.get(moduleFor);
     if (!this.#module) throw error({ moduleFor }, { text: `MHL.SettingsManager.Error.BadModuleID`, func, error: true });
 
@@ -71,7 +84,7 @@ export class MHLSettingsManager {
 
     if (options.settings) this.registerSettings(options.settings);
 
-    this.#resetListener = this.#onResetClick.bind(this);
+    this.#resetListener = this.#onResetClick2.bind(this);
     Hooks.on("renderSettingsConfig", this.#onRenderSettings.bind(this));
     Hooks.on("closeSettingsConfig", this.#onCloseSettings.bind(this));
     // at least the MHL manager will be created before "ready", so this shouldn't need further safeguards
@@ -92,7 +105,7 @@ export class MHLSettingsManager {
   }
 
   get groups() {
-    return [...this.#groups]
+    return [...this.#groups];
   }
 
   get app() {
@@ -100,7 +113,7 @@ export class MHLSettingsManager {
   }
 
   get settings() {
-    return deeperClone(this.#playerEditableSettings())
+    return deeperClone(this.#playerEditableSettings());
   }
 
   get section() {
@@ -112,6 +125,8 @@ export class MHLSettingsManager {
   get defaultOptions() {
     const prefix = sluggify(this.#module.title, { camel: "bactrian" });
     return {
+      // Whether to associate the text labels of settings with their form input element
+      associateLabels: true,
       // localization key section placed between setting name and choice value when inferring choice localization
       choiceInfix: "Choice",
       // clean up saved setting data for unregistered settings on Ready?
@@ -184,8 +199,7 @@ export class MHLSettingsManager {
   #playerEditableSettings({ visibleOnly = false } = {}) {
     const isGM = isRealGM();
     return this.#settings.filter(
-      (s) =>
-        (isGM || s.scope === "client") && (!visibleOnly || s.config || (s.menu && (isGM || !s.restricted)))
+      (s) => (isGM || s.scope === "client") && (!visibleOnly || s.config || (s.menu && (isGM || !s.restricted)))
     );
   }
 
@@ -196,7 +210,7 @@ export class MHLSettingsManager {
   }
 
   #onRenderSettings(app, html, data) {
-    const func = `${funcPrefix}##onRenderSettings`;
+    const func = "##onRenderSettings";
     html = html instanceof jQuery ? html[0] : html;
     //bail if this module has no configurable settings (either available to this user, or at all)
     const configurable = this.#settings.filter((setting) => setting.config);
@@ -226,18 +240,16 @@ export class MHLSettingsManager {
       // buttons dont need change listeners or have formValues
       if (settingData.button) continue;
 
-      const firstInput = htmlQuery(div, "input, select, multi-select, color-picker");
+      const firstInput = htmlQuery(div, "input, select, multi-select, color-picker, range-picker, string-tags");
       if (firstInput) {
         // grab initial form values so visibility doesn't choke
         settingData.formValue = this.#_value(firstInput);
         firstInputs[key] = firstInput;
       }
     }
-    const savedValues = this.getAll();
-    for (const key in savedValues) {
-      const settingData = this.#settings.get(key);
-      settingData.isDefault =
-        "realDefault" in settingData ? fu.objectsEqual(settingData.realDefault, savedValues[key]) : undefined;
+
+    for (const settingData of this.#settings) {
+      settingData.isDefault = this.isDefault(settingData.key);
     }
 
     this.#applyGroupsAndSort();
@@ -245,6 +257,9 @@ export class MHLSettingsManager {
     // buttons are opt-in per setting, so handle
     this.#replaceWithButtons();
 
+    if (this.#options.associateLabels) {
+      this.#associateLabels();
+    }
     if (this.#options.enrichHints) {
       this.#enrichHints();
     }
@@ -269,21 +284,25 @@ export class MHLSettingsManager {
   }
 
   #onChangeInput(key, event) {
-    const func = `${funcPrefix}##onChangeInput`;
+    const func = "##onChangeInput";
     const target = event.target;
     const formValue = this.#_value(target);
     const savedValue = this.get(key);
     const settingData = this.#settings.get(key);
     settingData.formValue = formValue;
-    settingData.formEqualsSaved = fu.objectsEqual(savedValue, formValue);
+    settingData.formEqualsSaved = R.isDeepEqual(savedValue, formValue);
+    // this.#debug({ target, formValue, savedValue, settingData }, { func, clone: true });
     this.#updateVisibility();
     this.#updateResetButtons(key);
   }
 
   #onUpdateSetting(key, originalOnChange, value) {
-    const func = `${funcPrefix}##onUpdateSetting`;
+    const func = "##onUpdateSetting";
+    const savedValue = this.get(key);
+    //todo: remove before release?
+    if (savedValue !== value) this.#error("onChange/saved value mismatch!", { func, banner: true, permanent: true });
     const settingData = this.#settings.get(key);
-    settingData.isDefault = "realDefault" in settingData ? fu.objectsEqual(settingData.realDefault, value) : undefined;
+    settingData.isDefault = this.isDefault(key);
     this.#setInputValues(key, value);
     // if we're updating a non-config setting, the change event wont fire a visibility update, so do it manually
     if (!settingData.config) this.#updateVisibility();
@@ -296,7 +315,7 @@ export class MHLSettingsManager {
   }
 
   #sortSettings(settings) {
-    const func = `${funcPrefix}##sortSettings`;
+    const func = "##sortSettings";
     return settings.sort((a, b) => {
       const aName = localize(a.name);
       const bName = localize(b.name);
@@ -312,7 +331,7 @@ export class MHLSettingsManager {
   }
 
   #applyGroupsAndSort() {
-    const func = `${funcPrefix}##applyGroupsAndSort`;
+    const func = "##applyGroupsAndSort";
     if (!this.section) return;
     const sortOrder = [htmlQuery(this.section, "h2")];
     const visibleSettings = this.#playerEditableSettings({ visibleOnly: true });
@@ -357,7 +376,7 @@ export class MHLSettingsManager {
           if (animated) {
             groupContentElement = createHTMLElement("div", { dataset: { accordionContent: true } });
             groupH3.append(
-              elementFromString(getIconHTMLString(this.#accordionIndicator(group), "mhl-accordion-indicator"))
+              elementFromString(getIconHTMLString([this.#accordionIndicator(group), "mhl-accordion-indicator"]))
             );
             groupContainerElement.append(groupH3, groupContentElement);
           } else {
@@ -396,13 +415,14 @@ export class MHLSettingsManager {
       new Accordion({
         headingSelector: `h3[data-accordion-header]`,
         contentSelector: `div[data-accordion-content]`,
+        wrapperSelector: `div.mhl-setting-group-container`,
         mod: this.#options.modPrefix,
         initalOpen: Infinity,
       }).bind(this.section);
   }
 
   get(key) {
-    const func = `${funcPrefix}#get`;
+    const func = "#get";
     if (!this.#requireSetting(key, { func })) return undefined;
     // either we're past Setup, or it's a client setting that can be retrieved early
     if (game?.user || this.#settings.get(key).scope === "client") return game.settings.get(this.#module.id, key);
@@ -416,8 +436,24 @@ export class MHLSettingsManager {
     }, {});
   }
 
+  isDefault(key) {
+    const settingData = this.#requireSetting(key);
+    // falsey will have errored, buttons we just skip
+    if (!settingData || settingData.button) return;
+
+    // todo: do I really want to do this? is it useful?
+    if (settingData.menu) return settingData.for ? this.isDefault(settingData.for) : undefined;
+
+    const savedValue = this.get(key);
+    return "realDefault" in settingData ? R.isDeepEqual(settingData.realDefault, savedValue) : undefined;
+  }
+
+  // #updateDefaults(keys) {
+  //   if (keys && !Array.isArray(keys))
+  // }
+
   beenSet(key) {
-    const func = `${funcPrefix}#beenSet`;
+    const func = "#beenSet";
     const fullkey = `${this.#module.id}.${key}`;
     const scope = this.#settings.get(key).scope;
     const storage = game.settings.storage.get(scope);
@@ -425,7 +461,7 @@ export class MHLSettingsManager {
   }
 
   async set(key, value, { defer = false, deferred = false, deferMessage = null } = {}) {
-    const func = `${funcPrefix}#set`;
+    const func = "#set";
     if (!this.#requireSetting(key, { func })) return undefined;
     const settingData = this.#settings.get(key);
     if (defer && settingData.scope === "world" && !game.ready) {
@@ -446,7 +482,7 @@ export class MHLSettingsManager {
   }
 
   async reset(keys) {
-    const func = `${funcPrefix}#reset`;
+    const func = "#reset";
     if (!Array.isArray(keys)) keys = [keys];
     const sets = [];
     for (const key of keys) {
@@ -460,15 +496,15 @@ export class MHLSettingsManager {
   }
 
   async unset(keys) {
-    const func = `${funcPrefix}#reset`;
+    const func = "#reset";
     if (!Array.isArray(keys)) keys = [keys];
     const deletes = [];
     const clientStorage = game.settings.storage.get("client");
     const worldStorage = game.settings.storage.get("world");
     for (const key of keys) {
       const fullkey = `${this.#module.id}.${key}`;
-      const data = this.#settings.get(key);
-      if (data.scope === "world") {
+      const settingData = this.#settings.get(key);
+      if (settingData.scope === "world") {
         const settingDoc = worldStorage.find((s) => s.key === fullkey);
         if (settingDoc) {
           this.#log("MHL.SettingsManager.Log.SettingDeleted", { context: { key } });
@@ -514,7 +550,7 @@ export class MHLSettingsManager {
   }
 
   registerSettings(data) {
-    const func = `${funcPrefix}#registerSettings`;
+    const func = "#registerSettings";
     const settings = this.#validateRegistrationData(data);
     if (!settings) return false; //validator already raised console error
 
@@ -523,8 +559,9 @@ export class MHLSettingsManager {
 
     for (const [key, data] of settings.entries()) {
       const success = this.registerSetting(key, data, { initial: true });
+
       if (!success) {
-        this.#log(
+        this.#error(
           { key, data },
           {
             text: `MHL.SettingsManager.Error.InvalidSettingData`,
@@ -544,17 +581,20 @@ export class MHLSettingsManager {
   }
 
   registerSetting(key, data, { initial = false } = {}) {
-    const func = `${funcPrefix}#registerSetting`;
+    const func = "#registerSetting";
     if (typeof key !== "string") {
       return false;
     }
     if (!this.#potentialSettings.has(key)) this.#potentialSettings.set(key, data);
     if (this.#settings.has(key)) {
-      this.#log(`MHL.SettingsManager.Error.DuplicateSetting`, {
-        type: "error",
-        context: { key },
-        func,
-      });
+      this.#error(
+        { key },
+        {
+          context: { key },
+          text: `MHL.SettingsManager.Error.DuplicateSetting`,
+          func,
+        }
+      );
       return false;
     }
     data = this.#processSettingData(key, data);
@@ -564,6 +604,7 @@ export class MHLSettingsManager {
     // only save groups of settings that get registered
     if (data.group !== null) this.#groups.add(data.group);
     //actually register the setting finally
+
     this.#register(key, data);
     // only update hooks if we're not inside a registerSettings call
     if (!initial) this.#updateHooks(key);
@@ -572,14 +613,53 @@ export class MHLSettingsManager {
   }
 
   #processSettingData(key, data) {
-    const func = `${funcPrefix}##processSettingData`;
+    const func = "##processSettingData";
+
     //add the key to the data because Collection's helpers only operate on values
+    const originalData = deeperClone(data);
+
     data.key = key;
     //handle registering settings menus
-    if (data.menu || data.type?.prototype instanceof FormApplication) {
-      //TODO: implement generation in v12, add app v2 to check
+    if (
+      data.menu ||
+      data.type?.prototype instanceof FormApplication ||
+      data.type?.prototype instanceof foundry.applications.api.ApplicationV2
+    ) {
+      //TODO: implement generation in v12
       // if (!data?.type || !(data.type?.prototype instanceof FormApplication)) return false;
       data.menu = true;
+    }
+
+    //disallow Symbols as they're always a footgun
+    if (data.type === Symbol) {
+      this.#error({ key, originalData }, { func, text: "MHL.SettingsManager.Error.SymbolType" });
+      return false;
+    }
+    //prevent registering settings as config: true that can't be displayed
+    const fields = foundry.data.fields;
+    if (data.config) {
+      let nonConfigurable = false;
+      const nonConfigurableTypes = [Object, Array];
+      if (nonConfigurableTypes.includes(data.type)) {
+        nonConfigurable = true;
+      }
+
+      if (data.type instanceof fields.DataField) {
+        if (data.type instanceof fields.SetField) {
+          //SetField#_toInput only allows sets of StringFields, with special handling for DocumentUUIDFields
+          nonConfigurable = !(data.type.element instanceof fields.StringField);
+        } else {
+          nonConfigurable = !data.type.constructor.hasFormSupport;
+        }
+      }
+
+      if (nonConfigurable) {
+        this.#error(
+          { key, originalData },
+          { func, text: "MHL.SettingsManager.Warning.SettingTypeNonConfigurable", context: { key } }
+        );
+        data.config = false;
+      }
     }
 
     // v12+ assigns `default: null` to settings registered without a default
@@ -623,15 +703,16 @@ export class MHLSettingsManager {
       data.group = this.#expandPartialGroupName(this.#logCastString(data.group, "data.group", func));
     }
     data.group ??= null;
-
     return data;
   }
 
   #register(key, data) {
+    //clone so our local data is separate from game.settings.settings
+    const cloned = deeperClone(data);
     if (data.menu) {
-      game.settings.registerMenu(this.#module.id, key, data);
+      game.settings.registerMenu(this.#module.id, key, cloned);
     } else {
-      game.settings.register(this.#module.id, key, data);
+      game.settings.register(this.#module.id, key, cloned);
     }
     this.#settings.set(key, data);
   }
@@ -665,7 +746,7 @@ export class MHLSettingsManager {
   #generateSettingMenu(data) {
     //todo: do this in v12
     // if (!fu.isNewerVersion(game.version, 12)) return;
-    // const func = `${funcPrefix}##generateSettingMenu`;
+    // const func = "##generateSettingMenu";
     // if (!("for" in data) || !this.#requireSetting(data.for, { func, potential: true })) {
     //   return false;
     // }
@@ -704,7 +785,7 @@ export class MHLSettingsManager {
   }
 
   #processButtonData(key, buttonData) {
-    const func = `${funcPrefix}##processButtonData`;
+    const func = "##processButtonData";
     if (!isPlainObject(buttonData) || typeof buttonData.action !== "function") {
       this.#log({ buttonData }, { text: `MHL.SettingsManager.Error.Button.BadFormat`, func, context: { key } });
       return false;
@@ -719,7 +800,7 @@ export class MHLSettingsManager {
   }
 
   #processVisibilityData(key, data) {
-    const func = `${funcPrefix}##processVisibilityData`;
+    const func = "##processVisibilityData";
     // assume passed functions are valid, no good way to interrogate
     if (typeof data === "function") return data;
 
@@ -755,7 +836,7 @@ export class MHLSettingsManager {
   }
 
   #processHooksData(key, hooksData) {
-    const func = `${funcPrefix}##processHooksData`;
+    const func = "##processHooksData";
     const goodHooks = [];
     if (!Array.isArray(hooksData)) hooksData = [hooksData];
     for (const hookData of hooksData) {
@@ -792,7 +873,7 @@ export class MHLSettingsManager {
   }
 
   #updateHooks(key = null) {
-    const func = `${funcPrefix}##updateHooks`;
+    const func = "##updateHooks";
     const hookSettings = this.#settings.filter((s) => (!key || s.key === key) && s.hooks);
     for (const setting of hookSettings) {
       const value = this.get(setting.key);
@@ -811,7 +892,7 @@ export class MHLSettingsManager {
   }
 
   #enrichHints() {
-    const func = `${funcPrefix}##enrichHints`;
+    const func = "##enrichHints";
     if (!this.section) return;
     const hints = htmlQueryAll(this.section, ":is(div[data-setting-id], div.submenu) p.notes");
     for (const hint of hints) {
@@ -826,7 +907,7 @@ export class MHLSettingsManager {
   }
 
   #replaceWithButtons() {
-    const func = `${funcPrefix}##replaceWithButtons`;
+    const func = "##replaceWithButtons";
     if (!this.section) return;
     const buttonSettings = this.#playerEditableSettings({ visibleOnly: true }).filter((s) => s.button);
     for (const setting of buttonSettings) {
@@ -844,32 +925,50 @@ export class MHLSettingsManager {
     }
   }
 
+  #associateLabels() {
+    const func = "##associateLabels";
+    if (!this.section) return;
+    const divs = htmlQueryAll(this.section, "div.form-group:not(.submenu)");
+    for (const div of divs) {
+      const label = htmlQuery(div, "div > label");
+      let inputElement = htmlQuery(div, `div.form-fields > :is(${MHLSettingsManager.#INPUT_ELEMENTS.join(", ")})`);
+      //todo: add tags as needed
+      if (!inputElement) this.#debug({ nn: inputElement?.nodeName, inputElement, div }, { func });
+      if (["STRING-TAGS", "RANGE-PICKER", "DOCUMENT-TAGS", "MULTI-SELECT"].includes(inputElement.nodeName)) {
+        inputElement = htmlQuery(inputElement, "input, select");
+      }
+      const inputID = `${div.dataset.settingId}-${this.app.appId}`;
+      label.htmlFor = inputID;
+      inputElement.id = inputID;
+    }
+  }
+
   #updateVisibility() {
-    const func = `${funcPrefix}##updateVisibility`;
+    const func = "##updateVisibility";
     if (!this.section) return;
     const savedValues = this.getAll();
     const formValues = this.#getFormValues();
     const predicated = this.#playerEditableSettings({ visibleOnly: true }).filter((s) => s.visibility && s.div);
     for (const settingData of predicated) {
       if (!this.#options.visibility) {
-        settingData.div.classList.remove("mhl-hidden-setting");
+        settingData.div.classList.remove("mhl-display-none");
         continue;
       }
-      const visible = settingData.div.classList.contains("mhl-hidden");
+      const visible = settingData.div.classList.contains("mhl-display-none");
       const action = settingData.visibility(formValues, savedValues, visible) ? "remove" : "add";
-      settingData.div.classList[action]("mhl-hidden");
+      settingData.div.classList[action]("mhl-display-none");
     }
     for (const group of this.#groups) {
       const groupContainer = htmlQuery(this.section, `div.mhl-setting-group-container[data-setting-group="${group}"]`);
       if (!groupContainer) continue; // player can't see anything in that group so it doesn't exist
       const relevantSettings = this.#playerEditableSettings({ visibleOnly: true }).filter((s) => s.group === group);
-      const action = relevantSettings.every((s) => s.div.classList.contains("mhl-hidden")) ? "add" : "remove";
-      groupContainer.classList[action]("mhl-hidden");
+      const action = relevantSettings.every((s) => s.div.classList.contains("mhl-display-none")) ? "add" : "remove";
+      groupContainer.classList[action]("mhl-display-none");
     }
   }
 
   #addResetButtons() {
-    const func = `${funcPrefix}##addResetButtons`;
+    const func = "##addResetButtons";
     if (!this.section) return;
     const opt = this.#options.resetButtons;
     const resettables = this.#playerEditableSettings().filter((s) => "realDefault" in s && !s.button && !s.menu);
@@ -893,7 +992,7 @@ export class MHLSettingsManager {
         if (groupResettables.length === 0) continue;
         const resetIcon = elementFromString(getIconHTMLString(this.groupResetIcon));
         const resetAnchor = createHTMLElement("a", {
-          dataset: { resetType: "group", reset: group, tooltipDirection: "UP" },
+          dataset: { resetType: "group", resetTarget: group, tooltipDirection: "UP" },
           children: [resetIcon],
         });
         const resetSpan = createHTMLElement("span", { children: [resetAnchor], classes: ["mhl-reset-button"] });
@@ -916,7 +1015,7 @@ export class MHLSettingsManager {
         const label = htmlQuery(div, "label");
         const resetIcon = elementFromString(getIconHTMLString(this.settingResetIcon));
         const resetAnchor = createHTMLElement("a", {
-          dataset: { resetType: "setting", reset: setting.key, tooltipDirection: "UP" },
+          dataset: { resetType: "setting", resetTarget: setting.key, tooltipDirection: "UP" },
           children: [resetIcon],
         });
         resetAnchor.addEventListener("click", this.#resetListener);
@@ -929,40 +1028,30 @@ export class MHLSettingsManager {
   }
 
   async #onResetClick2(event) {
-    const func = `${funcPrefix}##onResetClick`;
+    const func = "##onResetClick";
     event.preventDefault();
     event.stopPropagation();
-    const rightClick = event.type === "contextmenu";
-    const anchor = event.currentTarget;
-    const resetType = anchor.dataset.resetType;
-    const resetTarget = anchor.dataset.reset;
-    let target, relevantSettings;
-    switch (resetType) {
-      case "setting":
-        relevantSettings = [this.#settings.get(resetTarget)];
-        target = relevantSettings[0].name;
-        break;
-      case "group":
-        relevantSettings = this.#playerEditableSettings().filter((s) => s.group === resetTarget);
-        target = resetTarget;
-        break;
-      case "module":
-        relevantSettings = this.#playerEditableSettings();
-        target = this.#module.title;
-        break;
-    }
-    relevantSettings = relevantSettings.filter((s) => !s.button && !s.menu);
-    this.#debug({ relevantSettings, target, rightClick }, { func });
+    const { resetType, resetTarget } = event.currentTarget.dataset;
+
+    const relevantSettings = this.#playerEditableSettings().filter(
+      (s) =>
+        !s.button &&
+        !s.menu &&
+        (resetType !== "setting" || s.key === resetTarget) &&
+        (resetType !== "group" || s.group === resetTarget)
+    );
+    this.#log({ event, resetType, resetTarget, relevantSettings }, { func });
     // if everything's default, or we right clicked, no dialog needed, just reset form values and bail
-    const [defaultless, hasDefaults] = relevantSettings.partition((s) => "realDefault" in s);
+    const [noDefaults, hasDefaults] = relevantSettings.partition((s) => "realDefault" in s);
     if (hasDefaults.every((s) => s.isDefault) || event.type === "contextmenu") {
       const formDifferentFromSaved = relevantSettings.filter((s) => s.formEqualsSaved === false);
       if (formDifferentFromSaved.length > 0) {
         this.#log(
           { formDifferentFromSaved },
           {
-            text: `MHL.SettingsManager.Reset.FormResetBanner`,
+            text: `MHL.SettingsManager.Log.FormResetBanner`,
             banner: "info",
+            type: "log",
             context: { count: formDifferentFromSaved.length },
           }
         );
@@ -973,12 +1062,26 @@ export class MHLSettingsManager {
       }
       return;
     }
-    const resetApp = new MHLSettingsManagerReset({defaultless, hasDefaults}, this.#module)
+
+    const resetAppID = `mhl-reset-${this.#module.id}-${resetType}-${resetTarget}`;
+    const existingResetApp = foundry.applications.instances.get(resetAppID);
+    if (existingResetApp) {
+      existingResetApp.bringToFront();
+      return;
+    }
+
+    const resetApp = new MHLSettingsManagerReset({
+      settings: { noDefaults, hasDefaults },
+      module: this.#module,
+      modPrefix: this.#options.modPrefix,
+      resetTarget,
+      resetType,
+    });
     resetApp.render(true);
   }
 
   async #onResetClick(event) {
-    const func = `${funcPrefix}##onResetClick`;
+    const func = "##onResetClick";
     event.preventDefault();
     event.stopPropagation();
     const rightClick = event.type === "contextmenu";
@@ -1120,7 +1223,7 @@ export class MHLSettingsManager {
   }
 
   #updateResetButtons(key) {
-    const func = `${funcPrefix}##updateResetButtons`;
+    const func = "##updateResetButtons";
     if (!this.section || !this.#requireSetting(key, { func })) return;
     const opt = this.#options.resetButtons;
     const allowedSettings = this.#playerEditableSettings();
@@ -1153,7 +1256,7 @@ export class MHLSettingsManager {
       anchor.dataset.tooltip = tooltip;
     }
     if (opt.groups && group) {
-      const anchor = htmlQuery(this.section, `a[data-reset-type="group"][data-reset="${group}"]`);
+      const anchor = htmlQuery(this.section, `a[data-reset-type="group"][data-reset-target="${group}"]`);
       //groups might not have anchors if none of their settings are resettable
       if (anchor) {
         const groupSavedResettables = savedResettables.filter((s) => s.group === group);
@@ -1183,7 +1286,7 @@ export class MHLSettingsManager {
       }
     }
     if (opt.settings) {
-      const anchor = htmlQuery(this.section, `a[data-reset-type="setting"][data-reset="${key}"]`);
+      const anchor = htmlQuery(this.section, `a[data-reset-type="setting"][data-reset-target="${key}"]`);
       if (!anchor) return; // defaultless inputs still have change listeners
       const savedResettable = savedResettables.find((s) => s.key === key);
       const formResettable = formResettables.find((s) => s.key === key);
@@ -1212,7 +1315,7 @@ export class MHLSettingsManager {
     //grr checkboxen
     if (input?.type === "checkbox") return input.checked;
     const value = input.value;
-    if (input?.dataset?.dtype === "Number") {
+    if (input?.dataset?.dtype === "Number" || input?.type === "number") {
       if (value === "" || value === null) return null;
       return Number(value);
     }
@@ -1220,12 +1323,12 @@ export class MHLSettingsManager {
   }
 
   #setInputValues(div, value) {
-    const func = `${funcPrefix}##setInputValues`;
+    const func = "##setInputValues";
     if (!this.section) return;
     if (typeof div === "string" && this.#requireSetting(div, { func })) {
       div = this.#settings.get(div).div;
     }
-    const inputs = htmlQueryAll(div, "input, select");
+    const inputs = htmlQueryAll(div, ".form-fields > :is(input, select, range-picker, string-tags, multi-select)");
     for (const input of inputs) {
       //grr checkboxen
       if (input.nodeName === "INPUT" && input.type === "checkbox") {
@@ -1241,7 +1344,7 @@ export class MHLSettingsManager {
   }
 
   #getFormValues() {
-    const func = `${funcPrefix}##getFormValues`;
+    const func = "##getFormValues";
     if (!this.section) return;
     return this.#settings.reduce((acc, setting) => {
       if (setting.formValue) {
@@ -1256,6 +1359,7 @@ export class MHLSettingsManager {
   }
 
   #getSettingKeyFromString(string) {
+    const func = "##getSettingKeyFromString";
     //todo: remember why bailing on null is important
     if (isEmpty(string)) return null;
     string = this.#logCastString(string, "string", `${funcPrefix}##getSettingKeyFromString`);
@@ -1264,12 +1368,13 @@ export class MHLSettingsManager {
   }
 
   #getSettingKeyFromElement(el, dataKey = "settingId") {
-    const func = `${funcPrefix}##getSettingKeyFromElement`;
+    const func = "##getSettingKeyFromElement";
     //todo: localize
     if (!(el instanceof HTMLElement)) {
       throw this.#error("expected an element", { log: { div: el }, func });
     }
-    return this.#getSettingKeyFromString(el.dataset?.[dataKey] ?? htmlQuery(el, "button[data-key]")?.dataset?.key);
+    const key = this.#getSettingKeyFromString(el.dataset?.[dataKey] ?? htmlQuery(el, "button[data-key]")?.dataset?.key);
+    return key;
   }
 
   #expandPartialGroupName(group) {
@@ -1281,7 +1386,7 @@ export class MHLSettingsManager {
   }
 
   #validateEnrichHintsOption() {
-    const func = `${funcPrefix}##validateEnrichHintsOption`;
+    const func = "##validateEnrichHintsOption";
     let enrichers = deeperClone(this.#options.enrichHints);
     const badEnrichers = () => {
       this.#log(
@@ -1317,7 +1422,7 @@ export class MHLSettingsManager {
   }
 
   #processGroupsOption() {
-    const func = `${funcPrefix}##processGroupsOption`;
+    const func = "##processGroupsOption";
     const groups = deeperClone(this.#options.groups);
     const defaults = deeperClone(this.defaultOptions.groups);
     //todo: see if you can actually handle this as a data model in a way you like
@@ -1390,7 +1495,7 @@ export class MHLSettingsManager {
   }
 
   #validateRegistrationData(data) {
-    const func = `${funcPrefix}##validateRegistrationData`;
+    const func = "##validateRegistrationData";
     if (typeof data === "function") data = data();
     //todo: figure out why isEmpty chokes when this is a Collection
     const registerable = new Map();
@@ -1430,7 +1535,7 @@ export class MHLSettingsManager {
   }
 
   #processResetButtonsOption() {
-    const func = `${funcPrefix}##processResetButtonsOption`;
+    const func = "##processResetButtonsOption";
     const defaults = deeperClone(this.defaultOptions.resetButtons);
     let rb = deeperClone(this.#options.resetButtons);
     //no reset buttons
@@ -1478,7 +1583,7 @@ export class MHLSettingsManager {
   }
 
   #processSortOption() {
-    const func = `${funcPrefix}##processSortOption`;
+    const func = "##processSortOption";
     const sort = deeperClone(this.#options.sort);
     const defaults = deeperClone(this.defaultOptions.sort);
     const validation = {
@@ -1531,16 +1636,24 @@ export class MHLSettingsManager {
       },
       { inplace: false }
     );
+    if (options.func) opts.func = `${this.constructor.name}${options.func}`;
     log(loggable, opts);
   }
 
-  #debug(loggable, options) {    
-    return this.#log(loggable, options)
+  #debug(loggable, options) {
+    options.type = "warn";
+    options.clone = true;
+    return this.#log(loggable, options);
   }
 
-  #requireSetting(key, { func = null, potential = false, errorstr = null, context = {} } = {}) {
+  #requireSetting(key, { func = null, potential = false, errorstr, context = {} } = {}) {
     errorstr ??= `MHL.SettingsManager.Error.NotRegistered`;
-    if (!this.#settings.has(key) && (!potential || this.#potentialSettings.has(key))) {
+    const settingData = this.#settings.has(key)
+      ? this.#settings.get(key)
+      : potential && this.#potentialSettings.has(key)
+      ? this.#potentialSettings.get(key)
+      : null;
+    if (!settingData) {
       this.#error(
         { key },
         {
@@ -1549,12 +1662,13 @@ export class MHLSettingsManager {
           func,
         }
       );
-      return false;
+      return null;
     }
-    return true;
+    return settingData;
   }
 
   #logCastString(variable, name, func) {
+    if (func) func = `${this.constructor.name}${func}`;
     return logCastString(variable, name, { func, mod: this.#options.modPrefix });
   }
 

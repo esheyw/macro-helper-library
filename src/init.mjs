@@ -7,7 +7,7 @@ import * as elements from "./elements/index.mjs";
 import { SETTINGS, setting, toggleGlobalAccess, toggleLegacyAccess } from "./settings/settings.mjs";
 import { MODULE_ID, VERIFIED_SYSTEM_VERSIONS, fu } from "./constants.mjs";
 import { registerHandlebarsHelpers } from "./handlebars.mjs";
-import { generateDefaultConfig, iconFontsDefaults } from "./config/config.mjs";
+import { iconFontsDefaults, MHL_CONFIG } from "./config/config.mjs";
 import hljs from "highlight.js/lib/core";
 import hljsJSON from "highlight.js/lib/languages/json";
 hljs.registerLanguage("json", hljsJSON);
@@ -45,7 +45,7 @@ Hooks.once("init", () => {
   //special exposure for ease of grabbing MHL settings
   mod.api.mhlSetting = setting;
 
-  CONFIG[MODULE_ID] = generateDefaultConfig();
+  CONFIG[MODULE_ID] = MHL_CONFIG; //generateDefaultConfig();
 });
 Hooks.once("i18nInit", () => {
   //do as much as possible here or later so errors can be localized
@@ -72,6 +72,7 @@ Hooks.once("setup", () => {
       defer: true,
       deferMessage: async () =>
         apps.MHLDialog.confirm({
+          //todo: localize
           title: "Enable Material Design Font",
           content:
             "Macro & Helper Library requires the Material Design font from Additional Icon Fonts to be enabled or several icons will fail to display. Enable?",
@@ -86,6 +87,7 @@ Hooks.once("ready", () => {
   //register helpers late so checks can be done on existing helpers
   registerHandlebarsHelpers();
 
+  // warn for system compatibility
   const verifiedFor = VERIFIED_SYSTEM_VERSIONS[game.system.id] ?? false;
   if (verifiedFor && game.system.version !== verifiedFor && !fu.isNewerVersion(game.system.version, verifiedFor))
     helpers.mhlWarn(`MHL.Warning.SystemBelowVerified`, {

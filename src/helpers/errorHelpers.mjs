@@ -44,7 +44,7 @@ export function log(
   loggableText = loggableText.trim();
   if (isEmpty(type) || !CONSOLE_TYPES.includes(type)) {
     processedType = setting("debug-mode", { suppress: true })
-      ? setting("log-level")
+      ? setting("log-level", { suppress: true })
       : CONSOLE_TYPES.includes(softType)
       ? softType
       : // this can't be an inferred type or we infinite loop
@@ -80,8 +80,8 @@ export function log(
       banner = mappedType;
     }
     if (banner) {
-      if (game.ready) ui.notifications[banner](text, { console: false, permanent });
-      else error(`MHL.Error.TooEarlyForBanner`, { context: { type: banner, bannerstr: text } });
+      if (game.ready) ui.notifications[banner](loggableText, { console: false, permanent });
+      else error(`MHL.Error.TooEarlyForBanner`, { context: { type: banner, bannerstr: loggableText } });
     }
   }
   if (doConsole) {
@@ -152,6 +152,7 @@ export function mhlWarn(loggable, options = {}) {
 }
 export function mhlog(loggable, options = {}) {
   options.prefix = "MHL";
+  options.type ??= "log";
   return log(loggable, options);
 }
 export function mhlDebug(loggable, options = {}) {
@@ -190,6 +191,7 @@ export function logCast(variable, name, { type = String, func = null, prefix = "
   if (!type) return variable; //todo: logging lol
   const targetType = type.name.toLowerCase();
   if (typeof variable !== targetType) {
+    debugger;
     log(
       { [name]: variable },
       {
