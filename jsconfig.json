@@ -4,7 +4,7 @@
     "target": "ES2022"
     // ,"checkJs": true
   },
-  "exclude": ["mhl.mjs", "node_modules", "**/node_modules/*"],
+  "exclude": ["mhl-dist.mjs", "node_modules", "**/node_modules/*"],
   "include": ["app/**/.js", "**/*.mjs"],
   "typeAcquisition": {
     "include": ["jquery", "highlightjs", "remeda"]

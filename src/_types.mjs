@@ -97,5 +97,8 @@
  *                                               deletion keys are present in the other object.
  * @property {boolean} [mergeArrays=true]        Control whether to merge or replace Arrays
  * @property {boolean} [mergeSets=true]          Control whether to merge or replace Sets
+ * @property {boolean} [mergeMaps=true]          Control whether to merge or replace Maps
+ * @property {boolean} [mergeMapKeys=true]       Controls whether to merge source keys into target or not
+ * @property {boolean} [mergeMapValues=true]     Controls whether to merge source values for existing keys into target or not
  * @property {DeeperCloneOptions} [cloneOptions] Options to pass along to `deeperClone`
  */

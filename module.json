@@ -5,7 +5,7 @@
     "minimum": "11",
     "verified": "11.315"
   },
-  "esmodules": ["mhl.mjs"],
+  "esmodules": ["mhl-dist.mjs"],
   "styles": ["styles/main.css"],
   "authors": [
     {

@@ -6,6 +6,61 @@ import { deeperClone } from "./otherHelpers.mjs";
  * @typedef {import("../_types.mjs").MHLMergeOptions} MHLMergeOptions
  */
 
+export function merge2(
+  items = [],
+  {
+    insertKeys = true,
+    insertValues = true,
+    overwrite = true,
+    recursive = true,
+    inplace = true,
+    enforceTypes = false,
+    performDeletions = false,
+    mergeArrays = true,
+    mergeSets = true,
+    mergeMaps = false,
+    mergeMapKeys = true,
+    mergeMapValues = true,
+    cloneOptions = {},
+  } = {}
+) {
+  items = isArrayish(items) ? Array.from(items) : [];
+  const options = {
+    insertKeys,
+    insertValues,
+    overwrite,
+    recursive,
+    inplace,
+    enforceTypes,
+    performDeletions,
+    mergeArrays,
+    mergeSets,
+    mergeMaps,
+    mergeMapKeys,
+    mergeMapValues,
+    cloneOptions,
+  };
+  if (items.length < 2) throw Error("Must provide at least two items to merge");
+  let target = items.shift();
+  if (!options.inplace) target = deeperClone(target, cloneOptions)
+  if (isArrayish(target)) {
+    if (!items.every(i => isArrayish(i))) throw Error("If the first item is iterable or array-like all items must be")
+    if (target instanceof Set) {
+      let source;
+      while (source = items.shift()) {
+        
+      }
+    }
+  }
+}
+
+function _mergeSets(s1, s2, options) {
+  if (options.inplace) {
+    for (const element of s2)   s1.add(element)
+    
+  }
+
+}
 /**
  * MHL's merge function, based on appV2's
  * @param {Array<Record<string,unknown>>} objects An array of objects to merge. Merges into objects[0] if `options.inplace = true`, a fresh object otherwise.
@@ -32,13 +87,26 @@ export function merge(
 ) {
   objects = Array.isArray(objects) ? objects : isArrayish(objects) ? Array.from(objects) : [];
   if (objects.length < 2) {
-    throw new Error("merge | Must provide at least two objects to merge");
+    throw new Error("Must provide at least two objects to merge");
   }
   if (!isSingleType(objects)) {
-    throw new Error("merge | Provided objects must all be the same type");
+    throw new Error(" Provided objects must all be the same type");
   }
-  // prettier-ignore
-  const options = { insertKeys, insertValues, overwrite, recursive, inplace, enforceTypes, performDeletions, mergeArrays, mergeSets, mergeMapKeys, mergeMapValues, cloneOptions };
+  const options = {
+    insertKeys,
+    insertValues,
+    overwrite,
+    recursive,
+    inplace,
+    enforceTypes,
+    performDeletions,
+    mergeArrays,
+    mergeSets,
+    mergeMaps,
+    mergeMapKeys,
+    mergeMapValues,
+    cloneOptions,
+  };
   const target = options.inplace ? expandInPlace(objects.shift()) : {};
   let source;
   while ((source = objects.shift())) _merge(target, source, options, 0);
@@ -67,6 +135,7 @@ function _merge(target, source, options, depth) {
   }
 
   if (types.every((t) => t === "Set")) {
+    const canMergeSets = depth === 0 || options.mergeSets;
     if (options.inplace) {
       for (const element of source) target.add(element);
     } else {
@@ -113,6 +182,7 @@ function _mergeUpdate(target, key, value, options, depth) {
     target[key] = value;
   }
 }
+
 /**
  * Expands any string keys containing `.` in the provided object, mutating it.
  * @param {Record<string, unknown>} object The object to be expanded
@@ -157,7 +227,11 @@ export function isArrayLike(object) {
 export function isArrayish(object) {
   return isArrayLike(object) || isIterable(object);
 }
-
+/**
+ * Check if all values of a provided iterable have the same `typeof`
+ * @param {Iterable} iterable
+ * @returns {boolean}
+ */
 export function isSingleType(iterable) {
   if (!isArrayish) throw new TypeError("isSingleType | Must be passed an iterable or array-like object.");
   return new Set(Array.from(iterable, (e) => typeof e)).size === 1;
