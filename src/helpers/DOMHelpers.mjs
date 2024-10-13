@@ -3,7 +3,6 @@ createHTMLElement, htmlQuery, htmlQueryAll, and htmlClosest are taken from the P
 */
 
 import { mhlog } from "./errorHelpers.mjs";
-import { getIconClasses, getIconHTMLString } from "./iconHelpers.mjs";
 import { isEmpty, isPlainObject } from "./otherHelpers.mjs";
 import { hasTags } from "./stringHelpers.mjs";
 

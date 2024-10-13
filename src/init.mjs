@@ -5,30 +5,37 @@ import * as util from "./util/index.mjs";
 // import * as data from "./data/index.mjs";
 import * as elements from "./elements/index.mjs";
 import { SETTINGS, setting, toggleGlobalAccess, toggleLegacyAccess } from "./settings/settings.mjs";
-import { MODULE_ID, VERIFIED_SYSTEM_VERSIONS, fu } from "./constants.mjs";
+import { MHL, MODULE, MODULE_ID, VERIFIED_SYSTEM_VERSIONS, fu } from "./constants.mjs";
 import { registerHandlebarsHelpers } from "./handlebars.mjs";
 import { iconFontsDefaults, MHL_CONFIG } from "./config/config.mjs";
+import { MHL as newMHL } from "./MHL.mjs";
+import * as R from "remeda";
 import hljs from "highlight.js/lib/core";
 import hljsJSON from "highlight.js/lib/languages/json";
 hljs.registerLanguage("json", hljsJSON);
-
-export const MODULE = () => game.modules.get(MODULE_ID);
-export const MHL = () => MODULE().api;
-export const AIF_ACTIVE = () => game.modules.get("additional-icon-fonts")?.active;
-export const SM = () => MHL().managers.get(MODULE_ID);
 
 Hooks.once("init", () => {
   // CONFIG.debug.hooks = true;
   const mod = MODULE();
   mod.api = {
-    macros,
     apps,
     util,
     // data,
     hljs,
     elements,
+    macros: {},
+    remeda: R,
   };
-
+  mod.mhl = newMHL
+  helpers.mhlWarn({ macros }, { func: "init" });
+  for (const [macroName, macroEntry] of Object.entries(macros)) {
+    if (typeof macroEntry === "function") {
+      mod.api.macros[macroName] = macroEntry;
+    } else {
+      mod.api.macros[macroName] = macroEntry.fn;
+      //todo: register macroEntry.config somewhere
+    }
+  }
   //helpers go in the root of the api object
   for (const [key, helper] of Object.entries(helpers)) {
     // only fill out system specific helpers if we're in that system

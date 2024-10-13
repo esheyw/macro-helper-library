@@ -10,7 +10,7 @@ import { setting } from "../settings/settings.mjs";
 import { MHLSettingMenu } from "../apps/MHLSettingMenu.mjs";
 import { Accordion } from "./Accordion.mjs";
 import { deeperClone, isPlainObject } from "../helpers/otherHelpers.mjs";
-import { MHL } from "../init.mjs";
+import { MHL } from "../constants.mjs";
 import { MHLSettingsManagerReset } from "../apps/MHLSettingsManagerReset.mjs";
 import * as R from "remeda";
 
@@ -665,7 +665,11 @@ export class MHLSettingsManager {
     // v12+ assigns `default: null` to settings registered without a default
     if ("default" in data) data.realDefault = deeperClone(data.default);
     else if (data.type instanceof foundry.data.fields.DataField) {
-      data.realDefault = data.type.getInitialValue();
+      data.realDefault = data.type.initial; // this is what core uses, I have no 
+    } else if (fu.isSubclass(data.type, foundry.abstract.DataModel)) {
+      // provide default for DataModels, since core won't
+      data.default = new data.type().toObject();
+      data.realDefault = deeperClone(data.default);
     }
 
     //ensure settings have a visible name, even if it's a broken localization key
@@ -1640,7 +1644,7 @@ export class MHLSettingsManager {
     log(loggable, opts);
   }
 
-  #debug(loggable, options) {
+  #debug(loggable, options = {}) {
     options.type = "warn";
     options.clone = true;
     return this.#log(loggable, options);

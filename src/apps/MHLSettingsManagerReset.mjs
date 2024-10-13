@@ -1,25 +1,23 @@
 import { fu, MODULE_ID } from "../constants.mjs";
 import { log, mhlError } from "../helpers/errorHelpers.mjs";
 import { localize } from "../helpers/stringHelpers.mjs";
-import { MHL } from "../init.mjs";
+import { MHL } from "../constants.mjs";
 import { Accordion } from "../util/Accordion.mjs";
 import { MHLSettingsManager } from "../util/MHLSettingsManager.mjs";
+const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
-const funcPrefix = "MHLSettingsManagerReset";
-export class MHLSettingsManagerReset extends foundry.applications.api.HandlebarsApplicationMixin(
-  foundry.applications.api.ApplicationV2
-) {
+export class MHLSettingsManagerReset extends HandlebarsApplicationMixin(ApplicationV2) {
   static DEFAULT_OPTIONS = {
     tag: "form",
     form: {
-      handler: MHLSettingsManagerReset.#submit,
+      // handler: MHLSettingsManagerReset.#submit,
       closeOnSubmit: false,
       submitOnChange: false,
     },
     classes: ["mhl-reset-app", "standard-form"],
     actions: {
-      unset: MHLSettingsManagerReset.#unset,
-      apply: MHLSettingsManagerReset.#apply,
+      // unset: MHLSettingsManagerReset.#unset,
+      // apply: MHLSettingsManagerReset.#apply,
     },
     window: {
       controls: [
@@ -30,6 +28,10 @@ export class MHLSettingsManagerReset extends foundry.applications.api.Handlebars
         },
       ],
       resizable: true,
+    },
+    position: {
+      width: 750,
+      height: "auto",
     },
   };
 
@@ -59,6 +61,9 @@ export class MHLSettingsManagerReset extends foundry.applications.api.Handlebars
         context: { title: this.#module.title },
       });
     }
+    this.options.form.handler = this.#submit.bind(this);
+    this.options.actions.unset = this.#unset.bind(this);
+    this.options.actions.apply = this.#apply.bind(this);
 
     this.#settings = {
       noDefaults: options.settings.noDefaults ?? [],
@@ -76,20 +81,23 @@ export class MHLSettingsManagerReset extends foundry.applications.api.Handlebars
     return this.options.window.title;
   }
 
-  static #unset(event, target) {
-    console.warn({ event, target });
+  #unset(event, target) {
+    this.#debug({ event, target });
   }
-  static #submit(event, target, formData) {
+  #submit(event, target, formData) {
     console.warn({ event, target, formData });
   }
-  static #apply(event, target, ...args) {
+  #apply(event, target, ...args) {
     console.warn({ event, target, args });
   }
 
   async _prepareContext() {
+    const resetType = this.options.resetType;
+    const resetTarget = this.options.resetTarget;
     const settings = this.#settings.hasDefaults.reduce(
       (acc, s) => {
-        const savedValue = this.#manager.get(s.key);
+        let savedValue = this.#manager.get(s.key);
+        if (s.choices) savedValue = localize(s.choices[savedValue]);
         const processedSetting = {
           key: s.key,
           name: s.name ?? "[Unnamed]",
@@ -105,11 +113,15 @@ export class MHLSettingsManagerReset extends foundry.applications.api.Handlebars
         } else {
           if (!acc.groups[s.group]) {
             acc.count++;
-            acc.groups[s.group] = { settings: [], allDefault: true };
+            acc.groups[s.group] = { settings: [], nonDefault: 0 };
           }
-          if (!processedSetting.isDefault) acc.groups[s.group].allDefault = false;
+          if (!processedSetting.isDefault) acc.groups[s.group].nonDefault++;
           acc.groups[s.group].settings.push(processedSetting);
         }
+
+        if (resetType === "setting") acc.setting ??= processedSetting;
+        if (resetType === "group") acc.group ??= acc.groups[resetTarget];
+
         return acc;
       },
       { count: this.#settings.hasDefaults.length, ungrouped: [], groups: {} }
@@ -127,8 +139,8 @@ export class MHLSettingsManagerReset extends foundry.applications.api.Handlebars
       noDefaultsCount: this.options.settings.noDefaults.length,
       noDefaultsTooltip,
       settings,
-      resetType: this.options.resetType,
-      resetTarget: this.options.resetTarget,
+      resetType,
+      resetTarget,
     };
     return context;
   }
@@ -137,15 +149,17 @@ export class MHLSettingsManagerReset extends foundry.applications.api.Handlebars
     const func = "#_onFirstRender";
     this.#debug({ context, options }, { func });
   }
+
   async _onRender(context, options) {
     const func = "#_onRender";
-    new Accordion({
+    const A = new Accordion({
       headingSelector: "div.group-header",
       contentSelector: "div.group-setting-rows",
       wrapperSelector: "div.setting-group-wrapper",
       mod: this.options.modPrefix,
-      initialOpen: Infinity
-    }).bind(this.element);
+      initialOpen: Infinity,
+    });
+    A.bind(this.element);
     this.#debug({ context, options }, { func });
   }
 
@@ -171,7 +185,7 @@ export class MHLSettingsManagerReset extends foundry.applications.api.Handlebars
     log(loggable, opts);
   }
 
-  #debug(loggable, options) {
+  #debug(loggable, options = {}) {
     options.type = "warn";
     options.clone = true;
     return this.#log(loggable, options);

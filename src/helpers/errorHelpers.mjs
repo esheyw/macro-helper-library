@@ -166,7 +166,7 @@ export function isPF2e() {
 
 export function requireSystem(system, options = {}) {
   //todo: add min/max version options
-  options = fu.mergeObject(
+  const opts = fu.mergeObject(
     {
       context: { system },
       banner: true,
@@ -174,7 +174,7 @@ export function requireSystem(system, options = {}) {
     options,
     { inplace: false }
   );
-  if (game.system.id !== system) throw error(`MHL.Error.RequiresSystem`, options);
+  if (game.system.id !== system) throw error(`MHL.Error.RequiresSystem`, opts);
 }
 
 export function logCastString(variable, name, { func = null, prefix = "MHL" } = {}) {

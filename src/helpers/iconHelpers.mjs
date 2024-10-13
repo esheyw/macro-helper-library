@@ -254,9 +254,7 @@ export function getTypeIcon(type) {
   return { glyph, tooltip };
 }
 export function getTypeIconHTML(type) {
-  
   let { glyph, tooltip } = getTypeIcon(type);
-
   const primaryIcon = getIconHTMLString(glyph);
   let secondaryIcon;
   if (type instanceof foundry.data.fields.SetField) {
@@ -264,5 +262,7 @@ export function getTypeIconHTML(type) {
     secondaryIcon = `<span class="inner-type">${getIconHTMLString(innerGlyph)}</span>`;
     tooltip += `(${innerTooltip})`;
   }
-  return primaryIcon + (secondaryIcon ? `(${secondaryIcon})` : "");
+  const span = createHTMLElement("span", { dataset: { tooltip } });
+  span.innerHTML = primaryIcon + (secondaryIcon ? `(${secondaryIcon})` : "");
+  return span.outerHTML;
 }

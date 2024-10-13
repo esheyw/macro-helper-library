@@ -1,7 +1,6 @@
 import { MHLManagerDefaultsMenu } from "../apps/MHLManagerDefaultsMenu.mjs";
-import { MODULE_ID } from "../constants.mjs";
 import { mhlError } from "../helpers/errorHelpers.mjs";
-import { MHL, SM } from "../init.mjs";
+import { MHL, SM , MODULE_ID} from "../constants.mjs";
 import { MHLSettingsManager } from "../util/MHLSettingsManager.mjs";
 import { SettingManagerDefaults } from "./models/SettingsManagerDefaults.mjs";
 
@@ -36,7 +35,7 @@ export const SETTINGS = () => ({
     config: true,
     scope: "world",
     group: ".SettingsManager",
-    onChange: MHLSettingsManager.updateAccordionSpeed
+    onChange: MHLSettingsManager.updateAccordionSpeed,
   },
   "debug-mode": {
     config: true,
@@ -105,8 +104,8 @@ export function toggleLegacyAccess(value) {
         : "game.pf2emhl already registered by an unknown source, cannot enable legacy access.";
       throw mhlError(errorstr);
     }
-    globalThis.mhl = MHL();
-  } else if (globalThis.mhl === MHL()) delete globalThis.mhl;
+    game.pf2emhl = MHL();
+  } else if (game.pf2emhl === MHL()) delete game.pf2emhl;
 }
 
 export function setting(key, { suppress = false } = {}) {

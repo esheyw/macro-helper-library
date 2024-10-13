@@ -174,16 +174,18 @@ export function signedInteger(value, { emptyStringZero = false, zeroIsNegative =
  * respecting the Oxford Comma
  *
  * @export
- * @param {StringArgs} list
+ * @param {string[]} list An array of values 
+ * @param {object} [options] Options
+ * @param {string} [options.and="and"] A string to replace the word "and" with
  * @returns {string}
  */
-export function oxfordList(list) {
+export function oxfordList(list, { and = "and" } = {}) {
   list = (Array.isArray(list) ? list : [list]).filter((e) => !!e).map((e) => String(e));
   if (list.length <= 1) return list?.[0] ?? "";
-  if (list.length === 2) return list.join(" and ");
+  if (list.length === 2) return list.join(` ${and} `);
   const last = list.at(-1);
   const others = list.splice(0, list.length - 1);
-  return `${others.join(", ")}, and ${last}`;
+  return `${others.join(", ")}, ${and} ${last}`;
 }
 
 /**
@@ -251,4 +253,8 @@ export function stripTags(text) {
   text = logCastString(text, "text", { func: "stripTags" });
   const doc = new DOMParser().parseFromString(html, "text/html");
   return doc.body.textContent || "";
+}
+
+export function splitOnFirstDot(str) {
+  return String(str).split(/\.(.*)/);
 }

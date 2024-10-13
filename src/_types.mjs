@@ -1,11 +1,6 @@
 /**
- * The return value of a sort callback
- * @typedef {-1|0|1} ComparisonResult
- */
-
-/**
  * A function passable to `Array#sort` or similar
- * @typedef {(a:any,b:any) => ComparisonResult} SortCallback
+ * @typedef {(a:any,b:any) => number} SortCallback
  */
 
 /**
@@ -66,4 +61,41 @@
  * @property {Record<string,string>} [aliases] A set of key/value substitutions to run on input before matching.
  * @property {string} [file] The CSS file for this icon font (only optional because FA is provided by core)
  
+ */
+
+/**
+ * @typedef {object} DeeperCloneOptions
+ * Options for MHL's `deeperClone` function
+ * @property {boolean} [strict=false]           Throw an Error if deeperClone is unable to clone something instead of returning the original
+ * @property {boolean} [returnOriginal=true]    Whether to pass along the reference to an uncloneable complex object, or replace with undefined
+ * @property {boolean} [cloneSets=false]         Whether to clone Sets or pass along the original reference
+ * @property {boolean} [cloneSetValues=false]   Whether to clone Set values, or pass along the original reference. Does nothing if cloneSets is false
+ * @property {boolean} [cloneMaps=false]        Whether to clone Maps/Collections or pass along the original reference
+ * @property {boolean} [cloneMapKeys=false]     Whether to clone Map/Collection keys, or pass along the original reference. Does nothing if cloneMaps is false
+ * @property {boolean} [cloneMapValues=false]   Whether to clone Map/Collection values, or pass along the original reference. Does nothing if cloneMaps is false
+ */
+
+/**
+ * @typedef {object} MHLMergeOptions
+ * Options for MHL's `merge` function
+ * @property {boolean} [insertKeys=true]         Control whether to insert new top-level objects into the resulting
+ *                                                structure which do not previously exist in the original object.
+ * @property {boolean} [insertValues=true]       Control whether to insert new nested values into child objects in
+ *                                               the resulting structure which did not previously exist in the
+ *                                               original object.
+ * @property {boolean} [overwrite=true]          Control whether to replace existing values in the source, or only
+ *                                               merge values which do not already exist in the original object.
+ * @property {boolean} [recursive=true]          Control whether to merge inner-objects recursively (if true), or
+ *                                               whether to simply replace inner objects with a provided new value.
+ * @property {boolean} [inplace=true]            Control whether to apply updates to the original object in-place
+ *                                               (if true), otherwise the original object is duplicated and the
+ *                                               copy is merged.
+ * @property {boolean} [enforceTypes=false]      Control whether strict type checking requires that the value of a
+ *                                               key in the other object must match the data type in the original
+ *                                               data to be merged.
+ * @property {boolean} [performDeletions=false]  Control whether to perform deletions on the original object if
+ *                                               deletion keys are present in the other object.
+ * @property {boolean} [mergeArrays=true]        Control whether to merge or replace Arrays
+ * @property {boolean} [mergeSets=true]          Control whether to merge or replace Sets
+ * @property {DeeperCloneOptions} [cloneOptions] Options to pass along to `deeperClone`
  */

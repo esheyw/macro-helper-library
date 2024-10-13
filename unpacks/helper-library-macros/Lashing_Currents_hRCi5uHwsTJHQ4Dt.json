@@ -4,7 +4,7 @@
   "scope": "global",
   "author": "xuYHxk9sJoYKM7d6",
   "img": "icons/magic/water/waves-water-blue.webp",
-  "command": "const mod = game.modules.get('pf2e-macro-helper-library');\nif (!mod) return void ui.notifications.error('Requires Macro & Helper Library enabled to function.');\nawait mod.api.macros.lashingCurrents();",
+  "command": "const mod = game.modules.get('macro-helper-library');\nif (!mod) return void ui.notifications.error('Requires Macro & Helper Library enabled to function.');\nawait mod.api.macros.lashingCurrents();",
   "folder": "BGI6d8auWJmom7Hu",
   "ownership": {
     "default": 0

@@ -1,7 +1,7 @@
 import { MODULE_ID, fu } from "../constants.mjs";
 import { htmlClosest, htmlQuery, htmlQueryAll } from "../helpers/DOMHelpers.mjs";
 import { getIconClasses, getIconHTMLString } from "../helpers/iconHelpers.mjs";
-import { SM } from "../init.mjs";
+import { SM } from "../constants.mjs";
 
 export class MHLManagerDefaultsMenu extends FormApplication {
   settingName = "manager-defaults";

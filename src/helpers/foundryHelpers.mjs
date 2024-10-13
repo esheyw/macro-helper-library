@@ -1,7 +1,8 @@
 import { MHLDialog } from "../apps/MHLDialog.mjs";
 import { fu } from "../constants.mjs";
 import { mhlError } from "./errorHelpers.mjs";
-import { prependIndefiniteArticle } from "./stringHelpers.mjs";
+import { deeperClone } from "./otherHelpers.mjs";
+import { prependIndefiniteArticle, splitOnFirstDot } from "./stringHelpers.mjs";
 import * as R from "remeda";
 
 export function foundryLightOrDarkTheme() {
@@ -197,15 +198,77 @@ export function getCSSVarsFromFoundryByScope(vars) {
   if (!R.isPlainObject(vars)) return vars;
   const out = {};
   const href = `${document.location.origin}/css/style.css`;
-  const sheet = Array.from(document.styleSheets).find((sheet) => /^(?:(?!modules\/|systems\/).)*css\/style.css$/.test(sheet.href));
+  const sheet = Array.from(document.styleSheets).find((sheet) =>
+    /^(?:(?!modules\/|systems\/).)*css\/style.css$/.test(sheet.href)
+  );
   const rules = Array.from(sheet.cssRules).filter((rule) => rule instanceof CSSStyleRule);
-  for (const [scope, props] of Object.entries(vars)) {    
-    const rule = rules.find(r => r.selectorText === scope);
-    if (!rule || !Array.isArray(props)) continue;    
-    out[scope] = {}    
+  for (const [scope, props] of Object.entries(vars)) {
+    const rule = rules.find((r) => r.selectorText === scope);
+    if (!rule || !Array.isArray(props)) continue;
+    out[scope] = {};
     for (const key of props) {
-      out[scope][key] = rule.style.getPropertyValue(key)
+      out[scope][key] = rule.style.getPropertyValue(key);
     }
   }
   return out;
+}
+
+//prettier-ignore
+export function isCompatible(version, compatibility) {
+  return (
+    (!compatibility.minimum 
+      || compatibility.minimum === version 
+      || !fu.isNewerVersion(compatibility.minimum, version))
+    &&
+    (!compatibility.maximum 
+      || compatibility.maximum === version 
+      || !fu.isNewerVersion(version, compatibility.maximum))
+  );
+}
+
+export function getAllSettingsOfPackage(id, { clone = true } = {}) {  
+  const clientStorage = game.settings.storage.get("client");
+  const out = {
+    saved: {
+      client: Object.keys(clientStorage).reduce((client, key) => {
+        const [prefix, settingKey] = splitOnFirstDot(key);
+        if (prefix === id) {
+          client[settingKey] = JSON.parse(clientStorage[key]);
+        }
+        return client;
+      }, {}),
+      world: game.settings.storage.get("world").reduce((world, setting) => {
+        const [modID, settingKey] = splitOnFirstDot(setting.key);
+        if (modID === id) world[settingKey] = game.settings.get(id, settingKey);
+        return world;
+      }, {}),
+    },
+    registered: [...game.settings.settings.entries()].reduce(
+      (reg, [key, data]) => {
+        const [prefix, settingKey] = splitOnFirstDot(key);
+        if (prefix === id) reg[data.scope][settingKey] = clone ? deeperClone(data) : data;
+        return reg;
+      },
+      { client: {}, world: {} }
+    ),
+    unsaved: { client: [], world: [] },
+  };
+  for (const scope in out.registered) {
+    out.unsaved[scope] = Object.keys(out.registered[scope]).filter((k) => !(k in out.saved[scope]));
+  }
+  return out;
+}
+
+export async function updateModelSetting(namespace, key, value, options = {}) {
+  if (!R.isPlainObject(value)) {
+    if (typeof value.toObject === "function") value = value.toObject();
+    else throw new Error("Value must be a plain object or implement toObject.");
+  }
+  const settingData = game.settings.settings.get(`${namespace}.${key}`);
+  if (!settingData) throw new Error(`Setting "${namespace}.${key}" is not registered.`);
+  if (!fu.isSubclass(settingData.type, foundry.abstract.DataModel))
+    throw new Error(`Setting "${namespace}.${key}" is not registered as a DataModel. `);
+  const currentValue = game.settings.get(namespace, key) ?? new settingData.type().toObject();
+  currentValue.updateSource(value, options)
+  return game.settings.set(namespace, key, currentValue, options)
 }

@@ -67,7 +67,9 @@ const mhlOriginals = {
   "mhl-json": (data, options = {}) => {
     const indent = options.hash?.indent ?? 2;
     const replacer = typeof options.hash?.replacer === "function" ? options.hash.replacer : null;
-    return JSON.stringify(data, replacer, Number(indent));
+    const out = JSON.stringify(data, replacer, Number(indent));
+    mhlog({out, data, replacer, indent}, {func: "mhl-json"});
+    return new Handlebars.SafeString(out);
   },
   "mhl-sluggify": (value, options) => sluggify(String(value), options.hash),
   "mhl-array": (...args) => args.slice(0, -1),

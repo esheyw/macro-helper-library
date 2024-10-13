@@ -1,6 +1,6 @@
 import { fu } from "../constants.mjs";
 import { mhlog } from "./errorHelpers.mjs";
-
+import * as R from "remeda";
 /**
  * @typedef {import("../_types.mjs").SortCallback} SortCallback
  */
@@ -74,6 +74,9 @@ export function getStringArgs(inputs, { join, split = /\s+/, map, unique = false
 }
 
 /**
+ * @typedef {import("../_types.mjs").DeeperCloneOptions} DeeperCloneOptions
+ */
+/**
  * A modified `foundry.utils.deepClone` that (arguably) handles cloning Maps, Collections, and Sets
  *
  * Quickly clone a simple piece of data, returning a copy which can be mutated safely.
@@ -81,51 +84,69 @@ export function getStringArgs(inputs, { join, split = /\s+/, map, unique = false
  * This method DOES support Dates, Sets, Maps and Collections
  * This method DOES NOT support anything beyond that.
  * @param {*} original                     Some sort of data
- * @param {object} [options]               Options to configure the behaviour of deepClone
- * @param {boolean} [options.strict=false]  Throw an Error if deepClone is unable to clone something instead of
- *                                          returning the original
- * @param {boolean} [options.cloneKeys=true] Whether to copy Map/Collection keys as reference, or clone them
- * @param {boolean} [options.cloneValues=true] Whether to copy Set/Map/Collection keys as reference, or clone them
- * TODO: why is this not in use anymore it seemed important
- * @param {number} [options._d]             An internal depth tracker
+ * @param {DeeperCloneOptions} [options]   Options to configure the behaviour of deeperClone
  * @return {*}                             The clone of that data
  */
 export function deeperClone(
   original,
-  { strict = false, returnOriginal = true, cloneKeys = true, cloneValues = true } = {}
+  {
+    strict = false,
+    returnOriginal = true,
+    cloneSets = true,
+    cloneSetValues = false,
+    cloneMaps = false,
+    cloneMapKeys = false,
+    cloneMapValues = false,
+  } = {}
 ) {
+  const options = { strict, returnOriginal, cloneSets, cloneSetValues, cloneMaps, cloneMapKeys, cloneMapValues };
+  return _deeperClone(original, options, 0);
+}
+
+function _deeperClone(original, options, depth) {
+  if (depth > 100) {
+    throw new Error("Maximum depth exceeded. Be sure your object does not contain cyclical data structures.");
+  }
+  depth++;
+
   // Simple types
   if (typeof original !== "object" || original === null) return original;
-  const options = { strict, returnOriginal, cloneKeys, cloneValues };
-  // Arrays
-  if (original instanceof Array) return original.map((o) => deeperClone(o, options));
-  // Sets
+
+  // Arrays and their elements always get cloned as per Foundry's handling
+  if (original instanceof Array) return original.map((o) => _deeperClone(o, options, depth));
+
   if (original instanceof Set) {
-    const out = new Set();
-    for (const element of original) out.add(cloneValues ? deeperClone(element, options) : element);
-    return out;
+    if (options.cloneSets) return original.map((o) => (options.cloneSetValues ? _deeperClone(o, options, depth) : o));
+    else return original;
   }
+
   // Maps & Collections
   if (original instanceof Map) {
-    const out = new original.constructor();
-    for (const [k, v] of original.entries())
-      out.set(cloneKeys ? deeperClone(k, options) : k, cloneValues ? deeperClone(v, options) : v);
-    return out;
+    if (options.cloneMaps) {
+      const out = new original.constructor();
+      for (const [k, v] of original.entries())
+        out.set(
+          options.cloneMapKeys ? _deeperClone(k, options, depth) : k,
+          options.cloneMapValues ? _deeperClone(v, options, depth) : v
+        );
+      return out;
+    } else return original;
   }
+  
   // Dates
   if (original instanceof Date) return new Date(original);
 
   // Unsupported advanced objects
   if (original.constructor && original.constructor !== Object) {
     //todo: localize
-    if (strict) throw new Error("deepClone cannot clone advanced objects");
+    if (strict) throw new Error("deeperClone cannot clone advanced objects");
     return returnOriginal ? original : undefined;
   }
 
   // Other objects
   const clone = {};
-  for (let k of Object.keys(original)) {
-    clone[k] = deeperClone(original[k], options);
+  for (const k of Object.keys(original)) {
+    clone[k] = _deeperClone(original[k], options, depth);
   }
   return clone;
 }
@@ -140,6 +161,7 @@ export function deeperClone(
 
 export function isEmpty(value) {
   const isEmptyObject = (a) => {
+    // convert to collection to get access to .some()
     a = a?.constructor?.name === "Map" ? new Collection(a) : a;
     // all have a .some() in foundry at least
     if (Array.isArray(a) || a instanceof Collection || a instanceof Set) {
@@ -233,38 +255,31 @@ export function filterObject(
   template,
   { recursive = true, deletionKeys = false, templateValues = false } = {}
 ) {
-  // Validate input
-  const ts = fu.getType(source);
-  const tt = fu.getType(template);
-  //todo: localize error
-  if (ts !== "Object" || tt !== "Object") throw new Error("One of source or template are not Objects!");
+  if (!R.isPlainObject(source) || !R.isPlainObject(template))
+    throw new Error("filterObject | Both source and template must be plain objects.");
 
-  // Define recursive filtering function
-  const _filter = function (s, t, filtered, recursive) {
-    for (let [k, v] of Object.entries(s)) {
-      let has = t.hasOwnProperty(k);
-      let x = t[k];
+  const options = { recursive, deletionKeys, templateValues };
 
-      // Case 1 - inner object
-      if (has && fu.getType(v) === "Object" && fu.getType(x) === "Object") {
-        filtered[k] = recursive ? _filter(v, x, {}) : v;
+  return _filterObject(source, template, {}, options);
+}
+
+function _filterObject(source, template, filtered, options) {
+  for (const [key, value] of Object.entries(source)) {
+    const existsInTemplate = template.hasOwnProperty(key);
+    const templateValue = template[key];
+
+    if (existsInTemplate) {
+      if (R.isPlainObject(value) && R.isPlainObject(templateValue)) {
+        filtered[key] = options.recursive ? _filterObject(value, templateValue, filtered, options) : value;
+      } else {
+        filtered[key] = options.templateValues ? templateValue : value;
       }
-
-      // Case 2 - inner key
-      else if (has) {
-        filtered[k] = templateValues ? x : v;
-      }
-
-      // Case 3 - special key
-      else if (deletionKeys && k.startsWith("-=")) {
-        filtered[k] = v;
-      }
+    } else if (options.deletionKeys && key.startsWith("-=")) {
+      //should be keepDeletionKeys but we're matching the foundry API
+      filtered[key] = value;
     }
-    return filtered;
-  };
-
-  // Begin filtering at the outer-most layer
-  return _filter(source, template, {}, recursive);
+  }
+  return filtered;
 }
 /**
  * Function that returns its first parameter.

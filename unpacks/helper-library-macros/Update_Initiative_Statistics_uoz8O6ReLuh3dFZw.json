@@ -5,7 +5,7 @@
   "author": "xuYHxk9sJoYKM7d6",
   "img": "modules/macro-helper-library/assets/game-icons.net/whitebackground-skills.svg",
   "scope": "global",
-  "command": "const mod = game.modules.get('pf2e-macro-helper-library');\nif (!mod) return void ui.notifications.error('Requires Macro & Helper Library enabled to function.');\nawait mod.api.macros.updateInitiativeStatistics();",
+  "command": "const mod = game.modules.get('macro-helper-library');\nif (!mod) return void ui.notifications.error('Requires Macro & Helper Library enabled to function.');\nawait mod.api.macros.updateInitiativeStatistics();",
   "folder": "BGI6d8auWJmom7Hu",
   "sort": 112500,
   "ownership": {

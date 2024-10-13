@@ -1,34 +1,58 @@
 body {
-  --mhl-frame-color-1: var(--color-primary-1, var(--color-bg-trait));
-  --mhl-frame-color-2: var(--color-primary-2, var(--color-pf-primary-light));
-  --mhl-text-color: var(--text-dark);
-  --mhl-text-header-color: var(--mhl-text-color);
-  --mhl-reset-text-shadow: 1px 1px 2px var(--color-border-dark-tertiary);
+  --mhl-text-color: var(--color-text-primary); //foundry default
+  --mhl-text-color-inverted: var(--color-dark-1);
+  --mhl-text-table-header-color: var(--mhl-text-color-inverted);
+  --mhl-table-header-background-color: var(--color-cool-5);
+  --mhl-table-subheader-background-color: color-mix(
+    in srgb,
+    var(--mhl-table-header-background-color),
+    rgba(255, 255, 255, 0.1)
+  );
+  --mhl-text-error-decoration: underline wavy var(--mhl-color-failure);
 
-  --mhl-color-success: var(--color-level-success, rgb(35, 131, 35));
+  --mhl-color-box-border-color: white;
+  --mhl-frame-color-1: var(--color-primary-1, var(--color-bg-trait, var(--color-warm-1)));
+  --mhl-frame-color-2: var(--color-primary-2, var(--color-pf-primary-light));
+
+  --mhl-reset-text-shadow: none;
+  --mhl-checkbox-checked-color: var(--color-warm-1);
+  --mhl-input-border-color: var(--color-border-dark-tertiary);
+  --mhl-input-disabled-background: var(--color-disabled, var(--color-cool-4));
+
+  --mhl-color-success: var(--color-level-success); //foundry
+  --mhl-color-success-bg: var(--color-level-success-bg);
   --mhl-color-warning: var(--color-level-warning, #ee9b3a);
   --mhl-color-failure: var(--color-level-failure, rgb(148, 16, 16));
-  --mhl-checkbox-checked-color: var(--color-warm-1);
-  --mhl-input-disabled-background: var(--color-disabled, var(--color-text-dark-4, #555));
-  --mhl-input-border-color: var(--color-border-dark-tertiary);
-  --mhl-color-box-border-color: black;
+
+  &.theme-light .application {
+    // --mhl-text-color: var(--text-color-primary);  //foundry default
+    --mhl-text-color-inverted: var(--color-text-light-highlight);
+    --mhl-text-table-header-color: var(--mhl-text-color-inverted);
+    --mhl-color-box-border-color: black;
+    --mhl-reset-text-shadow: 1px 1px 2px var(--color-border-dark-tertiary);
+  }
+
+  .window-app .window-contents {
+    --mhl-text-color: var(--color-text-dark-primary); //foundry default, dorako overrides
+    --mhl-color-box-border-color: black;
+  }
+
+  [data-color-scheme="light"] {
+    // --mhl-text-color: var()
+    --mhl-reset-text-shadow: 1px 1px 2px var(--color-border-dark-tertiary);
+  }
+
   [data-theme] {
-    --mhl-checkbox-checked-color: var(--accent-color)
-    --mhl-input-disabled-background: var(--input-disabled-background)
+    --mhl-checkbox-checked-color: var(--accent-color);
+    --mhl-input-disabled-background: var(--input-disabled-background);
   }
-  [data-color-scheme="dark"], &.theme-dark .application {
-    --mhl-color-box-border-color: white;
-    --mhl-text-color: var(--text-color-1, var(--text-light));
-    --mhl-text-header-color: var(--mhl-text-color);
-    --mhl-reset-text-shadow: none;
-  }
-  --mhl-text-error-decoration: underline wavy var(--mhl-color-failure);
+
   --mhl-accordion-speed: 350ms;
   --mhl-mdi-size: 1.1em;
 }
 
 .mhl-display-none {
-  display: none;
+  display: none !important;
 }
 
 .mhl-pre-tooltip {

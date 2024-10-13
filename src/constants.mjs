@@ -16,3 +16,9 @@ export const LABELABLE_TAGS = ["button", "input", "meter", "output", "progress",
 export const VERIFIED_SYSTEM_VERSIONS = {
   pf2e: "6.0.4",
 };
+
+export const MODULE = () => game.modules.get(MODULE_ID);
+export const MHL = () => MODULE().api;
+export const AIF_ACTIVE = () => game.modules.get("additional-icon-fonts")?.active;
+export const SM = () => MHL().managers.get(MODULE_ID);
+export const MHL2 = () => MODULE().mhl

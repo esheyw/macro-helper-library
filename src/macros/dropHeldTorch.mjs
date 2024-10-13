@@ -1,7 +1,13 @@
 import { oneTokenOnly } from "../helpers/tokenHelpers.mjs";
 import { mhlError, requireSystem } from "../helpers/errorHelpers.mjs";
 
-export async function dropHeldTorch() {
+const config = {
+  fn: dropHeldTorch,
+  config: {}
+}
+export default config;
+
+async function dropHeldTorch() {
   const func = "dropHeldTorch";
   requireSystem("pf2e", `MHL | ${func}`);
   //Check for exactly one selected token

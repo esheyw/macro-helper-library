@@ -6,7 +6,7 @@ import { localize } from "../helpers/stringHelpers.mjs";
 
 export async function updateInitiativeStatistics() {
   const func = "updateInitiativeStatistics";
-  requireSystem("pf2e", `MHL | ${func}`);
+  requireSystem("pf2e", {func});
   const tokens = anyTokens().filter(
     (t) => ["character", "npc"].includes(t.actor.type) && !t.actor.traits.intersects(new Set(["minion", "eidolon"]))
   );
@@ -25,8 +25,7 @@ export async function updateInitiativeStatistics() {
     });
   };
 
-  const universalSkills = fu.deepClone(CONFIG.PF2E.skillList);
-  delete universalSkills.lore; //remove the generic Lore entry
+  const universalSkills = fu.deepClone(CONFIG.PF2E.skills);
   const lores = {};
 
   const actorsData = tokens.reduce((actoracc, t) => {
