@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "module": "es6",
+    "target": "ES2022"
+    // ,"checkJs": true
+  },
+  "exclude": ["mhl.mjs", "node_modules", "**/node_modules/*"],
+  "include": ["app/**/.js", "**/*.mjs"],
+  "typeAcquisition": {
+    "include": ["jquery", "highlightjs", "remeda"]
+  }
+}
