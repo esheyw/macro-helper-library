@@ -10,4 +10,4 @@ node_modules
 app
 client.mjs
 dist
-mhl.mjs
+mhl-dist.mjs
